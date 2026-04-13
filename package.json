@@ -13,7 +13,10 @@
     "test:watch": "vitest",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f postgres"
+    "docker:logs": "docker compose logs -f postgres",
+    "prisma:init": "npx prisma init",
+    "prisma:generate": "npx prisma generate",
+    "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
@@ -47,6 +50,7 @@
     "@radix-ui/react-toggle": "1.1.2",
     "@radix-ui/react-toggle-group": "1.1.2",
     "@radix-ui/react-tooltip": "1.1.8",
+    "@prisma/client": "^5.13.0",    
     "canvas-confetti": "1.9.4",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -78,7 +82,8 @@
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "4.7.0",
     "tailwindcss": "4.1.12",
-    "vite": "6.4.2"
+    "vite": "6.4.2",
+    "prisma": "^5.13.0"
   },
   "peerDependencies": {
     "react": "18.3.1",

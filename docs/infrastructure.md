@@ -6,11 +6,13 @@ Documento orientado a desarrolladores que deben entender el proyecto y añadir f
 
 ## 1. Resumen ejecutivo
 
-**HabitHero** es una aplicación web **SPA (Single Page Application)** escrita en **TypeScript** con **React**. El estado de hábitos y recompensas vive hoy en **memoria del cliente** (`useState` en el componente raíz); no hay API ni base de datos integrada en el código actual.
+**HabitHero** es una aplicación web **SPA (Single Page Application)** escrita en **TypeScript** con **React**. El estado de hábitos y recompensas vive hoy en **memoria del cliente** (`useState` en el componente raíz); la UI **aún no** consume una API propia del proyecto.
+
+Para **persistencia** el repositorio incluye **Prisma ORM** (cliente y CLI **5.x**, alineados con `@prisma/client`) y un esquema **PostgreSQL** en `backend/prisma/schema.prisma`. Un servicio **PostgreSQL 16** (imagen Alpine) se levanta con **`docker-compose.yml`** en la raíz; la cadena de conexión se define con **`DATABASE_URL`** en `.env` (ver [§7](#7-principales-ficheros-de-configuración) y [§12](#12-base-de-datos-prisma-y-docker)).
 
 El empaquetado y el servidor de desarrollo los proporciona **Vite**. Los estilos se basan en **Tailwind CSS v4** (plugin oficial de Vite) y en variables CSS de tema (patrón tipo **shadcn/ui** con **Radix UI** y utilidades como `cn()`).
 
-En `package.json` existen scripts para **Docker** y **Vitest/ESLint**, pero en el repositorio **no aparece** `docker-compose.yml` ni `vitest`/eslint en `devDependencies` (ver [§8 Notas y advertencias](#8-notas-y-advertencias)).
+En `package.json` siguen existiendo scripts para **Vitest/ESLint** que pueden requerir dependencias o configuración adicional no detalladas aquí (ver [§11 Notas y advertencias](#11-notas-y-advertencias)).
 
 ---
 
@@ -32,6 +34,8 @@ En `package.json` existen scripts para **Docker** y **Vitest/ESLint**, pero en e
 | Primitivos accesibles (UI kit) | Radix UI (`@radix-ui/react-*`) | Varias **1.x–2.x** (ver `package.json`) | Diálogos, menús, formularios accesibles |
 | Componentes Material | MUI (`@mui/material`, `@emotion/*`) | **7.3.5** / **11.14.x** | Disponibles; la pantalla principal no depende de ellos de forma obligatoria |
 | Formularios / UX adicionales | `react-hook-form`, `motion`, `recharts`, `react-router`, etc. | Ver `package.json` | Librerías listas para pantallas más complejas; **React Router** está instalado pero **no se usa aún** en `App.tsx` |
+| ORM / acceso a datos | **Prisma** (`prisma`, `@prisma/client`) | **^5.13.0** (resolución típica **5.22.x** en lockfile) | Esquema y cliente generado para **PostgreSQL** |
+| Base de datos (desarrollo / local) | **PostgreSQL** | **16** (`postgres:16-alpine` en Docker) | Motor al que apunta `DATABASE_URL` del esquema Prisma |
 
 **Versión de la aplicación:** `0.0.1` (`package.json`, campo `version`).
 
@@ -58,9 +62,11 @@ En `package.json` existen scripts para **Docker** y **Vitest/ESLint**, pero en e
 | **Componentes de dominio** | `src/app/components/*.tsx` | UI de negocio: cabecera, filas de hábito, calendario semanal, tarjetas de estadísticas/recompensas, modales. |
 | **Kit UI reutilizable** | `src/app/components/ui/*` | Primitivos (botones, diálogos, tablas, etc.) alineados con Radix + Tailwind + CVA. |
 | **Utilidades UI** | `src/app/components/ui/utils.ts`, `use-mobile.ts` | Helpers (`cn`, detección móvil). |
-| **Figma / diseño** | `src/app/components/figma/ImageWithFallback.tsx` | Imagen con fallback (útil si se exporta diseño desde Figma). |
+| **Figma / diseño** | `src/app/components/media_handler/ImageWithFallback.tsx` | Imagen con fallback (útil si se exporta diseño desde Figma). |
 | **Estilos globales** | `src/styles/*` | Encadenado: fuentes → Tailwind → tema (variables CSS). |
 | **OpenSpec (metodología)** | `openspec/config.yaml` | Configuración para flujo spec-driven con IA (propuestas, tareas); no afecta al runtime de la app. |
+| **Capa de datos (Prisma)** | `backend/prisma/schema.prisma` | Define el **datasource** PostgreSQL (`DATABASE_URL`), el **generator** `prisma-client-js` y los modelos de dominio actuales (p. ej. `User`, `Calendar`). El cliente se genera con `prisma generate`. |
+| **PostgreSQL (Docker)** | `docker-compose.yml` | Servicio `postgres` con volumen persistente; credenciales y nombre de BD vía variables de entorno (ver [§12](#12-base-de-datos-prisma-y-docker)). |
 
 ---
 
@@ -77,7 +83,9 @@ Flujo de **producción**:
 1. `npm run build` genera `dist/`.
 2. Un servidor web estático sirve `index.html` y los assets con hash; el cliente ejecuta el mismo grafo de React sin Vite.
 
-**Dependencias de datos:** no hay llamadas HTTP en el código analizado; el estado es **local** al árbol de React bajo `App`.
+**Dependencias de datos (UI):** no hay llamadas HTTP en el código de la SPA analizado; el estado de la interfaz es **local** al árbol de React bajo `App`.
+
+**Persistencia preparada:** Prisma + PostgreSQL existen en el repo para cuando exista un proceso (p. ej. backend o scripts) que instancie `PrismaClient` y ejecute migraciones; no forman parte aún del flujo obligatorio de `npm run dev` de la SPA.
 
 ```mermaid
 flowchart LR
@@ -103,6 +111,12 @@ flowchart LR
     Domain --> UI
   end
 
+  subgraph data["Datos opcional local"]
+    PG[(PostgreSQL Docker)]
+    Prisma[Prisma schema + client]
+    Prisma -.->|DATABASE_URL| PG
+  end
+
   BrowserDev --> Main
   BrowserProd --> Main
 ```
@@ -117,6 +131,7 @@ flowchart LR
 - **Tailwind**: Estilos como clases en `className`. Evita escribir mucho CSS suelto; consulta la doc de Tailwind v4 para nuevas utilidades.
 - **Alias `@/`**: En imports, `@/app/...` apunta a `src/app/...` (configurado en `vite.config.ts` y `tsconfig.json`).
 - **Radix + carpeta `ui/`**: Si necesitas un modal, select o tooltip accesible, reutiliza primero lo que ya hay en `components/ui` en lugar de inventar desde cero.
+- **Prisma**: El archivo `backend/prisma/schema.prisma` describe tablas y tipos; tras cambiar el esquema, regenera el cliente con `prisma generate`. Las migraciones versionan cambios en la BD; en desarrollo suele usarse `prisma migrate dev` (cuando exista carpeta `migrations`).
 
 ---
 
@@ -125,17 +140,21 @@ flowchart LR
 ```
 HabitHero_v3/
 ├── .cursor/                 # Comandos y skills de Cursor (flujo OpenSpec, etc.)
+├── backend/
+│   └── prisma/
+│       └── schema.prisma    # Esquema Prisma (PostgreSQL, modelos)
 ├── docs/                    # Documentación del proyecto (este archivo)
 ├── openspec/                # Config OpenSpec (spec-driven)
 ├── dist/                    # Salida de `vite build` (generada; no editar a mano)
 ├── node_modules/            # Dependencias instaladas
+├── docker-compose.yml       # PostgreSQL 16 para desarrollo local
 ├── src/
 │   ├── main.tsx             # Entrada React
 │   ├── app/
 │   │   ├── App.tsx          # Vista principal y estado
 │   │   └── components/
 │   │       ├── *.tsx        # Componentes de pantalla (hábitos, recompensas…)
-│   │       ├── figma/       # Utilidades ligadas a diseño
+│   │       ├── media_handler/       # Utilidades ligadas a diseño
 │   │       └── ui/          # Biblioteca de primitivos UI
 │   └── styles/
 │       ├── index.css        # Orquesta imports (@import fonts, tailwind, theme)
@@ -165,6 +184,19 @@ HabitHero_v3/
 | `pnpm-workspace.yaml` | Declara el workspace monorepo mínimo (solo el directorio actual). |
 | `openspec/config.yaml` | Esquema `spec-driven` y contexto opcional para generación de especificaciones con IA. |
 | `index.html` | Punto de entrada HTML; `lang="es"`, título HabitHero. |
+| `backend/prisma/schema.prisma` | Esquema Prisma: `generator client`, `datasource db` (`provider = postgresql`, `url = env("DATABASE_URL")`), modelos (`User`, `Calendar`, …). |
+| `docker-compose.yml` | Servicio `postgres` (imagen `postgres:16-alpine`), variables `POSTGRES_*`, puerto mapeado y volumen `habithero2_postgres_data`. |
+| `.env` (raíz, no versionar secretos) | Debe incluir al menos **`DATABASE_URL`** para Prisma y, para Docker Compose, **`POSTGRES_USER`**, **`POSTGRES_PASSWORD`**; opcionalmente **`POSTGRES_DB`** (por defecto `habithero2`), **`POSTGRES_PORT`**. |
+
+**Ubicación del esquema Prisma:** no está en la ruta por defecto (`prisma/schema.prisma` en la raíz), sino en **`backend/prisma/schema.prisma`**. Desde la raíz del repo, la CLI de Prisma requiere **`--schema=backend/prisma/schema.prisma`** en cada comando, **o** un bloque en `package.json`:
+
+```json
+"prisma": {
+  "schema": "backend/prisma/schema.prisma"
+}
+```
+
+Hasta que exista ese bloque (o se unifique la ruta), los scripts `prisma:*` y `db:migrate` de la raíz pueden fallar si no pasan `--schema` (ver [§12](#12-base-de-datos-prisma-y-docker)).
 
 ---
 
@@ -179,7 +211,10 @@ HabitHero_v3/
 | `npm run preview` | Sirve localmente el contenido de `dist/` tras un build. |
 | `npm run lint` | Ejecuta `eslint .` — **requiere** tener ESLint instalado/configurado; hoy no figura en `devDependencies`. |
 | `npm run test` / `npm run test:watch` | Ejecutan Vitest — **requieren** `vitest` en el proyecto; hoy no está declarado en `devDependencies`. |
-| `npm run docker:up` / `docker:down` / `docker:logs` | Previstos para Postgres vía Docker Compose — **no hay** `docker-compose.yml` en el árbol actual del repo. |
+| `npm run docker:up` / `docker:down` / `docker:logs` | Levantan / paran el stack definido en **`docker-compose.yml`** y siguen los logs del contenedor **`postgres`**. Requieren `.env` con credenciales (ver [§12](#12-base-de-datos-prisma-y-docker)). |
+| `npm run prisma:init` | Plantilla `npx prisma init` (suele usarse una sola vez al crear un proyecto; aquí el esquema ya vive en `backend/prisma/`). |
+| `npm run prisma:generate` | `npx prisma generate` — asegúrate de que Prisma resuelva el esquema (bloque `prisma.schema` en `package.json` o `--schema=backend/prisma/schema.prisma`). |
+| `npm run db:migrate` | `prisma migrate deploy` — aplica migraciones en entornos con historial ya creado; en el primer esquema del repo puede que aún no exista carpeta `migrations` hasta que ejecutes `migrate dev`. |
 
 No existe `npm start` en este proyecto; el equivalente habitual en desarrollo es **`npm run dev`**.
 
@@ -232,11 +267,13 @@ C4Container
 
     System_Ext(vite_dev, "Vite (solo desarrollo)", "Servidor de desarrollo y HMR")
     System_Ext(hosting, "Hosting estático", "CDN / servidor web en producción")
+    ContainerDb(db, "PostgreSQL (opcional local)", "Docker / hosting gestionado", "Persistencia vía Prisma cuando exista backend")
 
     Rel(usuario, ui, "Usa vía navegador")
     Rel(vite_dev, ui, "Sirve módulos en desarrollo")
     Rel(hosting, static_assets, "Sirve en producción")
     Rel(ui, static_assets, "Empaquetado en build")
+    Rel(ui, db, "Futuro: API + PrismaClient")
 ```
 
 **Alternativa (flowchart):**
@@ -269,12 +306,12 @@ flowchart TB
 
 ## 10. Guía rápida para añadir funcionalidades (junior)
 
-1. **Localiza el estado:** Casi toda la lógica está en `App.tsx`. Si la app crece, conviene extraer contexto (`React.createContext`), un store ligero o llamadas a API; hoy no hay esa capa.
+1. **Localiza el estado:** Casi toda la lógica está en `App.tsx`. Si la app crece, conviene extraer contexto (`React.createContext`), un store ligero o llamadas a API; en la SPA aún no hay cliente HTTP hacia un backend propio (Prisma queda listo a nivel de esquema y BD).
 2. **Nuevo componente de pantalla:** Crea un archivo en `src/app/components/`, impórtalo en `App.tsx` y pasa solo las props necesarias.
 3. **Reutiliza `ui/`:** Para modales y controles complejos, mira primero `src/app/components/ui/` antes de instalar otra librería.
 4. **Estilos:** Prefiere utilidades Tailwind y variables de `theme.css` para mantener coherencia con el kit existente.
 5. **Rutas:** `react-router` ya está en dependencias; si añades varias pantallas, configura el router en `main.tsx` o `App.tsx` y divide vistas.
-6. **Persistencia:** Los datos se pierden al recargar. Para guardar hábitos de verdad haría falta `localStorage`, IndexedDB o un backend; planifica esa capa aparte del UI.
+6. **Persistencia:** En la SPA los datos de la sesión se pierden al recargar. El repo ya incluye **Prisma + PostgreSQL** (Docker) para cuando conectes un backend o scripts; hasta entonces puedes seguir usando `localStorage`/IndexedDB en el cliente si necesitas un prototipo rápido.
 7. **Pruebas:** Antes de usar `npm run test`, añade `vitest` (y opcionalmente `@testing-library/react`) como `devDependency` y un `vitest.config.ts` si lo necesitas.
 8. **OpenSpec:** Si el equipo usa el flujo de especificaciones en `.cursor/skills`, alinea cambios grandes con propuestas/tareas en `openspec/` para mantener trazabilidad.
 
@@ -285,8 +322,51 @@ flowchart TB
 - **Peer dependencies:** `react` y `react-dom` están como `peerDependencies` con `optional: true` en `package.json`; npm los instala en la práctica (aparecen en `package-lock.json`). Verifica siempre que existan en `node_modules` tras un install limpio.
 - **Override pnpm:** El bloque `pnpm.overrides` fija `vite` a **6.3.5**; con **npm** ese bloque no aplica. La versión efectiva con npm es la de `dependencies`/`devDependencies` y el lockfile (**6.4.2**).
 - **`src/styles/fonts.css`:** `index.css` lo importa primero; si tu entorno de build exige que el fichero exista y no está en el repo, añade `src/styles/fonts.css` (puede estar vacío o con reglas `@font-face`).
-- **Scripts huérfanos:** `docker:*`, `lint` y `test*` pueden fallar hasta que existan los archivos y paquetes correspondientes.
+- **Scripts que aún pueden fallar:** `lint` y `test*` dependen de tener ESLint / Vitest configurados en el proyecto. Los comandos **`prisma:*`** y **`db:migrate`** fallarán desde la raíz si Prisma no localiza el esquema: añade el bloque `prisma.schema` en `package.json` (recomendado) o usa siempre `--schema=backend/prisma/schema.prisma` en la CLI.
 - **Librerías instaladas no usadas en la vista principal:** Muchas dependencias (MUI, Recharts, react-dnd, etc.) preparan el proyecto para evolucionar; no implican que todas se usen en `App.tsx` hoy.
+
+---
+
+## 12. Base de datos, Prisma y Docker
+
+### 12.1 Esquema Prisma (`backend/prisma/schema.prisma`)
+
+| Pieza | Valor |
+|--------|--------|
+| **Generator** | `prisma-client-js` |
+| **Datasource** | `provider = "postgresql"`, URL desde `env("DATABASE_URL")` |
+| **Modelo `User`** | `id` (Int, autoincrement, PK), `email` (único), `name` opcional |
+| **Modelo `Calendar`** | Identificador autoincremental; campos de perfil/CV (`firstName`, `lastName`, `email` único, `phone`, `address`, resúmenes en texto, metadatos de fichero CV, `createdAt` / `updatedAt` con `@default(now())` y `@updatedAt`) |
+
+Cualquier cambio en modelos requiere **migración** en la base real y **`npm run prisma:generate`** (o `npx prisma generate` con el esquema correcto) para actualizar el cliente TypeScript.
+
+### 12.2 Docker Compose (PostgreSQL local)
+
+| Variable / clave | Uso |
+|------------------|-----|
+| `POSTGRES_USER` | Usuario de la instancia (obligatorio en `.env` para `docker compose`) |
+| `POSTGRES_PASSWORD` | Contraseña (obligatorio) |
+| `POSTGRES_DB` | Nombre de la base; por defecto **`habithero2`** si no se define |
+| `POSTGRES_PORT` | Puerto en el host; por defecto **5432** |
+| Contenedor | Nombre sugerido: **`habithero2-postgres`** |
+| Volumen | **`habithero2_postgres_data`** (persistencia de datos entre reinicios) |
+
+**`DATABASE_URL`** en `.env` debe apuntar al mismo usuario, contraseña, host (p. ej. `localhost`), puerto y base que uses en Docker, con el formato estándar de PostgreSQL, por ejemplo:
+
+`postgresql://USUARIO:CONTRASEÑA@localhost:PUERTO/NOMBRE_BD`
+
+### 12.3 Comandos Prisma típicos (desde la raíz del repo)
+
+Sustituye `…` por el resto de flags que necesites. Si **no** has añadido `prisma.schema` en `package.json`, incluye siempre **`--schema=backend/prisma/schema.prisma`**.
+
+| Objetivo | Comando de referencia |
+|----------|------------------------|
+| Validar esquema | `npx prisma validate --schema=backend/prisma/schema.prisma` |
+| Generar cliente | `npx prisma generate --schema=backend/prisma/schema.prisma` |
+| Crear/aplicar migraciones en desarrollo | `npx prisma migrate dev --schema=backend/prisma/schema.prisma` |
+| Aplicar migraciones en despliegue (CI/prod) | `npx prisma migrate deploy --schema=backend/prisma/schema.prisma` (equivalente al script `db:migrate` cuando el esquema está bien resuelto) |
+
+Orden habitual en un entorno nuevo: definir `.env` → `docker compose up -d` → `prisma migrate dev` (primera migración) → `prisma generate`.
 
 ---
 
