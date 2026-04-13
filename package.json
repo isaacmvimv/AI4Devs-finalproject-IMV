@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "tsx watch server/index.ts",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
@@ -16,7 +17,10 @@
     "docker:logs": "docker compose logs -f postgres",
     "prisma:init": "npx prisma init",
     "prisma:generate": "npx prisma generate",
-    "db:migrate": "prisma migrate deploy"
+    "db:migrate": "npx prisma migrate deploy"
+  },
+  "prisma": {
+    "schema": "backend/prisma/schema.prisma"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
@@ -50,7 +54,10 @@
     "@radix-ui/react-toggle": "1.1.2",
     "@radix-ui/react-toggle-group": "1.1.2",
     "@radix-ui/react-tooltip": "1.1.8",
-    "@prisma/client": "^5.13.0",    
+    "@prisma/client": "^5.13.0",   
+    "cors": "^2.8.6", 
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2", 
     "canvas-confetti": "1.9.4",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -81,9 +88,12 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "4.7.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.9",    
     "tailwindcss": "4.1.12",
     "vite": "6.4.2",
-    "prisma": "^5.13.0"
+    "prisma": "^5.13.0",
+    "tsx": "^4.19.2"
   },
   "peerDependencies": {
     "react": "18.3.1",

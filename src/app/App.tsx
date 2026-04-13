@@ -8,6 +8,7 @@ import HabitRow from './components/HabitRow';
 import RewardCard from './components/RewardCard';
 import AddHabitModal from './components/AddHabitModal';
 import AddRewardModal from './components/AddRewardModal';
+import UserProfileCard from './components/UserProfileCard';
 
 interface Habit {
   id: string;
@@ -251,7 +252,13 @@ export default function App() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FAF8F5' }}>
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <Header />
+        {/* relative: ancla la tarjeta de perfil arriba-derecha sin mover el título centrado */}
+        <div className="relative mb-8">
+          <div className="absolute top-0 right-0 z-10 hidden sm:block">
+            <UserProfileCard />
+          </div>
+          <Header />
+        </div>
 
         <ProgressBar progress={todayProgress} />
 
