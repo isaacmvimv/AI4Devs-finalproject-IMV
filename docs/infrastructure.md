@@ -167,7 +167,7 @@ flowchart LR
 ## 6. Estructura de directorios
 
 ```
-ConRutina_v4/
+ConRutina/
 ├── .cursor/                 # Comandos y skills de Cursor (flujo OpenSpec, etc.)
 ├── backend/
 │   ├── prisma/
