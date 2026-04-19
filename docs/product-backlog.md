@@ -1,4 +1,4 @@
-# ConRutina — Product Backlog v2 (Greenfield)
+# ConRutina — Product Backlog (Greenfield)
 
 > **Versión:** 1.0 · **Fecha:** Abril 2026 · **Estado:** MVP · **Metodología:** Scrum / MoSCoW
 >
