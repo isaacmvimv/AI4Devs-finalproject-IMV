@@ -1,11 +1,11 @@
 {
-  "name": "habithero",
+  "name": "ConRutina",
   "private": true,
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "tsx watch server/index.ts",
+    "dev:api": "tsx watch backend/src/main.ts",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",

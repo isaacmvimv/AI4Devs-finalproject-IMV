@@ -1,0 +1,319 @@
+# Guía de desarrollo — ConRutina
+
+Guía paso a paso para configurar el entorno de desarrollo y ejecutar la aplicación de seguimiento de hábitos ConRutina.
+
+## Instalación y puesta en marcha
+
+### Requisitos previos
+
+- **Node.js** (v16 o superior recomendado)
+- **npm** (v8 o superior) o **pnpm**
+- **Docker** y **Docker Compose**
+- **Git**
+
+### 1. Clonar el repositorio
+
+```bash
+git clone <url-del-repositorio>
+cd ConRutina
+```
+
+### 2. Configuración del entorno
+
+Crea un fichero `.env` en la raíz del proyecto:
+
+```env
+# Base de datos
+DATABASE_URL="postgresql://ConRutinaUser:ConRutinaPass@localhost:5432/ConRutina2"
+
+# API
+API_PORT=3001
+
+# Docker PostgreSQL
+POSTGRES_USER=ConRutinaUser
+POSTGRES_PASSWORD=ConRutinaPass
+POSTGRES_DB=ConRutina2
+POSTGRES_PORT=5432
+```
+
+**Notas importantes:**
+- `DATABASE_URL` debe coincidir con las credenciales de Docker
+- `API_PORT` por defecto es **3001** si no se define
+- Vite sirve el frontend en **5173** por defecto
+- No subas `.env` al repositorio (ya está en `.gitignore`)
+
+### 3. Instalar dependencias
+
+```bash
+npm install
+```
+
+El proyecto usa un monorepo mínimo: el `package.json` raíz gestiona frontend y backend.
+
+### 4. Base de datos (PostgreSQL con Docker)
+
+```bash
+# Levantar PostgreSQL
+npm run docker:up
+
+# Comprobar que está en marcha
+docker ps
+
+# Ver logs
+npm run docker:logs
+```
+
+PostgreSQL quedará disponible en:
+- **Host:** `localhost`
+- **Puerto:** `5432`
+- **Base de datos:** `ConRutina2`
+- **Usuario:** `ConRutinaUser` (desde `.env`)
+- **Contraseña:** `ConRutinaPass` (desde `.env`)
+- **Volumen:** `ConRutina2_postgres_data`
+
+### 5. Migraciones de base de datos
+
+```bash
+# Generar cliente Prisma (tras cambios en el esquema)
+npm run prisma:generate
+
+# Aplicar migraciones
+npm run db:migrate
+
+# (Opcional) Reset y seed
+npx prisma migrate reset
+npx prisma db seed  # si existe script de seed
+```
+
+**Esquema Prisma:** `backend/prisma/schema.prisma`
+
+El bloque `prisma.schema` en `package.json` permite usar la CLI sin `--schema`.
+
+### 6. Datos iniciales
+
+Crea un usuario con `id = 1` para el endpoint de perfil (Prisma Studio o SQL):
+
+```bash
+npx prisma studio
+```
+
+Registro de ejemplo:
+- id: 1
+- email: "usuario@ejemplo.com"
+- name: "María García"
+
+O con SQL:
+
+```sql
+INSERT INTO "User" (id, email, name) VALUES (1, 'usuario@ejemplo.com', 'María García');
+```
+
+### 7. Arrancar servidores de desarrollo
+
+Necesitas **dos terminales**:
+
+**Terminal 1 — API backend**
+```bash
+npm run dev:api
+```
+
+La API escucha en `http://localhost:3001` con recarga vía `tsx watch`.
+
+Salida esperada:
+```
+[API] PostgreSQL → base de datos: ConRutina2
+API escuchando en http://localhost:3001 (GET /api/profile)
+```
+
+**Terminal 2 — Frontend**
+```bash
+npm run dev
+```
+
+Vite sirve la SPA en `http://localhost:5173`.
+
+### 8. Acceder a la aplicación
+
+Abre en el navegador:
+
+```
+http://localhost:5173
+```
+
+Deberías ver:
+- Tarjeta de perfil en la cabecera (datos del API)
+- Calendario semanal de hábitos
+- Sección de recompensas
+- Panel de estadísticas
+
+**Si el perfil no carga:**
+1. Comprueba que el API está en el puerto 3001
+2. PostgreSQL accesible
+3. Existe `User` con `id = 1`
+
+## Estructura del proyecto
+
+```
+ConRutina/
+├── backend/                 # API Express + Prisma
+│   ├── src/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   ├── infrastructure/
+│   │   ├── presentation/
+│   │   ├── main.ts
+│   │   └── loadEnv.ts
+│   └── prisma/
+│       └── schema.prisma
+├── frontend/                # SPA React + Vite
+│   ├── src/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   ├── infrastructure/
+│   │   ├── presentation/
+│   │   ├── styles/
+│   │   └── main.tsx
+│   ├── index.html
+│   └── vite.config.ts
+├── docs/
+├── docker-compose.yml
+├── package.json
+├── tsconfig.json
+└── .env
+```
+
+## Pruebas
+
+### Backend (previsto)
+
+```bash
+npm test
+npm run test:watch
+npm run test:coverage
+```
+
+*(Vitest aún no configurado; ver [backend-standards.md](./backend-standards.md).)*
+
+### Frontend (previsto)
+
+```bash
+npm test
+```
+
+E2E con Playwright MCP cuando aplique (ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md)).
+
+## Comandos habituales
+
+### Base de datos
+
+```bash
+npm run prisma:generate
+npx prisma migrate dev --name add_habit_model
+npm run db:migrate
+npx prisma studio
+npx prisma migrate reset   # ¡Borra datos!
+```
+
+### Docker
+
+```bash
+npm run docker:up
+npm run docker:down
+npm run docker:logs
+docker-compose down -v     # Elimina contenedor y volumen
+```
+
+### Desarrollo
+
+```bash
+npm install
+npm run dev                # Frontend (Vite)
+npm run dev:api            # Backend (Express)
+npm run build              # Build producción → dist/
+npm run preview
+npm run lint               # cuando ESLint esté configurado
+```
+
+## Solución de problemas
+
+### Puerto en uso
+
+**Error:** `EADDRINUSE` en 3001 o 5173
+
+**Solución (Windows):**
+```bash
+netstat -ano | findstr :3001
+taskkill /PID <PID> /F
+
+netstat -ano | findstr :5173
+taskkill /PID <PID> /F
+```
+
+O ajusta `API_PORT` en `.env` y el `target` del proxy en `vite.config.ts`.
+
+### Error de conexión a la base de datos
+
+**Error:** `P1001: Can't reach database server`
+
+1. `docker ps` — Docker en marcha
+2. `npm run docker:up`
+3. Revisa `DATABASE_URL` en `.env`
+4. `docker logs ConRutina2-postgres`
+
+### Perfil de usuario 404
+
+1. `npm run dev:api` en ejecución
+2. Usuario `id = 1` en la BD
+3. Crear usuario (paso 6)
+4. Consola del navegador y CORS
+
+### Cliente Prisma no encontrado
+
+```bash
+npm run prisma:generate
+# Si persiste:
+rm -rf node_modules package-lock.json
+npm install
+npm run prisma:generate
+```
+
+### Hot reload no funciona
+
+- Frontend: guarda el fichero y revisa la consola de Vite
+- Backend: `tsx watch` debería recargar; busca errores de sintaxis
+- Reinicia ambos servidores
+- Recarga forzada del navegador (Ctrl+Shift+R)
+
+## Flujo de trabajo
+
+### Realizar cambios
+
+1. Rama de feature: `git checkout -b feature/nombre-descriptivo`
+2. Respeta Clean Architecture (dominio → aplicación → infraestructura → presentación)
+3. Verifica la app, TypeScript y endpoints con curl si tocas el API
+4. Commit descriptivo (mensajes en español o inglés según convención del equipo)
+5. Push y pull request
+
+### Convenciones de código
+
+- **UI y textos visibles al usuario:** español
+- **Código (identificadores, tipos):** inglés (convención del stack TypeScript)
+- **TypeScript:** modo estricto, evitar `any`
+- **Arquitectura:** Clean Architecture en frontend y backend
+- **Documentación técnica:** español (esta carpeta `docs/`)
+
+## Despliegue (futuro)
+
+1. **Frontend:** `npm run build` → `dist/` en hosting estático
+2. **Backend:** proceso Node aparte (PM2, contenedor, PaaS)
+3. **BD:** PostgreSQL gestionado + `npm run db:migrate`
+4. **Proxy:** unificar `/api` en producción o configurar URL base del API
+
+---
+
+*Documentación relacionada:*
+- [Estándares backend](./backend-standards.md)
+- [Estándares frontend](./frontend-standards.md)
+- [Especificación API](./api-spec.yml)
+- [Modelo de datos](./data-model.md)
+- [Infraestructura](./infrastructure.md)
