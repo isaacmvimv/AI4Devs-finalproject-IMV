@@ -693,7 +693,7 @@ const handleToggleDay = useCallback((habitId: string, dayIndex: number) => {
 - **Ramas de feature**: `feature/[ticket-id]-[ticket-name]` creadas desde `develop` (p. ej. `feature/T-13-01-habit-domain-types`); validar que no existan antes de crearlas
 - **Commits**: Un **commit único** con mensaje en **viñetas breves** en español **solo al archivar** el change OpenSpec (cuando el usuario acepta); no commitear durante `/opsx:apply`
 - **Revisión de código**: Revisar el código antes de fusionar
-- **Cierre**: Tras pruebas obligatorias (p. ej. al archivar un change OpenSpec), merge de la rama de feature en `develop`
+- **Cierre**: Tras pruebas obligatorias (p. ej. al archivar un change OpenSpec), push de la rama de feature al remoto y merge en `develop`
 - **Ramas pequeñas**: Mantener cambios focalizados y manejables
 
 Ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md) para el flujo detallado con OpenSpec.

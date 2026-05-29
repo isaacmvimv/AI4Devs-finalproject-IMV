@@ -65,13 +65,14 @@ Archive a completed change in the experimental workflow.
 
    If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
 
-5. **Git closure (commit + merge) before OpenSpec archive**
+5. **Git closure (commit + push feature + merge) before OpenSpec archive**
 
    **Only when the change modified application code** (not spec-only changes):
 
    - Confirm the user accepts the implemented changes
    - Confirm mandatory test steps passed (reports in PASS)
    - On the feature branch: `git add` relevant files and create **one commit** with a bullet-point message (viñetas breves) summarizing all changes
+   - **Push the feature branch to remote** before merging: `git push -u origin feature/[ticket-id]-[ticket-name]` (keeps branch history visible on GitHub)
    - Merge feature branch into `develop`: `git checkout develop` → `git pull origin develop` → `git merge feature/[ticket-id]-[ticket-name]`
    - Optionally push `develop` if the team workflow requires it
 
@@ -124,4 +125,4 @@ All artifacts complete. All tasks complete.
 - Show clear summary of what happened
 - If sync is requested, use openspec-sync-specs approach (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
-- **Commit + merge to develop happen in step 5**, only after user accepts changes — never during apply
+- **Commit + push feature + merge to develop happen in step 5**, only after user accepts changes — never during apply

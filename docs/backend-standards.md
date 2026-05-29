@@ -855,7 +855,7 @@ const port = Number(process.env.API_PORT) || 3001;
 - **Ramas de feature**: `feature/[ticket-id]-[ticket-name]` desde `develop`; comprobar que no existan antes de crearlas
 - **Commits**: Un commit único con mensaje en viñetas breves en español **solo al archivar** el change (cuando el usuario acepta); no commitear durante `/opsx:apply`
 - Revisiones de código antes de merge
-- **Cierre**: Merge de la rama de feature en `develop` tras pasar las pruebas obligatorias (p. ej. al archivar un change OpenSpec)
+- **Cierre**: Push de la rama de feature al remoto y merge en `develop` tras pasar las pruebas obligatorias (p. ej. al archivar un change OpenSpec)
 - Cambios pequeños y acotados
 
 Ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).

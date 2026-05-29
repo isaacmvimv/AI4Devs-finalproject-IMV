@@ -11,7 +11,7 @@ Al crear o actualizar artefactos `tasks.md` en cambios de OpenSpec, DEBES:
 
 **ANTES** de crear o actualizar cualquier archivo `tasks.md`, DEBES leer `openspec/config.yaml` para comprender:
 - Pasos obligatorios específicos de backend y frontend
-- Flujo Git: rama principal `develop`, ramas `feature/[ticket-id]-[ticket-name]`, **sin commits durante apply**, commit único al archivar (cuando el usuario acepta), merge a `develop` al archivar
+- Flujo Git: rama principal `develop`, ramas `feature/[ticket-id]-[ticket-name]`, **sin commits durante apply**, commit único al archivar (cuando el usuario acepta), **push de la rama feature al remoto**, merge a `develop` al archivar
 - Requisitos de estructura de tareas
 - Requisitos de pruebas y documentación
 
@@ -44,7 +44,7 @@ Todas las tareas de implementación DEBEN incluir estos pasos en el orden correc
 ### Política de commits: solo al archivar (NO durante apply)
 
 - **Durante `/opsx:apply` (implementación)**: el agente **NO debe ejecutar `git commit`**. Los cambios permanecen en el working tree de la rama de feature para que el usuario los revise.
-- **Durante `/opsx:archive` (cierre)**: tras confirmar que el usuario acepta los cambios y que las pruebas obligatorias pasaron, hacer **un commit único** en la rama de feature con todos los cambios pendientes, y después merge a `develop`.
+- **Durante `/opsx:archive` (cierre)**: tras confirmar que el usuario acepta los cambios y que las pruebas obligatorias pasaron, hacer **un commit único** en la rama de feature con todos los cambios pendientes, **push de la rama feature al remoto** (`git push -u origin feature/[ticket-id]-[ticket-name]`), y después merge a `develop`.
 - **Formato del mensaje de commit**: resumen muy breve en **viñetas** (bullet points), una línea por cambio relevante
 - **Ejemplo**:
   ```
@@ -59,7 +59,7 @@ Todas las tareas de implementación DEBEN incluir estos pasos en el orden correc
 - **Paso N+2**: Pruebas manuales de endpoints con curl (OBLIGATORIO para cambios de backend) - **EL AGENTE DEBE EJECUTAR**
 - **Paso N+3**: Pruebas E2E con Playwright MCP (OBLIGATORIO si aplica) - **EL AGENTE DEBE EJECUTAR**
 - **Paso N+4**: Actualizar documentación técnica (OBLIGATORIO)
-- **Paso final**: Merge de la rama `feature/[ticket-id]-[ticket-name]` en `develop` (OBLIGATORIO al archivar el change, tras pasar las pruebas)
+- **Paso final**: Push de la rama `feature/[ticket-id]-[ticket-name]` al remoto y merge en `develop` (OBLIGATORIO al archivar el change, tras pasar las pruebas)
 
 ## 3. Requisitos de pruebas manuales - CRÍTICO: el agente debe ejecutar
 
@@ -413,7 +413,7 @@ Antes de finalizar cualquier archivo `tasks.md`, verificar:
 - [ ] Los pasos obligatorios están claramente marcados con la etiqueta "(OBLIGATORIO)" / "(MANDATORY)"
 - [ ] La nomenclatura de rama sigue la convención: `feature/[ticket-id]-[ticket-name]` (p. ej. `feature/T-13-01-habit-domain-types`)
 - [ ] Las tareas de implementación **no** incluyen commits intermedios (el commit es solo en el paso final de archivado)
-- [ ] El paso final de cierre incluye commit único + merge a `develop` al archivar, tras aceptación del usuario
+- [ ] El paso final de cierre incluye commit único + push de la rama feature + merge a `develop` al archivar, tras aceptación del usuario
 - [ ] El Paso N+1 incluye la ruta y convención de nomenclatura del informe en `specs/<change-name>/reports/`
 - [ ] Los pasos de pruebas manuales indican explícitamente "EL AGENTE DEBE EJECUTAR" / "AGENT MUST EXECUTE"
 - [ ] Las tareas incluyen pasos de restauración del estado de la base de datos
@@ -429,7 +429,7 @@ Esta regla aplica cuando:
 - Se actualizan archivos `tasks.md` existentes
 - Cualquier creación de tareas que implique cambios de backend
 - Se implementan tareas de `tasks.md` mediante `/opsx:apply` o la skill `openspec-apply-change` — el agente debe crear la rama desde `develop`, implementar en ella **sin commits**, y ejecutar las pruebas manuales
-- Se archiva un change mediante `/opsx:archive` o la skill `openspec-archive-change` — tras aceptación del usuario y pruebas OK: commit único en la rama de feature, merge contra `develop`, y archivado OpenSpec
+- Se archiva un change mediante `/opsx:archive` o la skill `openspec-archive-change` — tras aceptación del usuario y pruebas OK: commit único en la rama de feature, push de la rama feature al remoto, merge contra `develop`, y archivado OpenSpec
 
 ## 6. Estructura de ejemplo
 
@@ -519,11 +519,12 @@ Esta regla aplica cuando:
 - [ ] 17.2 Confirmar que los informes de verificación/pruebas están creados y en estado PASS
 - [ ] 17.3 Confirmar con el usuario que acepta los cambios antes de commitear
 - [ ] 17.4 Hacer **commit único** en la rama de feature con todos los cambios pendientes (mensaje en viñetas breves)
-- [ ] 17.5 Cambiar a `develop` y actualizarla: `git checkout develop` y `git pull origin develop`
-- [ ] 17.6 Integrar la rama de feature: `git merge feature/T-13-01-habit-domain-types` (resolver conflictos si los hay)
-- [ ] 17.7 Verificar que `develop` compila y pasa las comprobaciones mínimas acordadas en el change
-- [ ] 17.8 (Opcional) Push de `develop` al remoto si el flujo del equipo lo requiere: `git push origin develop`
-- [ ] 17.9 Proceder con el archivado OpenSpec del change (`openspec archive` o flujo equivalente)
+- [ ] 17.5 Subir la rama de feature al remoto: `git push -u origin feature/T-13-01-habit-domain-types` (OBLIGATORIO si existe remoto; conserva el histórico de ramas en GitHub)
+- [ ] 17.6 Cambiar a `develop` y actualizarla: `git checkout develop` y `git pull origin develop`
+- [ ] 17.7 Integrar la rama de feature: `git merge feature/T-13-01-habit-domain-types` (resolver conflictos si los hay)
+- [ ] 17.8 Verificar que `develop` compila y pasa las comprobaciones mínimas acordadas en el change
+- [ ] 17.9 (Opcional) Push de `develop` al remoto si el flujo del equipo lo requiere: `git push origin develop`
+- [ ] 17.10 Proceder con el archivado OpenSpec del change (`openspec archive` o flujo equivalente)
 ```
 
 ## 7. Requisitos de ejecución del agente
@@ -565,7 +566,7 @@ Esta regla aplica cuando:
    - Acciones de restauración del estado de la base de datos
    - Cualquier problema encontrado y su resolución
 
-**CRÍTICO — al archivar el change**: Tras completar implementación y pruebas obligatorias, y **cuando el usuario acepte los cambios**, el agente (o quien archive) DEBE: (1) hacer commit único en la rama de feature, (2) integrar la rama en `develop`, y (3) archivar el change OpenSpec. No archivar dejando el código solo en la rama de feature sin merge, ni hacer commits durante apply.
+**CRÍTICO — al archivar el change**: Tras completar implementación y pruebas obligatorias, y **cuando el usuario acepte los cambios**, el agente (o quien archive) DEBE: (1) hacer commit único en la rama de feature, (2) **push de la rama feature al remoto** antes del merge, (3) integrar la rama en `develop`, y (4) archivar el change OpenSpec. No archivar dejando el código solo en la rama de feature sin merge ni sin push remoto, ni hacer commits durante apply.
 
 ### Flujo Git resumido
 
@@ -576,15 +577,17 @@ flowchart LR
   apply["/opsx:apply\nImplementación sin commits"]
   review["Usuario revisa\ny acepta cambios"]
   tests["Pruebas obligatorias\nPASS"]
-  archive["/opsx:archive\ncommit + merge + archivar"]
-  merge["git commit + merge → develop"]
+  archive["/opsx:archive\ncommit + push feature + merge + archivar"]
+  pushFeature["git push origin feature/..."]
+  merge["git merge → develop"]
 
   develop --> feature
   feature --> apply
   apply --> tests
   tests --> review
   review --> archive
-  archive --> merge
+  archive --> pushFeature
+  pushFeature --> merge
   merge --> develop
 ```
 
@@ -594,7 +597,7 @@ flowchart LR
 | Paso 0 | `feature/...` | Crear rama si no existe; checkout |
 | Implementación | `feature/...` | Código en working tree **sin commits** |
 | Revisión | `feature/...` | Usuario acepta o pide ajustes |
-| Archivo (tests OK + aceptación) | `feature/...` → `develop` | Commit único + merge → `develop` |
+| Archivo (tests OK + aceptación) | `feature/...` → `develop` | Commit único + push feature + merge → `develop` |
 | Archivo OpenSpec | — | Mover change a `openspec/changes/archive/` |
 
 ## Incumplimiento
@@ -603,4 +606,4 @@ Si creas tareas sin seguir estos pasos obligatorios, el usuario tendrá que corr
 
 **Si implementas tareas sin ejecutar tú mismo las pruebas manuales, estás incumpliendo esta regla. El agente debe ejecutar todas las pruebas para marcar las tareas como completadas.**
 
-**Si implementas código sin crear la rama desde `develop`, sin la nomenclatura `feature/[ticket-id]-[ticket-name]`, haces commits durante apply, o archivas el change sin commit+merge a `develop`, también estás incumpliendo esta regla.**
+**Si implementas código sin crear la rama desde `develop`, sin la nomenclatura `feature/[ticket-id]-[ticket-name]`, haces commits durante apply, o archivas el change sin commit+push de la rama feature+merge a `develop`, también estás incumpliendo esta regla.**

@@ -23,7 +23,7 @@ context: |
   - One change per development ticket (T-XX-YY), processed in sprint order from product-backlog.md
   - Change name: t-[US]-[SEQ]-[short-kebab-name] (e.g. t-13-01-habit-domain-types)
   - Git branch: feature/[TICKET-ID]-[short-kebab-name] (e.g. feature/T-13-01-habit-domain-types)
-  - Git commits: NO commits during /opsx:apply; single commit with bullet-point message only when user accepts and /opsx:archive runs (then merge to develop)
+  - Git commits: NO commits during /opsx:apply; single commit with bullet-point message only when user accepts and /opsx:archive runs (then push feature branch to remote, then merge to develop)
   - Documentation language: Spanish; code identifiers: English
   - The backlog may describe greenfield; always inspect existing code and reflect actual repo state in artifacts
 
@@ -48,7 +48,7 @@ rules:
     - Call out dependencies on prior tickets/sprints when relevant
     - Write in Spanish; code paths and identifiers in English
   tasks:
-    - Follow docs/openspec-tasks-mandatory-steps.md exactly (Paso 0 branch, tests, reports, docs, merge)
+    - Follow docs/openspec-tasks-mandatory-steps.md exactly (Paso 0 branch, tests, reports, docs, push feature, merge)
     - Paso 0 MUST be first: branch feature/[ticket-id]-[ticket-name] from develop
     - Do NOT include git commit subtasks in implementation sections; commit is only in the final archive/closure step after user acceptance
     - Include concrete project commands (npm run dev, npm run dev:api, docker compose, prisma, curl examples)
