@@ -82,7 +82,7 @@ Crear artefactos aplicando `context` y `rules` de `config.yaml` **y** el conteni
 - **proposal.md:** Ticket + US + sprint; problema/valor; alcance = DoD del ticket; Non-goals; referencia a AC Gherkin de la US.
 - **specs/:** Escenarios BDD derivados del DoD y AC; casos happy path y edge del ticket.
 - **design.md:** Decisiones técnicas; archivos/rutas concretas; capas según backend/frontend standards; estado actual vs objetivo.
-- **tasks.md:** Pasos obligatorios de `docs/openspec-tasks-mandatory-steps.md`; Paso 0 con rama exacta; subtareas alineadas al DoD del ticket.
+- **tasks.md:** Pasos obligatorios de `docs/openspec-tasks-mandatory-steps.md`; Paso 0 con rama exacta; subtareas alineadas al DoD del ticket; **sin commits intermedios** (commit único solo en paso final de archivado).
 
 Re-ejecutar `openspec status --change "<name>" --json` tras cada artefacto hasta que todos los `applyRequires` estén `done`.
 
@@ -90,7 +90,7 @@ Re-ejecutar `openspec status --change "<name>" --json` tras cada artefacto hasta
 
 - [ ] Change en `openspec/changes/t-[US]-[SEQ]-[short-kebab]/`
 - [ ] proposal, specs, design y tasks existen y referencian T-XX-YY / US-XX
-- [ ] tasks.md incluye Paso 0 (rama), pasos OBLIGATORIO de pruebas/docs/merge según aplique
+- [ ] tasks.md incluye Paso 0 (rama), pasos OBLIGATORIO de pruebas/docs/merge según aplique; **no** incluye commits en tareas de implementación
 - [ ] No hay scope creep respecto al ticket
 
 ```bash

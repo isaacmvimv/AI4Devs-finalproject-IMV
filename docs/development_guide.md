@@ -290,12 +290,11 @@ npm run prisma:generate
 
 1. Actualizar `develop`: `git checkout develop` y `git pull origin develop`
 2. Crear rama de feature desde `develop`: `git checkout -b feature/[ticket-id]-[ticket-name]` (p. ej. `feature/T-13-01-habit-domain-types`) si esta no existe.
-3. Implementar el cambio **solo** en esa rama.
+3. Implementar el cambio **solo** en esa rama (sin commits durante la implementación).
 4. Respeta Clean Architecture (dominio → aplicación → infraestructura → presentación)
 5. Verifica la app, TypeScript y endpoints con curl si tocas el API
-6. Commit con mensaje en **viñetas breves** en español (una línea breve por cambio relevante).
-7. Tras pasar pruebas obligatorias (OpenSpec): merge de la rama de feature en `develop` (`git checkout develop` → `git merge feature/...`)
-8. Push de `develop` o de la rama de feature según el flujo acordado con el remoto
+6. Tras pasar pruebas obligatorias y **aceptación del usuario** (OpenSpec `/opsx:archive`): commit único con mensaje en **viñetas breves** en español, merge de la rama de feature en `develop` (`git checkout develop` → `git merge feature/...`)
+7. Push de `develop` o de la rama de feature según el flujo acordado con el remoto
 
 Detalle completo del flujo Git con OpenSpec: [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).
 
@@ -305,8 +304,9 @@ Procesar **un ticket a la vez**, en orden de sprint según [product-backlog.md](
 
 1. **Especificar:** `/opsx-propose-ticket T-XX-YY` — genera `proposal.md`, `specs/`, `design.md` y `tasks.md` en `openspec/changes/t-xx-yy-nombre/`. Configuración en `openspec/config.yaml`.
 2. **Revisar** artefactos (alcance = DoD del ticket, Paso 0 con rama `feature/T-XX-YY-nombre`).
-3. **Implementar:** `/opsx:apply t-xx-yy-nombre` — código en la rama de feature, pruebas obligatorias ejecutadas por el agente.
-4. **Archivar:** `/opsx:archive t-xx-yy-nombre` — merge a `develop` y mover change a `openspec/changes/archive/`.
+3. **Implementar:** `/opsx:apply t-xx-yy-nombre` — código en la rama de feature **sin commits**, pruebas obligatorias ejecutadas por el agente.
+4. **Revisar** cambios en el working tree; el usuario acepta o pide ajustes.
+5. **Archivar:** `/opsx:archive t-xx-yy-nombre` — commit único, merge a `develop` y mover change a `openspec/changes/archive/`.
 
 Ejemplo para el primer ticket del Sprint 0:
 

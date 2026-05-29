@@ -61,7 +61,19 @@ Archive a completed change in the experimental workflow.
 
    If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
 
-5. **Perform the archive**
+5. **Git closure (commit + merge) before OpenSpec archive**
+
+   **Only when the change modified application code:**
+
+   - Confirm the user accepts the implemented changes
+   - Confirm mandatory test steps passed
+   - On the feature branch: create **one commit** with a bullet-point message (viñetas breves)
+   - Merge feature branch into `develop`
+   - Optionally push `develop`
+
+   **Do NOT commit during apply** — this is the only commit point.
+
+6. **Perform the archive**
 
    Create the archive directory if it doesn't exist:
    ```bash
@@ -78,7 +90,7 @@ Archive a completed change in the experimental workflow.
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
 
-6. **Display summary**
+7. **Display summary**
 
    Show archive completion summary including:
    - Change name
@@ -155,3 +167,4 @@ Target archive directory already exists.
 - Show clear summary of what happened
 - If sync is requested, use the Skill tool to invoke `openspec-sync-specs` (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
+- **Commit + merge to develop happen in step 5**, only after user accepts changes — never during apply

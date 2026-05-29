@@ -691,7 +691,7 @@ const handleToggleDay = useCallback((habitId: string, dayIndex: number) => {
 ### Flujo Git
 - **Rama principal**: `develop` (base de integración; no implementar cambios de código directamente en ella)
 - **Ramas de feature**: `feature/[ticket-id]-[ticket-name]` creadas desde `develop` (p. ej. `feature/T-13-01-habit-domain-types`); validar que no existan antes de crearlas
-- **Commits**: Mensajes en **viñetas breves** en español (una línea por cambio relevante)
+- **Commits**: Un **commit único** con mensaje en **viñetas breves** en español **solo al archivar** el change OpenSpec (cuando el usuario acepta); no commitear durante `/opsx:apply`
 - **Revisión de código**: Revisar el código antes de fusionar
 - **Cierre**: Tras pruebas obligatorias (p. ej. al archivar un change OpenSpec), merge de la rama de feature en `develop`
 - **Ramas pequeñas**: Mantener cambios focalizados y manejables
@@ -711,7 +711,7 @@ npm run docker:up        # Iniciar PostgreSQL
 ### Calidad de código
 - **Modo estricto TypeScript**: Garantiza seguridad de tipos
 - **ESLint** (cuando esté configurado): Linting de código
-- **Todas las funcionalidades probadas**: Pruebas manuales antes de commit
+- **Todas las funcionalidades probadas**: Pruebas manuales antes de archivar (commit al cierre)
 - **Monitorización de rendimiento**: Revisar advertencias en consola
 
 ---

@@ -408,7 +408,7 @@ function mapToUserProfile(user: User): UserProfile {
 | Comentarios en código | **Inglés** (opcional; preferir código autodocumentado) |
 | Respuestas JSON de error visibles al usuario/cliente | **Español** |
 | Logs operativos en consola para operadores | **Español** o inglés técnico; mensajes de negocio al usuario en español |
-| Mensajes de commit | **Viñetas breves** en español (una línea por cambio relevante); ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md) |
+| Mensajes de commit | **Viñetas breves** en español; **un commit único al archivar** (no durante apply); ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md) |
 | Este documento y specs en `docs/` | **Español** |
 
 **Nomenclatura:**
@@ -853,7 +853,7 @@ const port = Number(process.env.API_PORT) || 3001;
 
 - **Rama principal**: `develop`
 - **Ramas de feature**: `feature/[ticket-id]-[ticket-name]` desde `develop`; comprobar que no existan antes de crearlas
-- **Commits**: Mensajes en viñetas breves en español (una línea por cambio relevante)
+- **Commits**: Un commit único con mensaje en viñetas breves en español **solo al archivar** el change (cuando el usuario acepta); no commitear durante `/opsx:apply`
 - Revisiones de código antes de merge
 - **Cierre**: Merge de la rama de feature en `develop` tras pasar las pruebas obligatorias (p. ej. al archivar un change OpenSpec)
 - Cambios pequeños y acotados

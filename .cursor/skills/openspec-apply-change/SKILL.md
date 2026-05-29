@@ -147,6 +147,7 @@ What would you like to do?
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements - don't guess
 - Use contextFiles from CLI output, don't assume specific file names
+- **Never run `git commit` during apply** — changes stay uncommitted on the feature branch for user review; commit happens only at archive after user acceptance (see docs/openspec-tasks-mandatory-steps.md)
 
 **Fluid Workflow Integration**
 
