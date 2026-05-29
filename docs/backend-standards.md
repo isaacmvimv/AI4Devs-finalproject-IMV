@@ -408,7 +408,7 @@ function mapToUserProfile(user: User): UserProfile {
 | Comentarios en código | **Inglés** (opcional; preferir código autodocumentado) |
 | Respuestas JSON de error visibles al usuario/cliente | **Español** |
 | Logs operativos en consola para operadores | **Español** o inglés técnico; mensajes de negocio al usuario en español |
-| Mensajes de commit | **Inglés** (convención del repositorio) |
+| Mensajes de commit | **Viñetas breves** en español (una línea por cambio relevante); ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md) |
 | Este documento y specs en `docs/` | **Español** |
 
 **Nomenclatura:**
@@ -790,7 +790,7 @@ npm run test:watch
 
 ### Integración con el flujo de trabajo
 
-- Ejecutar `npm run test` antes de merge cuando existan pruebas para el ámbito tocado
+- Ejecutar `npm run test` antes de merge a `develop` cuando existan pruebas para el ámbito tocado
 - TDD cuando la tarea o OpenSpec lo indiquen
 - Actualizar tests al cambiar contratos de puertos o respuestas HTTP
 
@@ -851,10 +851,14 @@ const port = Number(process.env.API_PORT) || 3001;
 
 ### Flujo Git
 
-- Ramas por funcionalidad con nombres descriptivos en inglés
-- Commits descriptivos en inglés
+- **Rama principal**: `develop`
+- **Ramas de feature**: `feature/[ticket-id]-[ticket-name]` desde `develop`; comprobar que no existan antes de crearlas
+- **Commits**: Mensajes en viñetas breves en español (una línea por cambio relevante)
 - Revisiones de código antes de merge
+- **Cierre**: Merge de la rama de feature en `develop` tras pasar las pruebas obligatorias (p. ej. al archivar un change OpenSpec)
 - Cambios pequeños y acotados
+
+Ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).
 
 ### Scripts de desarrollo
 

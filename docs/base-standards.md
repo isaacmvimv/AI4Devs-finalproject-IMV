@@ -21,7 +21,7 @@ alwaysApply: true
   - Identificadores (variables, funciones, clases, tipos): **inglés** (convención TypeScript/React).
   - Comentarios en código: **español** cuando aporten contexto de negocio; pueden ser breves en inglés si son puramente técnicos.
   - Mensajes de error/logs orientados al usuario o al operador en desarrollo: **español** (p. ej. `"Usuario con id 1 no encontrado"`).
-- **Commits y PRs**: Mensajes descriptivos en inglés.
+- **Commits**: Mensajes en **viñetas breves** en español (una línea por cambio relevante) en ramas `feature/[ticket-id]-[ticket-name]`; integración en `develop` tras pruebas. Ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).
 - **Esquemas y API**: Nombres de modelos/campos en inglés en Prisma y OpenAPI; descripciones y ejemplos de error en español.
 
 ## 3. Estándares específicos

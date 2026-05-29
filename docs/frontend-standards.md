@@ -689,10 +689,14 @@ const handleToggleDay = useCallback((habitId: string, dayIndex: number) => {
 ## Flujo de trabajo de desarrollo
 
 ### Flujo Git
-- **Ramas de feature**: Usar nombres descriptivos (p. ej., `feature/habit-persistence`)
-- **Commits descriptivos**: Escribir mensajes claros en inglés
+- **Rama principal**: `develop` (base de integración; no implementar cambios de código directamente en ella)
+- **Ramas de feature**: `feature/[ticket-id]-[ticket-name]` creadas desde `develop` (p. ej. `feature/T-13-01-habit-domain-types`); validar que no existan antes de crearlas
+- **Commits**: Mensajes en **viñetas breves** en español (una línea por cambio relevante)
 - **Revisión de código**: Revisar el código antes de fusionar
+- **Cierre**: Tras pruebas obligatorias (p. ej. al archivar un change OpenSpec), merge de la rama de feature en `develop`
 - **Ramas pequeñas**: Mantener cambios focalizados y manejables
+
+Ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md) para el flujo detallado con OpenSpec.
 
 ### Scripts de desarrollo
 ```bash

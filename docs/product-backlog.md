@@ -1215,7 +1215,7 @@ And "api" espera a que "db" esté healthy antes de arrancar
 And la aplicación es accesible en el puerto 80
 
 # Scenario 4 — Pipeline de CI
-Given se hace un push a la rama main
+Given se hace un push a la rama develop
 When el workflow de GitHub Actions se ejecuta
 Then se completan en orden: lint → typecheck → test → build
 And el pipeline falla si cualquier job falla
@@ -2591,10 +2591,10 @@ gantt
 - **Tipo:** Infra — CI/CD
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Descripción:** Crear `.github/workflows/ci.yml`. Pipeline en dos jobs: `quality` (lint + typecheck + test) y `build` (vite build + docker build). Se ejecuta en push a `main` y en Pull Requests.
+**Descripción:** Crear `.github/workflows/ci.yml`. Pipeline en dos jobs: `quality` (lint + typecheck + test) y `build` (vite build + docker build). Se ejecuta en push a `develop` y en Pull Requests hacia `develop`.
 
 **Alcance / Definición de hecho:**
-- [ ] Trigger: `push` a `main` + `pull_request` a `main`.
+- [ ] Trigger: `push` a `develop` + `pull_request` a `develop`.
 - [ ] Job `quality`: `npm ci → lint → tsc --noEmit → test`.
 - [ ] Job `build`: `npm run build → docker build backend → docker build frontend`.
 - [ ] Caché de `node_modules` entre ejecuciones del mismo branch.

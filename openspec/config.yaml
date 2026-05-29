@@ -13,6 +13,7 @@ context: |
   Single source of truth: follow docs/base-standards.md for all project rules, workflow, and quality expectations. Do not treat other rule sources as authoritative if they conflict with base-standards.
 
   Standards and references (read as needed for the work):
+  - docs/openspec-tasks-mandatory-steps.md — mandatory steps for openspec.
   - docs/base-standards.md — primary rulebook; links to detailed standards below.
   - docs/backend-standards.md — backend conventions.
   - docs/frontend-standards.md — frontend conventions.

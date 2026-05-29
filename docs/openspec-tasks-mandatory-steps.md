@@ -11,7 +11,7 @@ Al crear o actualizar artefactos `tasks.md` en cambios de OpenSpec, DEBES:
 
 **ANTES** de crear o actualizar cualquier archivo `tasks.md`, DEBES leer `openspec/config.yaml` para comprender:
 - Pasos obligatorios específicos de backend y frontend
-- Convenciones de nomenclatura de ramas
+- Flujo Git: rama principal `develop`, ramas `feature/[ticket-id]-[ticket-name]`, commits en viñetas, merge al archivar
 - Requisitos de estructura de tareas
 - Requisitos de pruebas y documentación
 
@@ -19,10 +19,38 @@ Al crear o actualizar artefactos `tasks.md` en cambios de OpenSpec, DEBES:
 
 Todas las tareas de implementación DEBEN incluir estos pasos en el orden correcto:
 
-### Paso 0: Crear rama de feature (DEBE SER EL PRIMERO)
+### Paso 0: Crear rama de feature desde `develop` (DEBE SER EL PRIMERO)
+
 - **Ubicación**: Debe ser el primer paso (Paso 0)
-- **Nomenclatura de rama**: `feature/[ticket-id]` o `feature/[change-name]`
-- **Acción**: Crear y cambiar a la rama de feature antes de cualquier cambio de código
+- **Rama principal del repositorio**: `develop` (todas las ramas de trabajo parten de aquí)
+- **Cuándo crear la rama**: Al decidir aplicar cualquier cambio en el código (`/opsx:apply`, skill `openspec-apply-change` o implementación manual de `tasks.md`)
+- **Nomenclatura de rama**: `feature/[ticket-id]-[ticket-name]`
+  - `[ticket-id]`: identificador del ticket de desarrollo asociado al change (p. ej. `T-13-01`, `US-13`)
+  - `[ticket-name]`: nombre corto del ticket en kebab-case (minúsculas, guiones, sin espacios ni caracteres especiales)
+  - Ejemplo: `feature/T-13-01-habit-domain-types`
+- **Validación previa (obligatoria)**: Antes de crear la rama, comprobar que **no existe** local ni remotamente:
+  ```bash
+  git fetch origin develop
+  git branch --list "feature/[ticket-id]-[ticket-name]"
+  git branch -r --list "origin/feature/[ticket-id]-[ticket-name]"
+  ```
+  Si la rama ya existe, **no** crear otra con el mismo nombre: cambiar a esa rama si corresponde al mismo trabajo, o acordar con el usuario un sufijo distinto.
+- **Acción**:
+  1. Actualizar `develop`: `git checkout develop` y `git pull origin develop` (si hay remoto)
+  2. Crear y cambiar a la rama: `git checkout -b feature/[ticket-id]-[ticket-name]`
+  3. Confirmar rama activa: `git branch --show-current`
+- **Alcance**: **Todos** los cambios de código del change de OpenSpec deben realizarse **únicamente** en esta rama de feature, nunca directamente en `develop`
+
+### Convención de commits en ramas de feature
+
+- **Formato del mensaje**: resumen muy breve en **viñetas** (bullet points), una línea por cambio relevante
+- **Cuándo aplica**: en **cada** commit realizado en la rama de feature durante la implementación del change
+- **Ejemplo**:
+  ```
+  - Añadir tipos Habit y CompletionStatus en domain/habit.ts
+  - Exportar funciones puras de cálculo de puntos semanales
+  ```
+- **Restricciones**: mensajes concisos; evitar párrafos largos; agrupar commits lógicos por tarea o módulo cuando tenga sentido
 
 ### Pasos obligatorios (deben incluirse):
 - **Paso N**: Revisar y actualizar tests unitarios existentes (OBLIGATORIO cuando existan tests)
@@ -30,6 +58,7 @@ Todas las tareas de implementación DEBEN incluir estos pasos en el orden correc
 - **Paso N+2**: Pruebas manuales de endpoints con curl (OBLIGATORIO para cambios de backend) - **EL AGENTE DEBE EJECUTAR**
 - **Paso N+3**: Pruebas E2E con Playwright MCP (OBLIGATORIO si aplica) - **EL AGENTE DEBE EJECUTAR**
 - **Paso N+4**: Actualizar documentación técnica (OBLIGATORIO)
+- **Paso final**: Merge de la rama `feature/[ticket-id]-[ticket-name]` en `develop` (OBLIGATORIO al archivar el change, tras pasar las pruebas)
 
 ## 3. Requisitos de pruebas manuales - CRÍTICO: el agente debe ejecutar
 
@@ -375,11 +404,15 @@ curl -X GET http://localhost:3001/api/profile
 ## 4. Lista de verificación
 
 Antes de finalizar cualquier archivo `tasks.md`, verificar:
-- [ ] El Paso 0 (Crear rama de feature) es el PRIMER paso
+- [ ] El Paso 0 (Crear rama de feature desde `develop`) es el PRIMER paso
+- [ ] El Paso 0 indica la rama principal `develop` y la nomenclatura `feature/[ticket-id]-[ticket-name]`
+- [ ] El Paso 0 incluye validación de que la rama no existe antes de crearla
 - [ ] Todos los pasos obligatorios de config.yaml están incluidos
 - [ ] Los pasos están numerados secuencialmente
 - [ ] Los pasos obligatorios están claramente marcados con la etiqueta "(OBLIGATORIO)" / "(MANDATORY)"
-- [ ] La nomenclatura de rama sigue la convención: `feature/[name]-backend`
+- [ ] La nomenclatura de rama sigue la convención: `feature/[ticket-id]-[ticket-name]` (p. ej. `feature/T-13-01-habit-domain-types`)
+- [ ] Las tareas de implementación indican que los commits usan mensajes en viñetas breves
+- [ ] El paso final de cierre (merge a `develop`) está incluido si el change implica código en repositorio
 - [ ] El Paso N+1 incluye la ruta y convención de nomenclatura del informe en `specs/<change-name>/reports/`
 - [ ] Los pasos de pruebas manuales indican explícitamente "EL AGENTE DEBE EJECUTAR" / "AGENT MUST EXECUTE"
 - [ ] Las tareas incluyen pasos de restauración del estado de la base de datos
@@ -392,15 +425,19 @@ Esta regla aplica cuando:
 - Se crea `tasks.md` mediante `/opsx:continue` (continuar cambio) o la skill `openspec-continue-change`
 - Se actualizan archivos `tasks.md` existentes
 - Cualquier creación de tareas que implique cambios de backend
-- Se implementan tareas de `tasks.md` mediante `/opsx:apply` o la skill `openspec-apply-change` — el agente debe ejecutar las pruebas manuales
+- Se implementan tareas de `tasks.md` mediante `/opsx:apply` o la skill `openspec-apply-change` — el agente debe crear la rama desde `develop`, implementar en ella, usar commits en viñetas y ejecutar las pruebas manuales
+- Se archiva un change mediante `/opsx:archive` o la skill `openspec-archive-change` — tras pasar los tests obligatorios, merge de la rama de feature contra `develop`
 
 ## 6. Estructura de ejemplo
 
 ```markdown
-## 0. Setup: Crear rama de feature (OBLIGATORIO - PRIMER PASO)
+## 0. Setup: Crear rama de feature desde develop (OBLIGATORIO - PRIMER PASO)
 
-- [ ] 0.1 Crear rama de feature `feature/habit-persistence-backend` desde la rama main
-- [ ] 0.2 Verificar la creación de la rama y el estado de la rama actual
+- [ ] 0.1 Actualizar rama `develop`: `git checkout develop` y `git pull origin develop`
+- [ ] 0.2 Comprobar que no existe la rama `feature/T-13-01-habit-domain-types` (local ni `origin/`)
+- [ ] 0.3 Crear y cambiar a la rama: `git checkout -b feature/T-13-01-habit-domain-types`
+- [ ] 0.4 Verificar rama activa con `git branch --show-current`
+- [ ] 0.5 Confirmar que todo el código del change se implementará en esta rama (no en `develop`)
 
 ## 1. Backend: Modelo de dominio (TDD - cuando existan tests)
 ...
@@ -468,11 +505,31 @@ Esta regla aplica cuando:
 - [ ] 16.5 Actualizar docs/development_guide.md si cambió setup/flujo de trabajo
 - [ ] 16.6 Actualizar README.md si hay cambios orientados al usuario
 - [ ] 16.7 Verificar que toda la documentación es consistente y está actualizada
+
+## 17. Cierre: merge de la rama de feature en develop (OBLIGATORIO al archivar el change)
+
+**Cuándo**: Al archivar el change con OpenSpec (`/opsx:archive`, skill `openspec-archive-change`) **después** de que todos los pasos de prueba obligatorios hayan pasado (Paso N+1, N+2, N+3 según aplique).
+
+- [ ] 17.1 Confirmar que no quedan tareas de implementación pendientes en `tasks.md`
+- [ ] 17.2 Confirmar que los informes de verificación/pruebas están creados y en estado PASS
+- [ ] 17.3 Hacer commit final en la rama de feature (si hay cambios sin commitear), con mensaje en viñetas breves
+- [ ] 17.4 Cambiar a `develop` y actualizarla: `git checkout develop` y `git pull origin develop`
+- [ ] 17.5 Integrar la rama de feature: `git merge feature/T-13-01-habit-domain-types` (resolver conflictos si los hay)
+- [ ] 17.6 Verificar que `develop` compila y pasa las comprobaciones mínimas acordadas en el change
+- [ ] 17.7 (Opcional) Push de `develop` al remoto si el flujo del equipo lo requiere: `git push origin develop`
+- [ ] 17.8 Proceder con el archivado OpenSpec del change (`openspec archive` o flujo equivalente)
 ```
 
 ## 7. Requisitos de ejecución del agente
 
 **CRÍTICO**: Al implementar tareas de `tasks.md` (mediante la skill `openspec-apply-change` o el comando `/opsx:apply`), el agente de codificación DEBE:
+
+0. **Gestionar ramas y commits correctamente**:
+   - Usar `develop` como rama base; nunca implementar cambios de código directamente en `develop`
+   - Crear la rama `feature/[ticket-id]-[ticket-name]` desde `develop` **antes** del primer cambio de código (Paso 0)
+   - Validar que la rama no existe antes de crearla
+   - Realizar **todo** el código del change en la rama de feature
+   - Escribir **cada** mensaje de commit como viñetas breves (una línea por cambio relevante)
 
 1. **Ejecutar todas las pruebas manuales**: Nunca pedir al usuario que ejecute comandos curl o pruebas E2E. El agente debe:
    - Iniciar servidores si es necesario (backend, frontend)
@@ -501,8 +558,40 @@ Esta regla aplica cuando:
    - Acciones de restauración del estado de la base de datos
    - Cualquier problema encontrado y su resolución
 
+**CRÍTICO — al archivar el change**: Tras completar implementación y pruebas obligatorias, el agente (o quien archive) DEBE integrar la rama de feature en `develop` **antes** o **como parte** del cierre del change, de modo que `develop` quede actualizado con el trabajo entregado. No archivar dejando el código solo en la rama de feature sin merge.
+
+### Flujo Git resumido
+
+```mermaid
+flowchart LR
+  develop["develop\n(rama principal)"]
+  feature["feature/[ticket-id]-[ticket-name]"]
+  apply["/opsx:apply\nImplementación + commits en viñetas"]
+  tests["Pruebas obligatorias\nPASS"]
+  archive["/opsx:archive\nOpenSpec"]
+  merge["git merge → develop"]
+
+  develop --> feature
+  feature --> apply
+  apply --> tests
+  tests --> merge
+  merge --> develop
+  tests --> archive
+  merge --> archive
+```
+
+| Fase | Rama activa | Acción |
+|------|-------------|--------|
+| Inicio apply | `develop` | `git pull origin develop` |
+| Paso 0 | `feature/...` | Crear rama si no existe; checkout |
+| Implementación | `feature/...` | Código + commits en viñetas |
+| Archivo (tests OK) | `develop` | Merge de `feature/...` → `develop` |
+| Archivo OpenSpec | — | Mover change a `openspec/changes/archive/` |
+
 ## Incumplimiento
 
 Si creas tareas sin seguir estos pasos obligatorios, el usuario tendrá que corregir manualmente el archivo tasks.md. Lee siempre `openspec/config.yaml` primero y asegúrate de que todos los pasos obligatorios estén incluidos.
 
 **Si implementas tareas sin ejecutar tú mismo las pruebas manuales, estás incumpliendo esta regla. El agente debe ejecutar todas las pruebas para marcar las tareas como completadas.**
+
+**Si implementas código sin crear la rama desde `develop`, sin la nomenclatura `feature/[ticket-id]-[ticket-name]`, sin commits en viñetas, o archivas el change sin merge a `develop`, también estás incumpliendo esta regla.**

@@ -288,11 +288,16 @@ npm run prisma:generate
 
 ### Realizar cambios
 
-1. Rama de feature: `git checkout -b feature/nombre-descriptivo`
-2. Respeta Clean Architecture (dominio → aplicación → infraestructura → presentación)
-3. Verifica la app, TypeScript y endpoints con curl si tocas el API
-4. Commit descriptivo (mensajes en español o inglés según convención del equipo)
-5. Push y pull request
+1. Actualizar `develop`: `git checkout develop` y `git pull origin develop`
+2. Crear rama de feature desde `develop`: `git checkout -b feature/[ticket-id]-[ticket-name]` (p. ej. `feature/T-13-01-habit-domain-types`) si esta no existe.
+3. Implementar el cambio **solo** en esa rama.
+4. Respeta Clean Architecture (dominio → aplicación → infraestructura → presentación)
+5. Verifica la app, TypeScript y endpoints con curl si tocas el API
+6. Commit con mensaje en **viñetas breves** en español (una línea breve por cambio relevante).
+7. Tras pasar pruebas obligatorias (OpenSpec): merge de la rama de feature en `develop` (`git checkout develop` → `git merge feature/...`)
+8. Push de `develop` o de la rama de feature según el flujo acordado con el remoto
+
+Detalle completo del flujo Git con OpenSpec: [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).
 
 ### Convenciones de código
 
