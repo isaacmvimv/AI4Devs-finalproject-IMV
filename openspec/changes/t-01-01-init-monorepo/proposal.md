@@ -1,59 +1,53 @@
-# T-01-01 · Inicializar repositorio Git con estructura monorepo
+# Proposal — T-01-01 · Inicializar repositorio Git con estructura monorepo
 
 **Ticket:** T-01-01  
 **User Story:** US-01 — Configurar repositorio, herramientas de desarrollo y estructura del proyecto  
-**Sprint:** 0 — Scaffolding e Infraestructura
+**Sprint:** 0 · Scaffolding e Infraestructura
 
 ## Why
 
-ConRutina necesita una base de monorepo reproducible para que cualquier desarrollador pueda clonar el proyecto, instalar dependencias y arrancar frontend y backend en minutos. Aunque el repositorio ya contiene código y configuración parcial, el ticket T-01-01 formaliza y completa los cimientos (Git, estructura de directorios, scripts raíz, documentación mínima y workspace) que el resto de tickets del Sprint 0 y US-01 asumen como punto de partida.
+ConRutina necesita una base de monorepo reproducible para que cualquier desarrollador clone el repositorio, instale dependencias y arranque frontend y backend con un único comando. El backlog describe un setup greenfield, pero el repositorio ya contiene código funcional; este change cierra las brechas respecto al DoD del ticket T-01-01 sin reescribir lo que ya cumple.
 
 ## What Changes
 
-- Verificar y completar la estructura monorepo: directorios `frontend/` y `backend/` en la raíz.
-- Asegurar `.gitignore` con exclusiones obligatorias: `node_modules/`, `dist/`, `.env`, `coverage/`, `*.local`.
-- Configurar `package.json` raíz con scripts `dev` (arranque simultáneo frontend + backend), `build`, `test` y `lint`.
-- Mantener o actualizar `README.md` con secciones: descripción, requisitos, instalación y arranque.
-- Confirmar `pnpm-workspace.yaml` (o equivalente) para el workspace del monorepo.
-- Conservar `LICENSE` (MIT) en la raíz.
-- Alinear el script `dev` para que el happy path `git clone → npm install → npm run dev` levante ambos servicios; si un puerto está ocupado, el error debe ser explícito (edge case del ticket).
-
-**Estado actual detectado en el repo:** existen `frontend/`, `backend/`, `LICENSE`, `README.md`, `.gitignore`, `pnpm-workspace.yaml` y `package.json`, pero `npm run dev` solo arranca Vite (frontend); falta el arranque concurrente del backend exigido por el DoD.
+- Verificar y, si falta algo, completar la estructura de monorepo (`frontend/`, `backend/`, raíz con `package.json`, `LICENSE`, `README.md`).
+- Asegurar que `.gitignore` excluya `node_modules/`, `dist/`, `.env`, `coverage/` y `*.local`.
+- Ajustar el script raíz `dev` para arrancar **frontend y backend en paralelo** (p. ej. con `concurrently`), alineado con el happy path del ticket.
+- Confirmar scripts raíz `build`, `test` y `lint` operativos sobre el scaffold actual.
+- Mantener `pnpm-workspace.yaml` (o equivalente) declarando el workspace raíz.
+- Documentar en `README.md` las secciones mínimas: descripción, requisitos, instalación y arranque.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `monorepo-scaffold`: Estructura Git, directorios, `.gitignore`, workspace, scripts raíz y documentación mínima para desarrollo local del monorepo ConRutina.
+- `monorepo-scaffold`: Estructura Git/monorepo, `.gitignore`, scripts raíz (`dev`, `build`, `test`, `lint`), workspace y README mínimo para onboarding en < 10 minutos.
 
 ### Modified Capabilities
 
-- _(ninguna — no hay specs previas en `openspec/specs/`)_
+_(Ninguna — no existen specs previas en `openspec/specs/`.)_
 
 ## Impact
 
-| Área | Alcance |
-|------|---------|
-| Raíz del repo | `package.json`, `.gitignore`, `README.md`, `pnpm-workspace.yaml`, `LICENSE` |
-| Estructura | `frontend/`, `backend/` (ya presentes; validar convención) |
-| Dependencias | Posible adición de `concurrently` (o equivalente) para script `dev` |
-| Documentación | `README.md`, referencia cruzada con `docs/development_guide.md` |
-| Fuera de alcance | TypeScript estricto (T-01-02), ESLint/Prettier (T-01-03), `.env.example` (T-01-04) |
-
-## Criterios de aceptación (US-01 — Gherkin relevantes para este ticket)
-
-Los escenarios BDD de US-01 que este ticket debe satisfacer o preparar:
-
-1. **Happy path setup limpio** — `npm install` sin errores; `npm run dev` arranca frontend y backend simultáneamente.
-2. **Estructura de proyecto** — existen `frontend/`, `backend/`, `package.json` con scripts `dev`, `build`, `test`, `lint`, y `.gitignore` que excluye `node_modules`, `dist`, `.env`.
-3. **Edge case puertos ocupados** — fallo con mensaje claro, no silencioso.
-
-Los escenarios de linting (escenario 3) y `.env` faltante (escenario 4) corresponden a tickets posteriores (T-01-03, T-01-04) y no forman parte del DoD de T-01-01.
+- **Raíz:** `package.json`, `.gitignore`, `pnpm-workspace.yaml`, `README.md`, `LICENSE`.
+- **Dependencias:** posible adición de `concurrently` como devDependency para el script `dev`.
+- **Sin impacto** en lógica de negocio, API, modelos de datos ni UI más allá de verificar que el arranque conjunto no rompe los procesos existentes (`vite` + `tsx watch backend/src/main.ts`).
 
 ## Non-goals
 
-- Configurar TypeScript (`tsconfig.json`, paths, referencias) — ticket T-01-02.
-- Instalar o configurar ESLint, Prettier o `.editorconfig` — ticket T-01-03.
-- Crear `.env.example` ni validación de variables de entorno — ticket T-01-04.
-- Docker Compose, Prisma, migraciones o lógica de negocio.
-- Reestructurar capas internas de `frontend/` o `backend/` más allá de confirmar que existen como subproyectos del monorepo.
+- Configuración de TypeScript estricto, paths y tsconfig (T-01-02).
+- ESLint, Prettier y `.editorconfig` (T-01-03).
+- Variables de entorno documentadas en `.env.example` (T-01-04).
+- Docker Compose para PostgreSQL (T-02-01).
+- Refactor del layout de paquetes npm/pnpm más allá del workspace mínimo ya presente.
+
+## Criterios de aceptación (US-01 — alcance T-01-01)
+
+Este ticket cubre parcialmente la US-01. Escenarios Gherkin aplicables:
+
+| Escenario US-01 | Aplicabilidad en T-01-01 |
+|-----------------|---------------------------|
+| Scenario 1 — Happy path: `npm install` + `npm run dev` arranca frontend y backend | **In scope** — objetivo principal |
+| Scenario 2 — Estructura: `frontend/`, `backend/`, scripts y `.gitignore` | **In scope** — verificar/completar (tsconfig queda para T-01-02) |
+| Scenario 3 — Linting funcional | **Fuera de scope** — T-01-03 |
+| Scenario 4 — Edge case `.env` faltante | **Fuera de scope** — T-01-04 / backend config |

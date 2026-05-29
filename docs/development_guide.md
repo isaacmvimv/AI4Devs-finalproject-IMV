@@ -110,27 +110,27 @@ INSERT INTO "User" (id, email, name) VALUES (1, 'usuario@ejemplo.com', 'María G
 
 ### 7. Arrancar servidores de desarrollo
 
-Necesitas **dos terminales**:
+Desde la **raíz**, un solo comando levanta frontend y API en paralelo:
 
-**Terminal 1 — API backend**
-```bash
-npm run dev:api
-```
-
-La API escucha en `http://localhost:3001` con recarga vía `tsx watch`.
-
-Salida esperada:
-```
-[API] PostgreSQL → base de datos: ConRutina2
-API escuchando en http://localhost:3001 (GET /api/profile)
-```
-
-**Terminal 2 — Frontend**
 ```bash
 npm run dev
 ```
 
-Vite sirve la SPA en `http://localhost:5173`.
+Salida esperada en consola (prefijos `web` y `api` de `concurrently`):
+
+```
+[web]   VITE v6.x  ready in ... ms
+[web]   ➜  Local:   http://localhost:5173/
+[api]   [API] PostgreSQL → base de datos: ConRutina2
+[api]   API escuchando en http://localhost:3001 (GET /api/profile)
+```
+
+**Atajos** (si solo necesitas un proceso):
+
+```bash
+npm run dev:web   # Solo Vite → http://localhost:5173
+npm run dev:api   # Solo API → http://localhost:3001
+```
 
 ### 8. Acceder a la aplicación
 
@@ -227,8 +227,9 @@ docker-compose down -v     # Elimina contenedor y volumen
 
 ```bash
 npm install
-npm run dev                # Frontend (Vite)
-npm run dev:api            # Backend (Express)
+npm run dev                # Frontend + API en paralelo
+npm run dev:web            # Solo frontend (Vite)
+npm run dev:api            # Solo backend (Express)
 npm run build              # Build producción → dist/
 npm run preview
 npm run lint               # cuando ESLint esté configurado

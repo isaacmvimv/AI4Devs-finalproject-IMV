@@ -66,33 +66,33 @@ docker-compose down
 
 ## Uso
 
-### Desarrollo (solo interfaz)
+### Desarrollo (frontend + API)
 
-Sirve la SPA con Vite (por defecto en el puerto **5173**). Ejecuta desde la **raíz** (Vite usa `frontend/` como `root` definido en `vite.config.ts`):
-
-```bash
-npm run dev
-```
-
-Abre en el navegador la URL que indique la consola (típicamente `http://localhost:5173`).
-
-### Desarrollo (interfaz + API + base de datos)
-
-Para que `**/api/profile**` responda correctamente:
-
-1. PostgreSQL accesible y `**DATABASE_URL**` válida en `.env`.
-2. Un registro `**User**` con `**id = 1**` en la base (es lo que usa el caso de uso actual del API).
-3. Dos procesos en terminales distintas, ambos desde la **raíz**:
-
-```bash
-npm run dev:api
-```
+Un solo comando desde la **raíz** levanta la SPA (Vite, puerto **5173**) y el API Express (puerto **3001** o `API_PORT`) en paralelo:
 
 ```bash
 npm run dev
 ```
 
-El API escucha por defecto en `**http://localhost:3001**`. Vite reenvía las peticiones que empiezan por `**/api**` a ese origen (ver `vite.config.ts`).
+Abre en el navegador `http://localhost:5173` (o la URL que indique la consola).
+
+**Requisitos para el perfil de usuario y el API:**
+
+1. PostgreSQL accesible y `DATABASE_URL` válida en `.env`.
+2. Un registro `User` con `id = 1` en la base (es lo que usa el caso de uso actual del API).
+
+Consulta [Instalación](#instalación) para Docker, Prisma y variables de entorno.
+
+### Atajos de desarrollo parcial
+
+Si solo necesitas uno de los procesos:
+
+```bash
+npm run dev:web   # Solo frontend (Vite)
+npm run dev:api   # Solo backend (Express + recarga con tsx watch)
+```
+
+El API escucha por defecto en `http://localhost:3001`. Vite reenvía las peticiones que empiezan por `/api` a ese origen (ver `vite.config.ts`).
 
 ### Ejemplos básicos
 
@@ -151,10 +151,11 @@ DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@localhost:5432/conrutina"
 ## Scripts disponibles
 
 
-| Comando                   | Descripción                                                        |
-| ------------------------- | ------------------------------------------------------------------ |
-| `npm run dev`             | Servidor de desarrollo Vite (SPA).                                 |
-| `npm run dev:api`         | API Express con recarga (`tsx watch` sobre `backend/src/main.ts`). |
+| Comando                   | Descripción                                                                 |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `npm run dev`             | Frontend (Vite) y API (Express) en paralelo con `concurrently`.           |
+| `npm run dev:web`         | Solo servidor de desarrollo Vite (SPA).                                     |
+| `npm run dev:api`         | Solo API Express con recarga (`tsx watch` sobre `backend/src/main.ts`).     |
 | `npm run build`           | Build de producción de la SPA → `dist/`.                           |
 | `npm run build:dev`       | Build en modo development.                                         |
 | `npm run preview`         | Sirve el contenido de `dist/` localmente.                          |
@@ -181,7 +182,7 @@ DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@localhost:5432/conrutina"
 
 1. Crea una rama a partir de la rama principal del repositorio.
 2. Realiza cambios acotados y con mensajes de commit claros.
-3. Abre un pull request describiendo el propósito del cambio y cómo probarlo (por ejemplo: `npm run dev` + `npm run dev:api` y estado de la base de datos).
+3. Abre un pull request describiendo el propósito del cambio y cómo probarlo (por ejemplo: `npm run dev` con PostgreSQL y `.env` configurados).
 
 Si el proyecto adopta más adelante guías formales (estilo de código, convenciones de commits, plantillas de PR), enlázalas aquí cuando existan en el repositorio.
 

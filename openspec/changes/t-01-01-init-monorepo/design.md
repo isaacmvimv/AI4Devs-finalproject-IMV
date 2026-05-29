@@ -1,128 +1,91 @@
-# Diseño técnico — T-01-01 · Inicializar repositorio Git con estructura monorepo
+# Design — T-01-01 · Inicializar repositorio Git con estructura monorepo
 
-**Ticket:** T-01-01 · **US:** US-01 · **Sprint:** 0
+**Ticket:** T-01-01 · **User Story:** US-01 · **Change:** `t-01-01-init-monorepo`
 
 ## Context
 
-ConRutina ya es un repositorio Git con código funcional parcial: existen `frontend/` (React + Vite), `backend/` (Express + Prisma), `LICENSE`, `README.md`, `.gitignore`, `pnpm-workspace.yaml` y un `package.json` raíz con scripts `build`, `test`, `lint` y `dev:api`. El backlog describe un escenario greenfield, pero la implementación debe **completar y alinear** lo existente con el DoD de T-01-01, no reescribir el proyecto desde cero.
+El repositorio ConRutina **ya está inicializado** en Git (rama `develop`) y contiene una aplicación funcional:
 
-**Brecha principal:** `npm run dev` ejecuta solo `vite` (frontend). El ticket exige arranque concurrente frontend + backend. La guía de desarrollo actual (`docs/development_guide.md`) documenta dos terminales (`dev:api` + `dev`), lo que contradice el happy path del ticket.
+| Elemento | Estado actual |
+|----------|---------------|
+| `frontend/` (React + Vite) | ✅ Existe con código |
+| `backend/` (Express + Prisma) | ✅ Existe con código |
+| `LICENSE` (MIT) | ✅ Presente |
+| `README.md` | ✅ Con descripción, requisitos, instalación y arranque |
+| `pnpm-workspace.yaml` | ✅ `packages: ['.']` |
+| `.gitignore` | ✅ Cubre `node_modules/`, `dist/`, `.env`, `coverage/`, `*.local` |
+| `package.json` scripts | ⚠️ `dev` solo ejecuta Vite; `dev:api` es script separado |
+| `build`, `test`, `lint` | ✅ Definidos en raíz |
 
-**Restricciones:**
-- Monorepo npm/pnpm en raíz única (no workspaces separados con `package.json` por paquete en esta fase).
-- Identificadores de código en inglés; documentación en español.
-- Rama de trabajo: `feature/T-01-01-init-monorepo` desde `develop`.
+El ticket T-01-01 asume greenfield (`git init` + primer commit vacío), pero la implementación debe **extender el estado actual** sin destruir código existente. La brecha principal es el script `dev` unificado del DoD.
+
+Referencias: `docs/development_guide.md`, `docs/base-standards.md`.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Cumplir el DoD de T-01-01 verificando o ajustando artefactos de raíz.
-- Unificar el happy path en `npm run dev` → frontend (5173) + backend (3001).
-- Mantener scripts `build`, `test`, `lint` operativos desde la raíz.
-- Documentar el flujo de un solo comando en `README.md`.
+- Cumplir el DoD de T-01-01 sobre la base existente.
+- `npm run dev` arranca frontend (Vite, puerto 5173) y backend (`tsx watch backend/src/main.ts`, puerto `API_PORT` o 3001) en un solo comando.
+- Mantener scripts `build`, `test` y `lint` en la raíz sin regresiones.
+- Preservar `dev:api` como atajo para solo backend (útil en `development_guide.md`).
 
 **Non-Goals:**
 
-- TypeScript estricto y paths (`T-01-02`).
-- ESLint/Prettier/`.editorconfig` (`T-01-03`).
-- `.env.example` y validación de variables (`T-01-04`).
-- Cambios en capas de dominio, API o UI.
-- Migración a workspaces npm/pnpm con `package.json` independientes por paquete.
+- TypeScript, ESLint, Prettier (T-01-02, T-01-03).
+- `.env.example` (T-01-04).
+- Reorganizar dependencias en paquetes `frontend/package.json` y `backend/package.json` separados (fuera del alcance del ticket).
 
 ## Decisions
 
-### 1. Arranque concurrente con `concurrently`
+### 1. Script `dev` con `concurrently`
 
 **Decisión:** Añadir `concurrently` como `devDependency` y definir:
 
 ```json
-"dev": "concurrently -n web,api -c blue,green \"vite\" \"tsx watch backend/src/main.ts\""
+"dev": "concurrently -n web,api -c blue,green \"npm run dev:web\" \"npm run dev:api\"",
+"dev:web": "vite"
 ```
 
-**Alternativas consideradas:**
+Renombrar el actual `"dev": "vite"` a `dev:web` para no romper la intención del ticket (un `dev` que levanta ambos).
 
-| Opción | Pros | Contras |
-|--------|------|---------|
-| `concurrently` | Estándar en monorepos npm; prefijos de log por proceso; usado en el backlog | Dependencia adicional |
-| `npm-run-all --parallel` | Sin binario extra si ya está instalado | No está en el proyecto; menos legible en logs |
-| Script Node custom | Sin dependencias | Más código de mantenimiento; fuera de alcance infra mínima |
+**Alternativas descartadas:**
 
-**Rationale:** El ticket y el backlog mencionan explícitamente `concurrently`. Reutilizar el script existente `dev:api` como subcomando mantiene compatibilidad con quien prefiera una sola terminal por servicio.
+- **npm-run-all:** Menos legible para procesos long-running en paralelo.
+- **Solo documentar dos terminales:** No cumple el DoD ni el Gherkin de US-01 Scenario 1.
 
-### 2. Conservar `dev:api` como script auxiliar
+### 2. Gestor de paquetes
 
-**Decisión:** Mantener `dev:api` sin cambios para depuración aislada del backend.
+**Decisión:** Mantener compatibilidad con **npm** (hay `package-lock.json` implícito en docs) y conservar `pnpm-workspace.yaml` para quien use pnpm. No migrar a workspaces multi-paquete en este ticket.
 
-**Rationale:** No rompe flujos documentados ni depuración; `dev` se convierte en el comando canónico del happy path.
+### 3. Estructura de directorios
 
-### 3. Workspace pnpm mínimo
+**Decisión:** No mover archivos. `frontend/` y `backend/` ya cumplen el DoD; solo verificar que existen y están referenciados en README.
 
-**Decisión:** Mantener `pnpm-workspace.yaml` actual:
+### 4. `.gitignore`
 
-```yaml
-packages:
-  - '.'
-```
+**Decisión:** Auditar contra el checklist del ticket; añadir entradas faltantes solo si algún patrón no está cubierto. El fichero actual ya supera el mínimo requerido.
 
-**Rationale:** Cumple el DoD; el monorepo usa un único `package.json` raíz. No introducir paquetes `frontend`/`backend` separados hasta que un ticket lo requiera.
+### 5. README
 
-### 4. `.gitignore` — validar, no reescribir
-
-**Decisión:** Auditar que `.gitignore` cubra los patrones del DoD. El fichero actual ya incluye `node_modules/`, `dist/`, `.env`, `coverage/`, `*.local`. Solo añadir entradas si falta algún patrón obligatorio.
-
-### 5. `build` en la raíz
-
-**Decisión:** Mantener `build` como `vite build` (artefacto frontend). No añadir compilación TypeScript del backend en este ticket.
-
-**Rationale:** El DoD exige que el script exista y sea ejecutable, no un pipeline de build multi-paquete. La compilación del backend se abordará en tickets de infra posteriores si aplica.
-
-### 6. README y development_guide
-
-**Decisión:** Actualizar `README.md` para reflejar `npm run dev` unificado. Ajustar `docs/development_guide.md` en el paso de documentación obligatorio para eliminar la contradicción de dos terminales como flujo principal.
-
-## Estado actual vs objetivo
-
-| Elemento | Estado actual | Objetivo T-01-01 |
-|----------|---------------|------------------|
-| `frontend/`, `backend/` | Presentes | Validar |
-| `LICENSE` (MIT) | Presente | Validar |
-| `.gitignore` | Completo según DoD | Validar |
-| `pnpm-workspace.yaml` | Presente | Validar |
-| `package.json` scripts | `dev` solo Vite | `dev` concurrente |
-| `README.md` | Secciones OK; `dev` parcial | Documentar arranque unificado |
-| Git | Repo inicializado | No requerir `git init` de nuevo |
-
-## Archivos afectados
-
-| Ruta | Acción |
-|------|--------|
-| `package.json` | Añadir `concurrently`; actualizar script `dev` |
-| `README.md` | Sección uso/arranque con un solo comando |
-| `docs/development_guide.md` | Alinear sección 7 con `npm run dev` |
-| `.gitignore` | Revisión (cambio mínimo o ninguno) |
-| `pnpm-workspace.yaml` | Sin cambio esperado |
-| `LICENSE` | Sin cambio esperado |
+**Decisión:** Actualizar la sección de arranque para indicar que `npm run dev` levanta frontend + API, y que `npm run dev:web` / `npm run dev:api` siguen disponibles para desarrollo parcial.
 
 ## Risks / Trade-offs
 
 | Riesgo | Mitigación |
 |--------|------------|
-| `npm run dev` falla si falta `.env` o PostgreSQL | Documentar prerequisitos; validación de `.env` queda en T-01-04; para verificación manual usar `.env` local y Docker si aplica |
-| Logs mezclados de Vite y API | Prefijos `-n web,api` y colores en `concurrently` |
-| Puerto 5173 o 3001 ocupado | Vite y Express emiten error estándar; verificar en pruebas manuales el edge case |
-| `concurrently` añade dependencia | Solo devDependency; alineado con backlog |
+| Puerto 5173 o 3001 ocupado → `npm run dev` falla sin mensaje claro | Configurar `concurrently` con `--kill-others-on-fail`; Vite y Express ya muestran errores de puerto en consola; verificar en pruebas manuales (edge case del ticket) |
+| Backend falla si falta `.env` al arrancar con `dev` | Documentado como fuera de scope T-01-01; el desarrollador puede usar solo `dev:web` hasta configurar `.env` |
+| Salida mezclada de dos procesos | Prefijos `-n web,api` y colores en `concurrently` para distinguir logs |
 
 ## Migration Plan
 
 1. Crear rama `feature/T-01-01-init-monorepo` desde `develop`.
-2. Instalar `concurrently` y actualizar script `dev`.
-3. Actualizar documentación.
-4. Verificar: `npm install` → `npm run dev` → comprobar puertos 5173 y 3001.
-5. Al archivar (usuario acepta): commit único + merge a `develop`.
-
-**Rollback:** Descartar cambios en working tree o revertir merge en `develop` si ya se integró.
+2. Ajustar `package.json` (scripts + `concurrently`).
+3. Actualizar `README.md` / `docs/development_guide.md` si la documentación de arranque difiere.
+4. Verificar: `npm install` → `npm run dev` → comprobar Vite y API activos.
+5. Sin despliegue ni migración de datos; cambio solo de tooling local.
 
 ## Open Questions
 
-- Ninguna bloqueante. El gestor de paquetes puede seguir siendo npm (existe `package-lock.json`) aunque exista `pnpm-workspace.yaml`; no es alcance de este ticket imponer pnpm.
+- Ninguna bloqueante. El puerto del backend sigue leyendo `API_PORT` desde `.env` vía `backend/src/loadEnv.ts` (comportamiento existente).

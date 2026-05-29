@@ -2,7 +2,7 @@
 
 **Ticket:** T-01-01 · **User Story:** US-01
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Repositorio Git con estructura de monorepo
 
