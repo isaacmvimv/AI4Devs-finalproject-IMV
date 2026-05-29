@@ -299,6 +299,23 @@ npm run prisma:generate
 
 Detalle completo del flujo Git con OpenSpec: [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).
 
+### Flujo OpenSpec (desde el product backlog)
+
+Procesar **un ticket a la vez**, en orden de sprint según [product-backlog.md](./product-backlog.md):
+
+1. **Especificar:** `/opsx-propose-ticket T-XX-YY` — genera `proposal.md`, `specs/`, `design.md` y `tasks.md` en `openspec/changes/t-xx-yy-nombre/`. Configuración en `openspec/config.yaml`.
+2. **Revisar** artefactos (alcance = DoD del ticket, Paso 0 con rama `feature/T-XX-YY-nombre`).
+3. **Implementar:** `/opsx:apply t-xx-yy-nombre` — código en la rama de feature, pruebas obligatorias ejecutadas por el agente.
+4. **Archivar:** `/opsx:archive t-xx-yy-nombre` — merge a `develop` y mover change a `openspec/changes/archive/`.
+
+Ejemplo para el primer ticket del Sprint 0:
+
+```
+/opsx-propose-ticket T-01-01
+/opsx:apply t-01-01-init-monorepo
+/opsx:archive t-01-01-init-monorepo
+```
+
 ### Convenciones de código
 
 - **UI y textos visibles al usuario:** español

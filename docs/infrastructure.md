@@ -353,7 +353,7 @@ flowchart TB
 5. **Rutas:** `react-router` ya está en dependencias; si añades varias pantallas, configura el router en `main.tsx` o `App.tsx` y divide vistas.
 6. **Persistencia:** En la SPA los datos de hábitos/recompensas siguen en memoria y se pierden al recargar. Los datos de **usuario en BD** ya pueden leerse vía el **API** (`GET /api/profile`). Para más entidades, amplía el esquema Prisma, añade casos de uso y rutas en **`backend/src`** (presentación HTTP + infraestructura) y consume desde React con las mismas URLs `/api/...`.
 7. **Pruebas:** Antes de usar `npm run test`, añade `vitest` (y opcionalmente `@testing-library/react`) como `devDependency` y un `vitest.config.ts` si lo necesitas.
-8. **OpenSpec:** Si el equipo usa el flujo de especificaciones en `.cursor/skills`, alinea cambios grandes con propuestas/tareas en `openspec/` para mantener trazabilidad.
+8. **OpenSpec:** Un ticket del backlog (`docs/product-backlog.md`) = un change en `openspec/changes/`. Crear especificaciones con `/opsx-propose-ticket T-XX-YY`; implementar con `/opsx:apply`; archivar con `/opsx:archive`. Configuración en `openspec/config.yaml`.
 
 ---
 

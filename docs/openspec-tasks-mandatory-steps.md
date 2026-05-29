@@ -421,6 +421,8 @@ Antes de finalizar cualquier archivo `tasks.md`, verificar:
 ## 5. Cuándo aplica
 
 Esta regla aplica cuando:
+- Se crea un change desde un ticket del backlog mediante `/opsx-propose-ticket` o la skill `propose-from-ticket`
+- Se crea `tasks.md` mediante `/opsx:propose` o la skill `openspec-propose`
 - Se crea `tasks.md` mediante `/opsx:ff` (fast-forward) o la skill `openspec-ff-change`
 - Se crea `tasks.md` mediante `/opsx:continue` (continuar cambio) o la skill `openspec-continue-change`
 - Se actualizan archivos `tasks.md` existentes

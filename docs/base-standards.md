@@ -42,6 +42,18 @@ Para directrices detalladas por área del proyecto:
 - Si la petición encaja con una skill, cargar y seguir su `SKILL.md` antes de continuar.
 - Cargar también los ficheros referenciados en la skill cuando lo exija.
 
+**Flujo OpenSpec (un ticket del backlog = un change):**
+
+| Fase | Comando / skill |
+|------|-----------------|
+| Especificar desde ticket `T-XX-YY` | `/opsx-propose-ticket` → skill `propose-from-ticket` |
+| Especificar ad hoc | `/opsx:propose` → skill `openspec-propose` |
+| Explorar requisitos | `/opsx:explore` → skill `openspec-explore` |
+| Implementar | `/opsx:apply` → skill `openspec-apply-change` |
+| Archivar | `/opsx:archive` → skill `openspec-archive-change` |
+
+Contexto y reglas por artefacto: `openspec/config.yaml`. Tickets y sprints: `docs/product-backlog.md`.
+
 ## 5. Requisito de modelo para planificación
 
 ## 6. Integridad de symlinks y portabilidad multiagente
