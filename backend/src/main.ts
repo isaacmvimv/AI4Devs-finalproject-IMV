@@ -4,6 +4,7 @@
  */
 
 import './loadEnv.js'
+import { config } from './config.js'
 
 import { PrismaClient } from '@prisma/client'
 import { createApp } from './presentation/http/createApp'
@@ -11,11 +12,11 @@ import { createApp } from './presentation/http/createApp'
 const prisma = new PrismaClient()
 const app = createApp(prisma)
 
-const port = Number(process.env.API_PORT) || 3001
+const port = config.apiPort
 
-if (process.env.NODE_ENV !== 'production' && process.env.DATABASE_URL) {
+if (config.nodeEnv !== 'production') {
   try {
-    const u = new URL(process.env.DATABASE_URL.replace(/^postgresql:/, 'http:'))
+    const u = new URL(config.databaseUrl.replace(/^postgresql:/, 'http:'))
     const dbName = u.pathname.replace(/^\//, '') || '(default)'
     console.log(`[API] PostgreSQL → base de datos: ${dbName}`)
   } catch {

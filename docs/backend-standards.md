@@ -838,16 +838,36 @@ const [user, habits] = await Promise.all([
 ### Variables de entorno
 
 - No commitear `.env` ni secretos
-- Cargar con `dotenv` / `loadEnv.ts`
-- Fallar al arranque si faltan variables críticas (`DATABASE_URL`)
+- Plantilla en `.env.example` en la raíz del monorepo
+- Cargar fichero con `backend/src/loadEnv.ts` (dotenv desde la raíz)
+- Validar y tipar con `backend/src/config.ts` (Zod) inmediatamente después de `loadEnv` en `main.ts`
+- Fallar al arranque si faltan variables críticas (`DATABASE_URL`) con mensaje accionable
 
-**Ejemplo en ConRutina:**
+**Patrón en ConRutina:**
 
 ```typescript
-import 'dotenv/config';
-
-const port = Number(process.env.API_PORT) || 3001;
+// main.ts — orden de bootstrap
+import './loadEnv.js' // 1. Cargar .env desde disco
+import { config } from './config.js' // 2. Validar env (process.exit si inválido)
+// 3. Prisma, createApp, listen…
 ```
+
+`config.ts` valida `DATABASE_URL`, `API_PORT`, `CORS_ORIGIN` y `NODE_ENV`. Si `DATABASE_URL` falta o está vacía:
+
+```text
+Variable obligatoria DATABASE_URL no definida. Ver .env.example
+```
+
+El objeto exportado `config` expone valores tipados:
+
+| Propiedad     | Origen env   | Default                    |
+|---------------|--------------|----------------------------|
+| `databaseUrl` | DATABASE_URL | _(obligatoria)_            |
+| `apiPort`     | API_PORT     | `3001`                     |
+| `corsOrigin`  | CORS_ORIGIN  | `http://localhost:5173`    |
+| `nodeEnv`     | NODE_ENV     | `development`              |
+
+`NODE_ENV` solo acepta `development`, `production` o `test`.
 
 ### Inyección de dependencias
 

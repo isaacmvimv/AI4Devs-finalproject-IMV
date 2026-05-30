@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client'
 import cors from 'cors'
 import express, { type Express } from 'express'
+import { config } from '../../config.js'
 import { getUserProfileById } from '../../application/getUserProfile'
 import { createPrismaUserRepository } from '../../infrastructure/prismaUserRepository'
 import { asyncHandler } from './middleware/asyncHandler'
@@ -9,7 +10,7 @@ import { errorHandler } from './middleware/errorHandler'
 export function createApp(prisma: PrismaClient): Express {
   const app = express()
   const userRepository = createPrismaUserRepository(prisma)
-  const origin = process.env.CORS_ORIGIN ?? 'http://localhost:5173'
+  const origin = config.corsOrigin
 
   app.use(
     cors({
