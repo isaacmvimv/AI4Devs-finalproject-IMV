@@ -174,13 +174,34 @@ ConRutina/
 │   │   ├── styles/
 │   │   └── main.tsx
 │   ├── index.html
-│   └── vite.config.ts
+│   └── tsconfig.json        # Extiende tsconfig raíz (JSX, DOM)
+├── backend/
+│   └── tsconfig.json        # Extiende tsconfig raíz (ES2022, Node/tsx)
 ├── docs/
 ├── docker-compose.yml
 ├── package.json
-├── tsconfig.json
+├── tsconfig.json            # Base compartida: strict, paths @/*, references
+├── vite.config.ts           # Alias @ → frontend/src (alineado con paths TS)
 └── .env
 ```
+
+### Configuración TypeScript
+
+El monorepo usa tres ficheros `tsconfig.json`:
+
+| Fichero | Rol |
+| ------- | --- |
+| `tsconfig.json` (raíz) | Opciones compartidas: `strict`, `esModuleInterop`, `moduleResolution: bundler`, alias `@/*` → `frontend/src/*`, `references` a frontend y backend. Sin `include` de código. |
+| `frontend/tsconfig.json` | Extiende la raíz; `jsx: react-jsx`, `include: src/**/*`. |
+| `backend/tsconfig.json` | Extiende la raíz; `target: ES2022`, `module: ESNext`, `include: src/**/*`. |
+
+Comprobación de tipos sin emitir JavaScript:
+
+```bash
+npm run typecheck
+```
+
+Equivalente manual: `tsc --noEmit -p frontend/tsconfig.json && tsc --noEmit -p backend/tsconfig.json`.
 
 ## Pruebas
 
@@ -232,6 +253,7 @@ npm run dev:web            # Solo frontend (Vite)
 npm run dev:api            # Solo backend (Express)
 npm run build              # Build producción → dist/
 npm run preview
+npm run typecheck          # tsc --noEmit (frontend + backend)
 npm run lint               # cuando ESLint esté configurado
 ```
 
@@ -321,7 +343,7 @@ Ejemplo para el primer ticket del Sprint 0:
 
 - **UI y textos visibles al usuario:** español
 - **Código (identificadores, tipos):** inglés (convención del stack TypeScript)
-- **TypeScript:** modo estricto, evitar `any`
+- **TypeScript:** modo estricto, evitar `any`; ejecutar `npm run typecheck` antes de abrir PR
 - **Arquitectura:** Clean Architecture en frontend y backend
 - **Documentación técnica:** español (esta carpeta `docs/`)
 

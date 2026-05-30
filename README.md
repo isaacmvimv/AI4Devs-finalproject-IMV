@@ -157,6 +157,7 @@ DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@localhost:5432/conrutina"
 | `npm run dev:web`         | Solo servidor de desarrollo Vite (SPA).                                     |
 | `npm run dev:api`         | Solo API Express con recarga (`tsx watch` sobre `backend/src/main.ts`).     |
 | `npm run build`           | Build de producción de la SPA → `dist/`.                           |
+| `npm run typecheck`       | Comprobación de tipos (`tsc --noEmit`) en frontend y backend.      |
 | `npm run build:dev`       | Build en modo development.                                         |
 | `npm run preview`         | Sirve el contenido de `dist/` localmente.                          |
 | `npm run lint`            | Ejecuta ESLint (`eslint .`).                                       |

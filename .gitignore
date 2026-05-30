@@ -58,3 +58,7 @@ Desktop.ini
 temp/
 tmp/
 prompts/
+
+# Generated backlog summary (local executive view)
+docs/product-backlog-list.md
+product-backlog-list.md
