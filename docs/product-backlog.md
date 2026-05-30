@@ -1669,7 +1669,7 @@ gantt
 - **Tipo:** Frontend — Infra
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear el scaffold Vite en `frontend/` con template React+TypeScript. Configurar `vite.config.ts` en la raíz con `root: "frontend"`, alias `@` → `frontend/src` y proxy `/api` → `http://localhost:3001`.
 
