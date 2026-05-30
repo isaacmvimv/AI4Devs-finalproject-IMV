@@ -1554,7 +1554,7 @@ gantt
 - **Tipo:** Backend — Base de datos
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Ejecutar la primera migración con nombre `init` sobre la BD de desarrollo. Añadir script `db:migrate` en `package.json`.
 
