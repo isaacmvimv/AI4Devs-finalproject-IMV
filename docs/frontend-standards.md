@@ -130,10 +130,12 @@ frontend/
 │   ├── imports/            # Recursos estáticos (imágenes)
 │   └── main.tsx           # Punto de entrada de la aplicación
 ├── index.html             # Plantilla HTML
-├── package.json          # Dependencias y scripts
-├── tsconfig.json        # Configuración TypeScript
-├── vite.config.ts      # Configuración Vite
-└── postcss.config.mjs  # Configuración PostCSS
+├── tsconfig.json        # Configuración TypeScript del frontend
+└── postcss.config.mjs  # Configuración PostCSS (placeholder Tailwind v4)
+
+# En la raíz del monorepo (no dentro de frontend/):
+# vite.config.ts         # root → frontend/, alias @, proxy /api
+# package.json             # Scripts dev:web, dev, build
 ```
 
 ## Clean Architecture en el frontend
@@ -650,6 +652,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/api/health': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: () => '/health',
+      },
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,

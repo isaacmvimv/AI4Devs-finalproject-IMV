@@ -26,6 +26,12 @@ export default defineConfig({
   // Reenvía /api al servidor Express (npm run dev:api) para que fetch('/api/...') funcione en :5173.
   server: {
     proxy: {
+      // /health vive sin prefijo /api; /api/profile sí lo usa — regla específica antes del catch-all.
+      '/api/health': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: () => '/health',
+      },
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
