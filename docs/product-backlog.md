@@ -1597,7 +1597,7 @@ gantt
 - **Tipo:** Backend — Presentación + Aplicación + Infraestructura
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear el scaffold del backend Express siguiendo Clean Architecture: directorios domain/, application/, infrastructure/, presentation/. Crear `main.ts` que inicializa PrismaClient y arranca el servidor. Crear `createApp.ts` con Express y middleware base.
 
