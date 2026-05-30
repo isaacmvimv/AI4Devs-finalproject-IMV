@@ -204,21 +204,21 @@ Este ticket no modifica componentes ni flujos de usuario.
 
 - [x] 13.3 Confirmar con el usuario que acepta los cambios antes de commitear
 
-- [ ] 13.4 Hacer **commit único** en la rama de feature con todos los cambios pendientes (mensaje en viñetas breves)
+- [x] 13.4 Hacer **commit único** en la rama de feature con todos los cambios pendientes (mensaje en viñetas breves)
 
-- [ ] 13.5 Subir la rama de feature al remoto: `git push -u origin feature/T-01-03-eslint-prettier` (OBLIGATORIO si existe remoto)
+- [x] 13.5 Subir la rama de feature al remoto: `git push -u origin feature/T-01-03-eslint-prettier` (OBLIGATORIO si existe remoto)
 
-- [ ] 13.6 Cambiar a `develop` y actualizarla: `git checkout develop` y `git pull origin develop`
+- [x] 13.6 Cambiar a `develop` y actualizarla: `git checkout develop` y `git pull origin develop`
 
-- [ ] 13.7 Integrar la rama de feature: `git merge feature/T-01-03-eslint-prettier` (resolver conflictos si los hay)
+- [x] 13.7 Integrar la rama de feature: `git merge feature/T-01-03-eslint-prettier` (resolver conflictos si los hay)
 
-- [ ] 13.8 Verificar que `develop` pasa `npm run lint` y `npm run typecheck`
+- [x] 13.8 Verificar que `develop` pasa `npm run lint` y `npm run typecheck`
 
-- [ ] 13.9 (Opcional) Push de `develop` al remoto si el flujo del equipo lo requiere: `git push origin develop`
+- [x] 13.9 (Opcional) Push de `develop` al remoto si el flujo del equipo lo requiere: `git push origin develop`
 
-- [ ] 13.10 Proceder con el archivado OpenSpec del change (`mv` a `openspec/changes/archive/YYYY-MM-DD-t-01-03-eslint-prettier/`)
+- [x] 13.10 Proceder con el archivado OpenSpec del change (`mv` a `openspec/changes/archive/YYYY-MM-DD-t-01-03-eslint-prettier/`)
 
-- [ ] 13.11 Intentar marcar el ticket en `docs/product-backlog.md` como **✅ Implementado** (último paso tras archivar; **no bloqueante**):
+- [x] 13.11 Intentar marcar el ticket en `docs/product-backlog.md` como **✅ Implementado** (último paso tras archivar; **no bloqueante**):
 
   ```bash
 
