@@ -1529,7 +1529,7 @@ gantt
 - **Tipo:** Backend — Base de datos
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Instalar `prisma` y `@prisma/client`. Crear `backend/prisma/schema.prisma` con el datasource PostgreSQL y todos los modelos del PRD: `User`, `Week`, `Habit`, `WeekHabit`, `HabitEntry`, `Reward`, `RewardRedemption` con sus campos, relaciones, índices y enums.
 
