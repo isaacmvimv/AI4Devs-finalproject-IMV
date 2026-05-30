@@ -1574,7 +1574,7 @@ gantt
 - **Tipo:** Backend — Base de datos
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `backend/prisma/seed.ts` con datos de desarrollo deterministas: 1 usuario, 3 hábitos, 1 semana activa con WeekHabits y HabitEntries, 2 recompensas.
 
