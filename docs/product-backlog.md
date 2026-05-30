@@ -1469,7 +1469,7 @@ gantt
 - **Tipo:** Infra
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Instalar ESLint con plugin de TypeScript y React, configurar reglas base. Instalar Prettier con configuración coherente con el estilo del equipo. Añadir script `lint` y `format` en `package.json` raíz.
 
