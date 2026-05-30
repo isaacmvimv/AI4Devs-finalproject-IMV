@@ -20,27 +20,36 @@ cd ConRutina
 
 ### 2. Configuración del entorno
 
-Crea un fichero `.env` en la raíz del proyecto:
+La fuente canónica de variables es **`.env.example`** en la raíz del monorepo. Copia la plantilla a `.env` antes de levantar Docker o el API:
+
+```bash
+cp .env.example .env
+```
+
+En Windows:
+
+```bash
+copy .env.example .env
+```
+
+Revisa y, si hace falta, ajusta los valores en `.env`. La plantilla incluye las ocho variables del proyecto con comentarios de una línea; por ejemplo:
 
 ```env
-# Base de datos
-DATABASE_URL="postgresql://ConRutinaUser:ConRutinaPass@localhost:5432/ConRutina2"
-
-# API
+DATABASE_URL=postgresql://conrutina:conrutina_dev_pass@localhost:5432/conrutina
 API_PORT=3001
-
-# Docker PostgreSQL
-POSTGRES_USER=ConRutinaUser
-POSTGRES_PASSWORD=ConRutinaPass
-POSTGRES_DB=ConRutina2
+CORS_ORIGIN=http://localhost:5173
+POSTGRES_USER=conrutina
+POSTGRES_PASSWORD=conrutina_dev_pass
+POSTGRES_DB=conrutina
 POSTGRES_PORT=5432
+NODE_ENV=development
 ```
 
 **Notas importantes:**
-- `DATABASE_URL` debe coincidir con las credenciales de Docker
+- `DATABASE_URL` debe coincidir con las credenciales `POSTGRES_*` y con el default `conrutina` de `docker-compose.yml`
 - `API_PORT` por defecto es **3001** si no se define
 - Vite sirve el frontend en **5173** por defecto
-- No subas `.env` al repositorio (ya está en `.gitignore`)
+- No subas `.env` al repositorio (ya está en `.gitignore`); `.env.example` sí está versionado
 
 ### 3. Instalar dependencias
 
@@ -65,11 +74,10 @@ npm run docker:logs
 
 PostgreSQL quedará disponible en:
 - **Host:** `localhost`
-- **Puerto:** `5432`
-- **Base de datos:** `ConRutina2`
-- **Usuario:** `ConRutinaUser` (desde `.env`)
-- **Contraseña:** `ConRutinaPass` (desde `.env`)
-- **Volumen:** `ConRutina2_postgres_data`
+- **Puerto:** `5432` (o el valor de `POSTGRES_PORT` en `.env`)
+- **Base de datos:** `conrutina` (default en `docker-compose.yml`)
+- **Usuario y contraseña:** según `POSTGRES_USER` y `POSTGRES_PASSWORD` en `.env` (ver `.env.example`)
+- **Volumen:** `conrutina_postgres_data`
 
 ### 5. Migraciones de base de datos
 
@@ -121,7 +129,7 @@ Salida esperada en consola (prefijos `web` y `api` de `concurrently`):
 ```
 [web]   VITE v6.x  ready in ... ms
 [web]   ➜  Local:   http://localhost:5173/
-[api]   [API] PostgreSQL → base de datos: ConRutina2
+[api]   [API] PostgreSQL → base de datos: conrutina
 [api]   API escuchando en http://localhost:3001 (GET /api/profile)
 ```
 
@@ -283,7 +291,7 @@ O ajusta `API_PORT` en `.env` y el `target` del proxy en `vite.config.ts`.
 1. `docker ps` — Docker en marcha
 2. `npm run docker:up`
 3. Revisa `DATABASE_URL` en `.env`
-4. `docker logs ConRutina2-postgres`
+4. `docker logs conrutina-postgres`
 
 ### Perfil de usuario 404
 

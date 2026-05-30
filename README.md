@@ -30,7 +30,19 @@ Aplicación web para seguimiento de hábitos y recompensas: interfaz en **React*
 npm install
 ```
 
-3. Crea un archivo `**.env**` en la raíz (no versionado) con las variables descritas en [Configuración](#configuración).
+3. Copia la plantilla de entorno en la raíz (no versiones el `.env` real):
+
+```bash
+cp .env.example .env
+```
+
+En Windows (PowerShell o CMD):
+
+```bash
+copy .env.example .env
+```
+
+Consulta [Configuración](#configuración) para el detalle de cada variable.
 4. (Opcional) Levanta PostgreSQL con Docker (**raíz**):
 
 ```bash
@@ -124,7 +136,9 @@ npm run preview
 
 ## Configuración
 
-Variables de entorno habituales en `**.env`** en la **raíz\*\* del proyecto (cargado por el API vía `backend/src/loadEnv.ts`):
+La fuente canónica de variables es **`.env.example`** en la raíz. Copia ese fichero a **`.env`** (no versionado) antes de arrancar servicios; el API lo carga vía `backend/src/loadEnv.ts`.
+
+Variables habituales:
 
 | Variable            | Uso                                                                                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -134,14 +148,10 @@ Variables de entorno habituales en `**.env`** en la **raíz\*\* del proyecto (ca
 | `POSTGRES_DB`       | Nombre de la base en el contenedor; por defecto en `docker-compose.yml`: `**conrutina`\*\*.                                                      |
 | `POSTGRES_PORT`     | Puerto en el host; por defecto **5432**.                                                                                                         |
 | `API_PORT`          | Puerto del API Express; por defecto **3001**. Si lo cambias, ajusta también el `server.proxy` de `vite.config.ts` para que el `target` coincida. |
+| `CORS_ORIGIN`       | Origen permitido para CORS en desarrollo; por defecto **`http://localhost:5173`**. |
+| `NODE_ENV`          | Entorno Node (`development`, `production`, `test`); por defecto **`development`**. |
 
-Ejemplo de formato para `DATABASE_URL` (ajusta usuario, contraseña, puerto y base):
-
-```env
-DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@localhost:5432/conrutina"
-```
-
-> ⚠️ Información no disponible: no hay un archivo `.env.example` versionado en el repositorio; las claves anteriores se infieren de `docker-compose.yml`, Prisma y el código del API.
+Los valores de ejemplo y comentarios de cada clave están en **`.env.example`**.
 
 ## Scripts disponibles
 

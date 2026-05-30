@@ -220,8 +220,9 @@ ConRutina/
 | `openspec/config.yaml` | Esquema `spec-driven` y contexto opcional para generación de especificaciones con IA. |
 | `frontend/index.html` | Punto de entrada HTML de la SPA; `lang="es"`, título ConRutina (referenciado por Vite vía `root`). |
 | `backend/prisma/schema.prisma` | Esquema Prisma: `generator client`, `datasource db` (`provider = postgresql`, `url = env("DATABASE_URL")`). Modelo de dominio en uso: `User`. Modelo `Calendar` heredado LTI (pendiente de eliminar). Modelos objetivo del PRD: ver [data-model.md](./data-model.md). |
-| `docker-compose.yml` | Servicio `postgres` (imagen `postgres:16-alpine`), variables `POSTGRES_*`, puerto mapeado y volumen `ConRutina2_postgres_data`. |
-| `.env` (raíz, no versionar secretos) | Debe incluir al menos **`DATABASE_URL`** para Prisma y el API Node, y para Docker Compose **`POSTGRES_USER`**, **`POSTGRES_PASSWORD`**; opcionalmente **`POSTGRES_DB`** (por defecto `ConRutina2`), **`POSTGRES_PORT`**. Opcional: **`API_PORT`** (puerto del Express; por defecto **3001**; debe coincidir con el `target` del proxy en `vite.config.ts`). |
+| `docker-compose.yml` | Servicio `postgres` (imagen `postgres:16-alpine`), variables `POSTGRES_*`, puerto mapeado y volumen `conrutina_postgres_data`. |
+| `.env.example` (raíz, versionado) | Plantilla con las variables documentadas; copiar a `.env` antes de arrancar servicios. |
+| `.env` (raíz, no versionar secretos) | Copia local de `.env.example` con valores reales. Debe incluir al menos **`DATABASE_URL`**, **`POSTGRES_USER`**, **`POSTGRES_PASSWORD`**; opcionalmente **`POSTGRES_DB`** (por defecto `conrutina`), **`POSTGRES_PORT`**, **`API_PORT`**, **`CORS_ORIGIN`**, **`NODE_ENV`**. |
 
 **Ubicación del esquema Prisma:** el fichero físico está en **`backend/prisma/schema.prisma`**. En **`package.json`** existe el bloque `prisma.schema` apuntando a esa ruta, de modo que `npx prisma generate`, `npm run prisma:generate` y `npm run db:migrate` resuelven el esquema sin flags extra. Si ejecutas la CLI desde otro directorio o sin ese `package.json`, sigue siendo válido **`--schema=backend/prisma/schema.prisma`**.
 
@@ -389,12 +390,12 @@ Cualquier cambio en modelos requiere **migración** en la base real y **`npm run
 |------------------|-----|
 | `POSTGRES_USER` | Usuario de la instancia (obligatorio en `.env` para `docker compose`) |
 | `POSTGRES_PASSWORD` | Contraseña (obligatorio) |
-| `POSTGRES_DB` | Nombre de la base; por defecto **`ConRutina2`** si no se define |
+| `POSTGRES_DB` | Nombre de la base; por defecto **`conrutina`** si no se define (ver `.env.example`) |
 | `POSTGRES_PORT` | Puerto en el host; por defecto **5432** |
-| Contenedor | Nombre sugerido: **`ConRutina2-postgres`** |
-| Volumen | **`ConRutina2_postgres_data`** (persistencia de datos entre reinicios) |
+| Contenedor | Nombre: **`conrutina-postgres`** |
+| Volumen | **`conrutina_postgres_data`** (persistencia de datos entre reinicios) |
 
-**`DATABASE_URL`** en `.env` debe apuntar al mismo usuario, contraseña, host (p. ej. `localhost`), puerto y base que uses en Docker, con el formato estándar de PostgreSQL, por ejemplo:
+Copia **`.env.example`** → **`.env`** en la raíz antes de `docker compose up`. **`DATABASE_URL`** debe apuntar al mismo usuario, contraseña, host (p. ej. `localhost`), puerto y base que uses en Docker, con el formato estándar de PostgreSQL, por ejemplo:
 
 `postgresql://USUARIO:CONTRASEÑA@localhost:PUERTO/NOMBRE_BD`
 
