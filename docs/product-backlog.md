@@ -1487,7 +1487,7 @@ gantt
 - **Tipo:** Infra + Docs
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `.env.example` con todas las variables de entorno necesarias para el proyecto, con comentarios explicativos y valores de ejemplo seguros.
 
