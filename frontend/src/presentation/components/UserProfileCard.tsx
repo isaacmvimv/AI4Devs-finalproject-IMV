@@ -1,11 +1,11 @@
-import { useUserProfile } from '../../application/useUserProfile';
+import { useUserProfile } from '../../application/useUserProfile'
 
 /**
  * Tarjeta de “usuario logueado” en la esquina superior.
  * Petición relativa `/api/profile`: en desarrollo Vite (vite.config.ts) hace proxy al API en :3001.
  */
 export default function UserProfileCard() {
-  const { user, loading, error } = useUserProfile();
+  const { user, loading, error } = useUserProfile()
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm max-w-xs text-left">
@@ -25,5 +25,5 @@ export default function UserProfileCard() {
         </>
       )}
     </div>
-  );
+  )
 }

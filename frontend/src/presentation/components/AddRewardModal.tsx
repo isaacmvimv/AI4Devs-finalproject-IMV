@@ -1,46 +1,53 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
+import { useState } from 'react'
+import { X } from 'lucide-react'
 
 interface AddRewardModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAdd: (reward: {
-    emoji: string;
-    name: string;
-    description: string;
-    cost: number;
-  }) => void;
+  isOpen: boolean
+  onClose: () => void
+  onAdd: (reward: { emoji: string; name: string; description: string; cost: number }) => void
 }
 
 const REWARD_EMOJIS = [
-  '📺', '🍕', '🏖️', '🎁', '🎮', '🎵', '☕',
-  '🍰', '🛍️', '📱', '🎯', '🌟', '🎨', '🎪'
-];
+  '📺',
+  '🍕',
+  '🏖️',
+  '🎁',
+  '🎮',
+  '🎵',
+  '☕',
+  '🍰',
+  '🛍️',
+  '📱',
+  '🎯',
+  '🌟',
+  '🎨',
+  '🎪',
+]
 
 export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModalProps) {
-  const [selectedEmoji, setSelectedEmoji] = useState(REWARD_EMOJIS[0]);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [cost, setCost] = useState(50);
+  const [selectedEmoji, setSelectedEmoji] = useState(REWARD_EMOJIS[0])
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [cost, setCost] = useState(50)
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (name.trim() && description.trim()) {
       onAdd({
         emoji: selectedEmoji,
         name: name.trim(),
         description: description.trim(),
-        cost
-      });
-      setName('');
-      setDescription('');
-      setCost(50);
-      setSelectedEmoji(REWARD_EMOJIS[0]);
-      onClose();
+        cost,
+      })
+      setName('')
+      setDescription('')
+      setCost(50)
+      setSelectedEmoji(REWARD_EMOJIS[0])
+      onClose()
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -62,9 +69,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
 
         <form onSubmit={handleSubmit}>
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Icono
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Icono</label>
             <div className="grid grid-cols-7 gap-2">
               {REWARD_EMOJIS.map((emoji) => (
                 <button
@@ -84,9 +89,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
           </div>
 
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nombre
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
             <input
               type="text"
               value={name}
@@ -98,9 +101,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
           </div>
 
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Descripción
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
             <input
               type="text"
               value={description}
@@ -134,5 +135,5 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
         </form>
       </div>
     </div>
-  );
+  )
 }

@@ -1,14 +1,14 @@
-import { Calendar, Gift } from 'lucide-react';
-import { useHabitDashboard } from '../application/useHabitDashboard';
-import Header from './components/Header';
-import ProgressBar from './components/ProgressBar';
-import StatCard from './components/StatCard';
-import WeeklyCalendar from './components/WeeklyCalendar';
-import HabitRow from './components/HabitRow';
-import RewardCard from './components/RewardCard';
-import AddHabitModal from './components/AddHabitModal';
-import AddRewardModal from './components/AddRewardModal';
-import UserProfileCard from './components/UserProfileCard';
+import { Calendar, Gift } from 'lucide-react'
+import { useHabitDashboard } from '../application/useHabitDashboard'
+import Header from './components/Header'
+import ProgressBar from './components/ProgressBar'
+import StatCard from './components/StatCard'
+import WeeklyCalendar from './components/WeeklyCalendar'
+import HabitRow from './components/HabitRow'
+import RewardCard from './components/RewardCard'
+import AddHabitModal from './components/AddHabitModal'
+import AddRewardModal from './components/AddRewardModal'
+import UserProfileCard from './components/UserProfileCard'
 
 export default function App() {
   const {
@@ -31,7 +31,7 @@ export default function App() {
     handleAddReward,
     handleRedeemReward,
     handleDeleteReward,
-  } = useHabitDashboard();
+  } = useHabitDashboard()
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FAF8F5' }}>
@@ -54,24 +54,9 @@ export default function App() {
             label="Semana anterior"
             bgColor="#E8F5E9"
           />
-          <StatCard
-            icon="🏆"
-            value={stats.thisWeekPoints}
-            label="Esta semana"
-            bgColor="#C8E6C9"
-          />
-          <StatCard
-            icon="⚠️"
-            value={-stats.penalties}
-            label="Penalizaciones"
-            bgColor="#FFCDD2"
-          />
-          <StatCard
-            icon="🔥"
-            value={stats.maxStreak}
-            label="Mejor racha"
-            bgColor="#FFE0B2"
-          />
+          <StatCard icon="🏆" value={stats.thisWeekPoints} label="Esta semana" bgColor="#C8E6C9" />
+          <StatCard icon="⚠️" value={-stats.penalties} label="Penalizaciones" bgColor="#FFCDD2" />
+          <StatCard icon="🔥" value={stats.maxStreak} label="Mejor racha" bgColor="#FFE0B2" />
         </div>
 
         {/* Weekly Calendar Section */}
@@ -159,5 +144,5 @@ export default function App() {
         onAdd={handleAddReward}
       />
     </div>
-  );
+  )
 }

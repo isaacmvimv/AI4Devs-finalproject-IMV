@@ -1,13 +1,13 @@
-import { Lock } from 'lucide-react';
+import { Lock } from 'lucide-react'
 
 interface RewardCardProps {
-  emoji: string;
-  name: string;
-  description: string;
-  cost: number;
-  currentPoints: number;
-  onRedeem: () => void;
-  onDelete: () => void;
+  emoji: string
+  name: string
+  description: string
+  cost: number
+  currentPoints: number
+  onRedeem: () => void
+  onDelete: () => void
 }
 
 export default function RewardCard({
@@ -17,10 +17,10 @@ export default function RewardCard({
   cost,
   currentPoints,
   onRedeem,
-  onDelete
+  onDelete,
 }: RewardCardProps) {
-  const canAfford = currentPoints >= cost;
-  const progressPercentage = Math.min((currentPoints / cost) * 100, 100);
+  const canAfford = currentPoints >= cost
+  const progressPercentage = Math.min((currentPoints / cost) * 100, 100)
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm relative group">
@@ -37,9 +37,7 @@ export default function RewardCard({
           <h4 className="font-semibold text-gray-800 mb-1">{name}</h4>
           <p className="text-sm text-gray-500">{description}</p>
         </div>
-        {!canAfford && (
-          <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />
-        )}
+        {!canAfford && <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />}
       </div>
 
       <div className="mb-3">
@@ -66,5 +64,5 @@ export default function RewardCard({
         )}
       </div>
     </div>
-  );
+  )
 }

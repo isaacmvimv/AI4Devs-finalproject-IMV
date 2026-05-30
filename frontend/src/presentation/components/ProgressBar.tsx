@@ -1,5 +1,5 @@
 interface ProgressBarProps {
-  progress: number;
+  progress: number
 }
 
 export default function ProgressBar({ progress }: ProgressBarProps) {
@@ -16,5 +16,5 @@ export default function ProgressBar({ progress }: ProgressBarProps) {
         />
       </div>
     </div>
-  );
+  )
 }

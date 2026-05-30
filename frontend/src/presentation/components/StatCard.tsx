@@ -1,12 +1,12 @@
 interface StatCardProps {
-  icon: string;
-  value: number;
-  label: string;
-  bgColor: string;
+  icon: string
+  value: number
+  label: string
+  bgColor: string
 }
 
 export default function StatCard({ icon, value, label, bgColor }: StatCardProps) {
-  const displayValue = value >= 0 ? `+${value}` : value;
+  const displayValue = value >= 0 ? `+${value}` : value
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col items-center justify-center min-h-[140px]">
@@ -16,12 +16,8 @@ export default function StatCard({ icon, value, label, bgColor }: StatCardProps)
       >
         <span className="text-2xl">{icon}</span>
       </div>
-      <div className="text-3xl font-bold text-gray-800 mb-1">
-        {displayValue}
-      </div>
-      <div className="text-sm text-gray-600 text-center">
-        {label}
-      </div>
+      <div className="text-3xl font-bold text-gray-800 mb-1">{displayValue}</div>
+      <div className="text-sm text-gray-600 text-center">{label}</div>
     </div>
-  );
+  )
 }

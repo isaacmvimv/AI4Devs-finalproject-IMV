@@ -29,13 +29,13 @@ ConRutina es una aplicación web orientada a la gestión de rutinas y buenos há
 
 > Puede ser pública o privada, en cuyo caso deberás compartir los accesos de manera segura. Puedes enviarlos a [alvaro@lidr.co](mailto:alvaro@lidr.co) usando algún servicio como [onetimesecret](https://onetimesecret.com/).
 
-*(pendiente de despliegue)*
+_(pendiente de despliegue)_
 
 ### 0.5. URL o archivo comprimido del repositorio
 
 > Puedes tenerlo alojado en público o en privado, en cuyo caso deberás compartir los accesos de manera segura. Puedes enviarlos a [alvaro@lidr.co](mailto:alvaro@lidr.co) usando algún servicio como [onetimesecret](https://onetimesecret.com/). También puedes compartir por correo un archivo zip con el contenido
 
-*(pendiente de rellenar)*
+_(pendiente de rellenar)_
 
 ---
 
@@ -55,16 +55,13 @@ Consultar información detallada en el documento: `[docs/prd.md](docs/prd.md)`
 
 La propuesta de valor se dirige a tres perfiles principales:
 
-
 | Para quién                                           | Problema que resuelve                                         | Cómo lo resuelve                                                   | Diferencial                                                                            |
 | ---------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
 | Personas con voluntad de cambio pero baja constancia | Falta de motivación sostenida para mantener rutinas           | Sistema de puntos + recompensas propias como incentivo             | El usuario define sus propias recompensas, haciendo el incentivo genuinamente personal |
 | Usuarios que quieren ver su progreso de forma visual | Frustración ante métodos de seguimiento complejos o aburridos | Interfaz gamificada y ligera (SPA, sin instalación)                | Zero-friction: funciona en cualquier navegador, no requiere app nativa                 |
 | Personas que rompen rachas y abandonan               | El "todo o nada" anula el esfuerzo parcial                    | Las semanas se bloquean al terminar, preservando el historial real | El pasado no desaparece: el usuario ve su evolución honesta semana a semana            |
 
-
 **Ventajas competitivas** frente a soluciones existentes:
-
 
 | Competidor                | Debilidad del competidor                                                 | Ventaja de ConRutina                                            |
 | ------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------- |
@@ -72,7 +69,6 @@ La propuesta de valor se dirige a tres perfiles principales:
 | Streaks / Loop            | Sin sistema de recompensas ni penalizaciones                             | Mecánica bidireccional (puntos + penalizaciones) más motivadora |
 | Notion / hojas de cálculo | No gamifican ni sintetizan el progreso automáticamente                   | Dashboard visual automatizado, sin configuración manual         |
 | Aplicaciones de coach     | Coste mensual elevado, dependencia de terceros                           | Autónomo, autodirigido, sin suscripción en MVP                  |
-
 
 ### **1.2. Características y funcionalidades principales:**
 
@@ -171,6 +167,7 @@ CORS_ORIGIN=http://localhost:5173
 ```bash
 npm run docker:up
 ```
+
 o
 
 ```bash
@@ -218,7 +215,6 @@ Arranca la API Express en `http://localhost:3001`. Requiere `DATABASE_URL` y el 
 
 > **Nota:** Si solo se ejecuta `npm run dev` sin el API, la tarjeta de perfil de usuario no mostrará datos (las peticiones a `/api/profile` fallarán). Para la experiencia completa es necesario arrancar ambos procesos.
 
-
 #### 7. Parada de PostgreSQL con Docker (**raíz**):
 
 ```bash
@@ -227,7 +223,6 @@ docker-compose down
 
 #### Comandos adicionales
 
-
 | Comando                   | Descripción                                          |
 | ------------------------- | ---------------------------------------------------- |
 | `npm run build`           | Genera el bundle de producción en `frontend/dist/`   |
@@ -235,7 +230,6 @@ docker-compose down
 | `npm run docker:down`     | Para el contenedor PostgreSQL                        |
 | `npm run docker:logs`     | Muestra los logs del contenedor `postgres`           |
 | `npm run prisma:generate` | Regenera el cliente Prisma tras cambios en el schema |
-
 
 ---
 
@@ -283,8 +277,6 @@ flowchart TB
   style data fill:#FCE4EC,stroke:#E91E63
 ```
 
-
-
 **Patrón arquitectónico:** Clean Architecture con dos árboles independientes (frontend SPA y backend API REST). Ambos implementan las mismas cuatro capas: Presentación, Aplicación, Dominio e Infraestructura.
 
 ### **2.2. Descripción de componentes principales:**
@@ -331,7 +323,6 @@ flowchart TB
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-
 | Componente          | Tecnología                                                              | Propósito                                                                   |
 | ------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | **React SPA**       | TypeScript · React 18 · Vite 6 · Tailwind CSS v4 · Radix UI / shadcn/ui | Interfaz de usuario, estado local de hábitos y recompensas, consumo del API |
@@ -339,7 +330,6 @@ flowchart TB
 | **PostgreSQL 16**   | Docker (dev) / cloud (prod)                                             | Persistencia de usuarios, semanas, hábitos, entradas diarias y canjes       |
 | **Prisma ORM**      | `@prisma/client` 5.x                                                    | Acceso tipado a PostgreSQL; schema versionado con migraciones               |
 | **Vite Dev Server** | Vite 6.4.2                                                              | Servidor de desarrollo con HMR y proxy `/api` → Express en `:3001`          |
-
 
 ### **2.3. Descripción de alto nivel del proyecto y estructura de ficheros**
 
@@ -390,7 +380,7 @@ ConRutina/
 **Entorno de desarrollo:**
 
 1. El desarrollador ejecuta `npm run dev` (Vite en `:5173`) y `npm run dev:api` (Express en `:3001`) en paralelo.
-2. Las peticiones del cliente a `/api/`* las recibe Vite y las reenvía al proceso Express (proxy configurado en `vite.config.ts`).
+2. Las peticiones del cliente a `/api/`\* las recibe Vite y las reenvía al proceso Express (proxy configurado en `vite.config.ts`).
 3. Express consulta la BD con Prisma y devuelve JSON.
 
 **Entorno de producción:**
@@ -440,12 +430,9 @@ flowchart LR
   BrowserProd --> Main
 ```
 
-
-
 **Docker Compose (desarrollo):**
 
 El fichero `docker-compose.yml` define el servicio `postgres` con imagen `postgres:16-alpine`, volumen persistente `conrutina_postgres_data`, health check con `pg_isready` y credenciales configurables vía `.env`.
-
 
 | Variable            | Uso                                      |
 | ------------------- | ---------------------------------------- |
@@ -453,7 +440,6 @@ El fichero `docker-compose.yml` define el servicio `postgres` con imagen `postgr
 | `POSTGRES_PASSWORD` | Contraseña (obligatorio)                 |
 | `POSTGRES_DB`       | Nombre de la BD; por defecto `conrutina` |
 | `POSTGRES_PORT`     | Puerto en el host; por defecto `5432`    |
-
 
 ### **2.5. Seguridad**
 
@@ -578,12 +564,9 @@ erDiagram
   REWARD ||--o{ REWARD_REDEMPTION : "es canjeada en"
 ```
 
-
-
 ### **3.2. Descripción de entidades principales:**
 
 #### User (Usuario)
-
 
 | Atributo    | Tipo       | Restricciones            | Descripción                     |
 | ----------- | ---------- | ------------------------ | ------------------------------- |
@@ -593,9 +576,7 @@ erDiagram
 | `avatarUrl` | `String?`  | nullable                 | URL opcional del avatar         |
 | `createdAt` | `DateTime` | not null, default: now() | Fecha de creación de la cuenta  |
 
-
 #### Week (Semana)
-
 
 | Atributo            | Tipo       | Restricciones            | Descripción                                                 |
 | ------------------- | ---------- | ------------------------ | ----------------------------------------------------------- |
@@ -608,11 +589,9 @@ erDiagram
 | `totalPenalties`    | `Int`      | not null, default: 0     | Penalizaciones acumuladas al bloquear                       |
 | `createdAt`         | `DateTime` | not null, default: now() | Fecha de creación del registro                              |
 
-
-*Índice:* `@@index([userId, startDate])` para optimizar `getCurrentWeek`.
+_Índice:_ `@@index([userId, startDate])` para optimizar `getCurrentWeek`.
 
 #### Habit (Hábito)
-
 
 | Atributo       | Tipo       | Restricciones            | Descripción                                                      |
 | -------------- | ---------- | ------------------------ | ---------------------------------------------------------------- |
@@ -625,11 +604,9 @@ erDiagram
 | `isActive`     | `Boolean`  | not null, default: true  | Indica si el hábito está disponible para añadir a nuevas semanas |
 | `createdAt`    | `DateTime` | not null, default: now() | Fecha de creación                                                |
 
-
 #### WeekHabit (Hábito en una Semana)
 
 Tabla intermedia que representa la asociación de un hábito concreto a una semana específica. Permite que cada semana tenga un conjunto de hábitos diferente y guarda un **snapshot inmutable** de los valores en el momento del bloqueo.
-
 
 | Atributo          | Tipo     | Restricciones        | Descripción                                                       |
 | ----------------- | -------- | -------------------- | ----------------------------------------------------------------- |
@@ -641,14 +618,12 @@ Tabla intermedia que representa la asociación de un hábito concreto a una sema
 | `snapshotPoints`  | `Int`    | not null             | Puntos del hábito en el momento del bloqueo                       |
 | `snapshotPenalty` | `Int`    | not null             | Penalización en el momento del bloqueo                            |
 
-
-*Restricción:* `@@unique([weekId, habitId])` — evita duplicados de hábito en la misma semana.
-*Índice:* `@@index([weekId])`.
+_Restricción:_ `@@unique([weekId, habitId])` — evita duplicados de hábito en la misma semana.
+_Índice:_ `@@index([weekId])`.
 
 #### HabitEntry (Entrada diaria de un Hábito)
 
 Registra el estado de cada hábito por cada día de la semana. Cada `WeekHabit` genera exactamente 7 entradas (Lun–Dom).
-
 
 | Atributo      | Tipo       | Restricciones              | Descripción                                                      |
 | ------------- | ---------- | -------------------------- | ---------------------------------------------------------------- |
@@ -658,11 +633,9 @@ Registra el estado de cada hábito por cada día de la semana. Cada `WeekHabit` 
 | `status`      | `Enum`     | not null, default: pending | Estado del hábito para ese día: `pending`, `completed`, `failed` |
 | `updatedAt`   | `DateTime` | not null                   | Última actualización                                             |
 
-
-*Índice:* `@@index([weekHabitId])`.
+_Índice:_ `@@index([weekHabitId])`.
 
 #### Reward (Recompensa)
-
 
 | Atributo      | Tipo       | Restricciones            | Descripción                             |
 | ------------- | ---------- | ------------------------ | --------------------------------------- |
@@ -675,11 +648,9 @@ Registra el estado de cada hábito por cada día de la semana. Cada `WeekHabit` 
 | `isActive`    | `Boolean`  | not null, default: true  | Indica si la recompensa está disponible |
 | `createdAt`   | `DateTime` | not null, default: now() | Fecha de creación                       |
 
-
 #### RewardRedemption (Canje de Recompensa)
 
 Registra cada vez que el usuario canjea una recompensa en una semana determinada.
-
 
 | Atributo      | Tipo       | Restricciones         | Descripción                                |
 | ------------- | ---------- | --------------------- | ------------------------------------------ |
@@ -689,11 +660,9 @@ Registra cada vez que el usuario canjea una recompensa en una semana determinada
 | `pointsSpent` | `Int`      | not null              | Puntos descontados en el momento del canje |
 | `redeemedAt`  | `DateTime` | not null              | Timestamp del canje                        |
 
-
-*Índice:* `@@index([weekId])` para cálculo de saldo disponible.
+_Índice:_ `@@index([weekId])` para cálculo de saldo disponible.
 
 **Relaciones resumen:**
-
 
 | From        | To                 | Cardinalidad | Descripción                                                          |
 | ----------- | ------------------ | ------------ | -------------------------------------------------------------------- |
@@ -705,7 +674,6 @@ Registra cada vez que el usuario canjea una recompensa en una semana determinada
 | `WeekHabit` | `HabitEntry`       | 1:7          | Cada asociación hábito-semana genera exactamente 7 entradas diarias  |
 | `Week`      | `RewardRedemption` | 1:N          | Una semana puede registrar múltiples canjes de recompensas           |
 | `Reward`    | `RewardRedemption` | 1:N          | Una recompensa puede ser canjeada en múltiples semanas               |
-
 
 ---
 
@@ -720,7 +688,7 @@ Registra cada vez que el usuario canjea una recompensa en una semana determinada
 Devuelve los datos del usuario para la cabecera de la aplicación.
 
 ```yaml
-openapi: "3.0.3"
+openapi: '3.0.3'
 paths:
   /api/profile:
     get:
@@ -729,7 +697,7 @@ paths:
         Devuelve los datos de identificación del usuario (id, nombre, email, avatar).
         En el MVP el userId se resuelve en servidor (hardcodeado a 1 o vía header X-User-Id).
       responses:
-        "200":
+        '200':
           description: Perfil del usuario encontrado
           content:
             application/json:
@@ -742,15 +710,15 @@ paths:
                   name:
                     type: string
                     nullable: true
-                    example: "Demo User"
+                    example: 'Demo User'
                   email:
                     type: string
-                    example: "demo@ConRutina.app"
+                    example: 'demo@ConRutina.app'
                   avatarUrl:
                     type: string
                     nullable: true
                     example: null
-        "404":
+        '404':
           description: Usuario no encontrado
           content:
             application/json:
@@ -759,11 +727,11 @@ paths:
                 properties:
                   code:
                     type: string
-                    example: "USER_NOT_FOUND"
+                    example: 'USER_NOT_FOUND'
                   message:
                     type: string
-                    example: "Usuario no encontrado"
-        "500":
+                    example: 'Usuario no encontrado'
+        '500':
           description: Error interno del servidor
 ```
 
@@ -791,7 +759,7 @@ curl http://localhost:3001/api/profile
 Devuelve la semana activa del usuario con todos sus hábitos, entradas diarias y estadísticas. Si ha cambiado de semana, bloquea la anterior y crea la nueva automáticamente (UC-08).
 
 ```yaml
-openapi: "3.0.3"
+openapi: '3.0.3'
 paths:
   /api/weeks/current:
     get:
@@ -802,7 +770,7 @@ paths:
         la semana anterior (isLocked=true, snapshot inmutable) y crea la nueva con los
         hábitos heredados en status=pending.
       responses:
-        "200":
+        '200':
           description: Semana activa encontrada o creada
           content:
             application/json:
@@ -818,11 +786,11 @@ paths:
                       startDate:
                         type: string
                         format: date-time
-                        example: "2026-04-13T00:00:00.000Z"
+                        example: '2026-04-13T00:00:00.000Z'
                       endDate:
                         type: string
                         format: date-time
-                        example: "2026-04-19T23:59:59.999Z"
+                        example: '2026-04-19T23:59:59.999Z'
                       isLocked:
                         type: boolean
                         example: false
@@ -842,7 +810,7 @@ paths:
                               type: integer
                             snapshotName:
                               type: string
-                              example: "Correr"
+                              example: 'Correr'
                             snapshotPoints:
                               type: integer
                               example: 10
@@ -865,7 +833,7 @@ paths:
                               status:
                                 type: string
                                 enum: [pending, completed, failed]
-                                example: "pending"
+                                example: 'pending'
                   stats:
                     type: object
                     properties:
@@ -885,7 +853,7 @@ paths:
                     type: array
                     items:
                       type: object
-        "500":
+        '500':
           description: Error interno del servidor
 ```
 
@@ -902,7 +870,7 @@ curl http://localhost:3001/api/weeks/current
 Actualiza el estado (`status`) de una celda concreta del calendario. Rechaza la mutación si la semana está bloqueada.
 
 ```yaml
-openapi: "3.0.3"
+openapi: '3.0.3'
 paths:
   /api/habit-entries/{habitEntryId}:
     patch:
@@ -929,9 +897,9 @@ paths:
                 status:
                   type: string
                   enum: [pending, completed, failed]
-                  example: "completed"
+                  example: 'completed'
       responses:
-        "200":
+        '200':
           description: Estado actualizado correctamente
           content:
             application/json:
@@ -944,12 +912,12 @@ paths:
                   status:
                     type: string
                     enum: [pending, completed, failed]
-                    example: "completed"
+                    example: 'completed'
                   updatedAt:
                     type: string
                     format: date-time
-                    example: "2026-04-18T09:15:00.000Z"
-        "400":
+                    example: '2026-04-18T09:15:00.000Z'
+        '400':
           description: Valor de status inválido
           content:
             application/json:
@@ -958,7 +926,7 @@ paths:
                 properties:
                   code:
                     type: string
-                    example: "VALIDATION_ERROR"
+                    example: 'VALIDATION_ERROR'
                   details:
                     type: array
                     items:
@@ -966,13 +934,13 @@ paths:
                       properties:
                         field:
                           type: string
-                          example: "status"
+                          example: 'status'
                         message:
                           type: string
-                          example: "Debe ser pending, completed o failed"
-        "404":
+                          example: 'Debe ser pending, completed o failed'
+        '404':
           description: HabitEntry no encontrada o no pertenece al usuario
-        "409":
+        '409':
           description: La semana está bloqueada y no admite modificaciones
           content:
             application/json:
@@ -981,10 +949,10 @@ paths:
                 properties:
                   code:
                     type: string
-                    example: "WEEK_LOCKED"
+                    example: 'WEEK_LOCKED'
                   message:
                     type: string
-                    example: "No se puede modificar una semana bloqueada"
+                    example: 'No se puede modificar una semana bloqueada'
 ```
 
 **Ejemplo de petición:**
@@ -1025,7 +993,6 @@ Consultar información detallada en el documento: `[docs/product-backlog.md](doc
 
 **INVEST:**
 
-
 | Criterio    | Evaluación                                                                           |
 | ----------- | ------------------------------------------------------------------------------------ |
 | Independent | Depende de los modelos Week, WeekHabit, HabitEntry y de los hábitos creados.         |
@@ -1034,7 +1001,6 @@ Consultar información detallada en el documento: `[docs/product-backlog.md](doc
 | Estimable   | Lógica de fechas + transacción BD bien especificada en el PRD.                       |
 | Small       | Un endpoint que encapsula la lógica de transición semanal.                           |
 | Testable    | Simular cambio de semana y verificar bloqueo de semana anterior y creación de nueva. |
-
 
 **Acceptance Criteria (BDD):**
 
@@ -1086,7 +1052,6 @@ Then GET /api/weeks/current con offset=-1 sigue mostrando snapshotPoints=10 para
 
 **INVEST:**
 
-
 | Criterio    | Evaluación                                                                   |
 | ----------- | ---------------------------------------------------------------------------- |
 | Independent | Depende de US-09 (HabitEntry creadas al iniciar semana).                     |
@@ -1095,7 +1060,6 @@ Then GET /api/weeks/current con offset=-1 sigue mostrando snapshotPoints=10 para
 | Estimable   | Endpoint PATCH simple con validación de semana bloqueada.                    |
 | Small       | Un endpoint, una tabla, una validación clave.                                |
 | Testable    | PATCH persiste el estado; semana bloqueada rechaza la petición con 409.      |
-
 
 **Acceptance Criteria (BDD):**
 
@@ -1141,7 +1105,6 @@ Then el servidor responde 404 (no expone existencia del recurso)
 
 **INVEST:**
 
-
 | Criterio    | Evaluación                                                                  |
 | ----------- | --------------------------------------------------------------------------- |
 | Independent | Depende del modelo Reward y del servidor Express scaffoldeado.              |
@@ -1150,7 +1113,6 @@ Then el servidor responde 404 (no expone existencia del recurso)
 | Estimable   | CRUD estándar; mismos patrones que hábitos.                                 |
 | Small       | Tres endpoints sobre la entidad Reward.                                     |
 | Testable    | POST crea en BD; DELETE hace baja lógica; canjes históricos no se eliminan. |
-
 
 **Acceptance Criteria (BDD):**
 
@@ -1223,7 +1185,6 @@ Instalar `prisma` y `@prisma/client`. Crear `backend/prisma/schema.prisma` con e
 
 **Verificación de modelos (lista de comprobación):**
 
-
 | Modelo             | Campos clave                                                                                                                                    |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `User`             | `id`, `email(unique)`, `name?`, `avatarUrl?`, `createdAt`                                                                                       |
@@ -1233,7 +1194,6 @@ Instalar `prisma` y `@prisma/client`. Crear `backend/prisma/schema.prisma` con e
 | `HabitEntry`       | `id`, `weekHabitId(FK)`, `dayIndex(0-6)`, `status(enum:pending/completed/failed)`, `updatedAt`                                                  |
 | `Reward`           | `id`, `userId(FK)`, `emoji`, `name`, `description`, `cost`, `isActive(default:true)`, `createdAt`                                               |
 | `RewardRedemption` | `id`, `weekId(FK)`, `rewardId(FK)`, `pointsSpent`, `redeemedAt`                                                                                 |
-
 
 **Edge cases a tener en cuenta:**
 
@@ -1338,16 +1298,16 @@ Crear `frontend/src/application/useHabitDashboard.ts`. Es el hook central de la 
 
 ```typescript
 const {
-  habits,          // Habit[] — hábitos de la semana en curso
-  rewards,         // Reward[] — recompensas activas del usuario
-  weekOffset,      // number — 0 = semana actual, -1 = semana anterior, etc.
-  stats,           // HabitStats — { thisWeekPoints, lastWeekPoints, penalties, maxStreak }
-  totalPoints,     // number — saldo disponible para canjear
+  habits, // Habit[] — hábitos de la semana en curso
+  rewards, // Reward[] — recompensas activas del usuario
+  weekOffset, // number — 0 = semana actual, -1 = semana anterior, etc.
+  stats, // HabitStats — { thisWeekPoints, lastWeekPoints, penalties, maxStreak }
+  totalPoints, // number — saldo disponible para canjear
   currentDayIndex, // number — día de hoy (0=Lunes, 6=Domingo)
-  todayProgress,   // number — % hábitos completados hoy (0-100)
-  weekData,        // WeekData — etiquetas y fechas de la semana visible
-  isCurrentWeek,   // boolean
-  isWeekLocked,    // boolean
+  todayProgress, // number — % hábitos completados hoy (0-100)
+  weekData, // WeekData — etiquetas y fechas de la semana visible
+  isCurrentWeek, // boolean
+  isWeekLocked, // boolean
   handleToggleDay,
   handleAddHabit,
   handleDeleteHabit,
@@ -1355,7 +1315,7 @@ const {
   handleRedeemReward,
   handleDeleteReward,
   handleWeekNav,
-} = useHabitDashboard();
+} = useHabitDashboard()
 ```
 
 **Criterios de aceptación clave:**
@@ -1389,12 +1349,12 @@ And los componentes renderizan las celdas como no interactivas
 
 **Pull Request 1**
 
-*(pendiente — se documentará al completar Sprint 0: Scaffolding y configuración del monorepo, base de datos y estructura de capas)*
+_(pendiente — se documentará al completar Sprint 0: Scaffolding y configuración del monorepo, base de datos y estructura de capas)_
 
 **Pull Request 2**
 
-*(pendiente — se documentará al completar Sprint 1: APIs Core, dominio del frontend y perfil de usuario)*
+_(pendiente — se documentará al completar Sprint 1: APIs Core, dominio del frontend y perfil de usuario)_
 
 **Pull Request 3**
 
-*(pendiente — se documentará al completar Sprint 2: Ciclo semanal, bloqueo automático y recompensas API)*
+_(pendiente — se documentará al completar Sprint 2: Ciclo semanal, bloqueo automático y recompensas API)_

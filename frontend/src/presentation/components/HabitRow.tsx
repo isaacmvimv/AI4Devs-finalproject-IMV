@@ -1,25 +1,24 @@
-import { Check, X } from 'lucide-react';
+import { Check, X } from 'lucide-react'
 
 interface HabitRowProps {
-  id: string;
-  emoji: string;
-  name: string;
-  points: number;
-  streak?: number;
-  completionStatus: Array<'completed' | 'failed' | 'pending'>;
-  onToggleDay: (habitId: string, dayIndex: number) => void;
-  onDelete: (habitId: string) => void;
+  id: string
+  emoji: string
+  name: string
+  points: number
+  streak?: number
+  completionStatus: Array<'completed' | 'failed' | 'pending'>
+  onToggleDay: (habitId: string, dayIndex: number) => void
+  onDelete: (habitId: string) => void
 }
 
 export default function HabitRow({
   id,
   emoji,
   name,
-  points,
   streak,
   completionStatus,
   onToggleDay,
-  onDelete
+  onDelete,
 }: HabitRowProps) {
   return (
     <div className="grid grid-cols-[1fr_repeat(7,48px)_24px] gap-2 items-center py-3 border-b border-gray-100 last:border-0">
@@ -28,9 +27,7 @@ export default function HabitRow({
         <span className="text-xl">{emoji}</span>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-gray-800 truncate">{name}</div>
-          {streak && streak > 0 && (
-            <div className="text-xs text-orange-500">🔥 {streak} días</div>
-          )}
+          {streak && streak > 0 && <div className="text-xs text-orange-500">🔥 {streak} días</div>}
         </div>
       </div>
 
@@ -43,8 +40,8 @@ export default function HabitRow({
               status === 'completed'
                 ? 'bg-green-500 text-white'
                 : status === 'failed'
-                ? 'bg-red-400 text-white'
-                : 'bg-gray-100 hover:bg-gray-200'
+                  ? 'bg-red-400 text-white'
+                  : 'bg-gray-100 hover:bg-gray-200'
             }`}
           >
             {status === 'completed' && <Check className="w-4 h-4" />}
@@ -63,5 +60,5 @@ export default function HabitRow({
         </button>
       </div>
     </div>
-  );
+  )
 }

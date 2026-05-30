@@ -1,5 +1,5 @@
-import type { Habit } from './habit';
-import type { Reward } from './reward';
+import type { Habit } from './habit'
+import type { Reward } from './reward'
 
 export const INITIAL_HABITS: Habit[] = [
   {
@@ -87,7 +87,7 @@ export const INITIAL_HABITS: Habit[] = [
       'pending',
     ],
   },
-];
+]
 
 export const INITIAL_REWARDS: Reward[] = [
   {
@@ -118,4 +118,4 @@ export const INITIAL_REWARDS: Reward[] = [
     description: 'Compra algo que desees',
     cost: 189,
   },
-];
+]

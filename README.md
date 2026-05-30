@@ -1,6 +1,6 @@
 # ConRutina
 
-Aplicación web para seguimiento de hábitos y recompensas: interfaz en **React** (SPA con **Vite**) y un **API HTTP** en **Node** (**Express** + **Prisma**) que puede leer el perfil de usuario desde **PostgreSQL**. El tablero de hábitos y recompensas se gestiona principalmente en el cliente; el backend expone hoy `**GET /api/profile`** para datos de perfil persistidos.
+Aplicación web para seguimiento de hábitos y recompensas: interfaz en **React** (SPA con **Vite**) y un **API HTTP** en **Node** (**Express** + **Prisma**) que puede leer el perfil de usuario desde **PostgreSQL**. El tablero de hábitos y recompensas se gestiona principalmente en el cliente; el backend expone hoy `**GET /api/profile`\*\* para datos de perfil persistidos.
 
 ## Tabla de contenidos
 
@@ -57,7 +57,6 @@ npx prisma db push
 
 Aplica el esquema a la base de datos según tu flujo habitual con Prisma (por ejemplo `npx prisma migrate dev` si trabajas con migraciones locales). En el repositorio **no hay carpeta de migraciones versionada** en el momento de redactar este README; si falta, créala con Prisma según tu entorno.
 
-
 6. Parada de PostgreSQL con Docker (**raíz**):
 
 ```bash
@@ -113,7 +112,6 @@ npm run preview
 
 ## Estructura del proyecto
 
-
 | Ruta                 | Descripción                                                                                                                                                                             |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `frontend/`          | Raíz de la SPA para Vite (`index.html`, `src/`). Presentación (`presentation/`), dominio (`domain/`), casos de uso vía hooks (`application/`), adaptadores HTTP (`infrastructure/`).    |
@@ -124,21 +122,18 @@ npm run preview
 | `docs/`              | Documentación adicional; `docs/infrastructure.md` amplía arquitectura y stack.                                                                                                          |
 | `openspec/`          | Configuración OpenSpec (`config.yaml`); no forma parte del runtime de la aplicación.                                                                                                    |
 
-
 ## Configuración
 
-Variables de entorno habituales en `**.env`** en la **raíz** del proyecto (cargado por el API vía `backend/src/loadEnv.ts`):
-
+Variables de entorno habituales en `**.env`** en la **raíz\*\* del proyecto (cargado por el API vía `backend/src/loadEnv.ts`):
 
 | Variable            | Uso                                                                                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `DATABASE_URL`      | Cadena de conexión **PostgreSQL** para Prisma y el `PrismaClient` del API. Obligatoria para el API con base de datos.                            |
 | `POSTGRES_USER`     | Usuario de la instancia en Docker Compose.                                                                                                       |
 | `POSTGRES_PASSWORD` | Contraseña de la instancia en Docker Compose.                                                                                                    |
-| `POSTGRES_DB`       | Nombre de la base en el contenedor; por defecto en `docker-compose.yml`: `**conrutina`**.                                                       |
+| `POSTGRES_DB`       | Nombre de la base en el contenedor; por defecto en `docker-compose.yml`: `**conrutina`\*\*.                                                      |
 | `POSTGRES_PORT`     | Puerto en el host; por defecto **5432**.                                                                                                         |
 | `API_PORT`          | Puerto del API Express; por defecto **3001**. Si lo cambias, ajusta también el `server.proxy` de `vite.config.ts` para que el `target` coincida. |
-
 
 Ejemplo de formato para `DATABASE_URL` (ajusta usuario, contraseña, puerto y base):
 
@@ -150,28 +145,37 @@ DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@localhost:5432/conrutina"
 
 ## Scripts disponibles
 
+| Comando                   | Descripción                                                             |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `npm run dev`             | Frontend (Vite) y API (Express) en paralelo con `concurrently`.         |
+| `npm run dev:web`         | Solo servidor de desarrollo Vite (SPA).                                 |
+| `npm run dev:api`         | Solo API Express con recarga (`tsx watch` sobre `backend/src/main.ts`). |
+| `npm run build`           | Build de producción de la SPA → `dist/`.                                |
+| `npm run typecheck`       | Comprobación de tipos (`tsc --noEmit`) en frontend y backend.           |
+| `npm run build:dev`       | Build en modo development.                                              |
+| `npm run preview`         | Sirve el contenido de `dist/` localmente.                               |
+| `npm run lint`            | ESLint sobre `frontend/src` y `backend/src`.                            |
+| `npm run format`          | Formatea código con Prettier (TS/TSX/CSS, JSON, MD, MJS).             |
+| `npm run format:check`    | Comprueba formato Prettier sin modificar ficheros.                      |
+| `npm run test`            | Ejecuta Vitest una vez (`vitest run`).                                  |
+| `npm run test:watch`      | Vitest en modo observación.                                             |
+| `npm run docker:up`       | `docker compose up -d`.                                                 |
+| `npm run docker:down`     | `docker compose down`.                                                  |
+| `npm run docker:logs`     | Logs del servicio `postgres`.                                           |
+| `npm run prisma:init`     | `npx prisma init`.                                                      |
+| `npm run prisma:generate` | `npx prisma generate`.                                                  |
+| `npm run db:migrate`      | `npx prisma migrate deploy`.                                            |
 
-| Comando                   | Descripción                                                                 |
-| ------------------------- | --------------------------------------------------------------------------- |
-| `npm run dev`             | Frontend (Vite) y API (Express) en paralelo con `concurrently`.           |
-| `npm run dev:web`         | Solo servidor de desarrollo Vite (SPA).                                     |
-| `npm run dev:api`         | Solo API Express con recarga (`tsx watch` sobre `backend/src/main.ts`).     |
-| `npm run build`           | Build de producción de la SPA → `dist/`.                           |
-| `npm run typecheck`       | Comprobación de tipos (`tsc --noEmit`) en frontend y backend.      |
-| `npm run build:dev`       | Build en modo development.                                         |
-| `npm run preview`         | Sirve el contenido de `dist/` localmente.                          |
-| `npm run lint`            | Ejecuta ESLint (`eslint .`).                                       |
-| `npm run test`            | Ejecuta Vitest una vez (`vitest run`).                             |
-| `npm run test:watch`      | Vitest en modo observación.                                        |
-| `npm run docker:up`       | `docker compose up -d`.                                            |
-| `npm run docker:down`     | `docker compose down`.                                             |
-| `npm run docker:logs`     | Logs del servicio `postgres`.                                      |
-| `npm run prisma:init`     | `npx prisma init`.                                                 |
-| `npm run prisma:generate` | `npx prisma generate`.                                             |
-| `npm run db:migrate`      | `npx prisma migrate deploy`.                                       |
+### Calidad de código (ESLint y Prettier)
 
+| Fichero              | Propósito                                              |
+| -------------------- | ------------------------------------------------------ |
+| `eslint.config.mjs`  | ESLint 9 flat config: TypeScript + React (frontend) y Node (backend) |
+| `.prettierrc`        | `singleQuote`, `semi: false`, `tabWidth: 2`, `printWidth: 100` |
+| `.prettierignore`    | Excluye `node_modules`, `dist`, migraciones Prisma     |
+| `.editorconfig`      | Indentación, charset UTF-8 y fin de línea LF           |
 
-> ⚠️ Información no disponible: en `package.json` existen los scripts `lint` y `test`, pero **no** aparecen `eslint` ni `vitest` como dependencias en el mismo `package.json`. Es posible que fallen hasta instalar y configurar esas herramientas explícitamente.
+> ⚠️ El script `test` requiere Vitest configurado; puede fallar hasta que se añada en un ticket futuro.
 
 ## Tecnologías utilizadas
 

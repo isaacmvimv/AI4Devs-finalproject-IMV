@@ -254,7 +254,9 @@ npm run dev:api            # Solo backend (Express)
 npm run build              # Build producción → dist/
 npm run preview
 npm run typecheck          # tsc --noEmit (frontend + backend)
-npm run lint               # cuando ESLint esté configurado
+npm run lint               # ESLint sobre frontend/src y backend/src
+npm run format             # Prettier (formateo in-place)
+npm run format:check       # Prettier sin escribir (útil en CI)
 ```
 
 ## Solución de problemas
@@ -339,11 +341,33 @@ Ejemplo para el primer ticket del Sprint 0:
 /opsx:archive t-01-01-init-monorepo
 ```
 
+### Calidad de código (ESLint y Prettier)
+
+Configuración centralizada en la raíz del monorepo:
+
+| Fichero | Ámbito |
+| ------- | ------ |
+| `eslint.config.mjs` | Flat config ESLint 9: bloque TS recomendado, React en `frontend/src`, globals Node en `backend/src` |
+| `.prettierrc` | `singleQuote: true`, `semi: false`, `tabWidth: 2`, `trailingComma: es5`, `printWidth: 100` |
+| `.prettierignore` | `node_modules`, `dist`, `coverage`, `backend/prisma/migrations` |
+| `.editorconfig` | UTF-8, LF, indentación 2 espacios en ficheros de código |
+
+Comandos habituales:
+
+```bash
+npm run lint          # Analiza frontend/src y backend/src
+npm run format        # Formatea con Prettier
+npm run format:check  # Solo comprueba formato (CI)
+```
+
+ESLint no usa reglas type-aware (`parserOptions.project`); errores de tipos se detectan con `npm run typecheck`. ESLint sí detecta errores de sintaxis/parsing (US-01 Scenario 3).
+
 ### Convenciones de código
 
 - **UI y textos visibles al usuario:** español
 - **Código (identificadores, tipos):** inglés (convención del stack TypeScript)
 - **TypeScript:** modo estricto, evitar `any`; ejecutar `npm run typecheck` antes de abrir PR
+- **ESLint y Prettier:** configuración en la raíz del monorepo (`eslint.config.mjs`, `.prettierrc`, `.editorconfig`). Ejecutar `npm run lint` y, si aplica, `npm run format` antes de abrir PR.
 - **Arquitectura:** Clean Architecture en frontend y backend
 - **Documentación técnica:** español (esta carpeta `docs/`)
 

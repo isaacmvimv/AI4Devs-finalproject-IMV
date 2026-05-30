@@ -1,46 +1,55 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
+import { useState } from 'react'
+import { X } from 'lucide-react'
 
 interface AddHabitModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onAdd: (habit: {
-    emoji: string;
-    name: string;
-    pointsPerDay: number;
-    penalty: number;
-  }) => void;
+  isOpen: boolean
+  onClose: () => void
+  onAdd: (habit: { emoji: string; name: string; pointsPerDay: number; penalty: number }) => void
 }
 
 const HABIT_EMOJIS = [
-  '🏋️', '🚴', '🏃', '🔥', '💧', '📚', '🚫', '🎨',
-  '🎯', '🍎', '🎵', '✏️', '📱', '🧘', '🎮', '🌟'
-];
+  '🏋️',
+  '🚴',
+  '🏃',
+  '🔥',
+  '💧',
+  '📚',
+  '🚫',
+  '🎨',
+  '🎯',
+  '🍎',
+  '🎵',
+  '✏️',
+  '📱',
+  '🧘',
+  '🎮',
+  '🌟',
+]
 
 export default function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalProps) {
-  const [selectedEmoji, setSelectedEmoji] = useState(HABIT_EMOJIS[0]);
-  const [name, setName] = useState('');
-  const [pointsPerDay, setPointsPerDay] = useState(5);
-  const [penalty, setPenalty] = useState(3);
+  const [selectedEmoji, setSelectedEmoji] = useState(HABIT_EMOJIS[0])
+  const [name, setName] = useState('')
+  const [pointsPerDay, setPointsPerDay] = useState(5)
+  const [penalty, setPenalty] = useState(3)
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (name.trim()) {
       onAdd({
         emoji: selectedEmoji,
         name: name.trim(),
         pointsPerDay,
-        penalty
-      });
-      setName('');
-      setPointsPerDay(5);
-      setPenalty(3);
-      setSelectedEmoji(HABIT_EMOJIS[0]);
-      onClose();
+        penalty,
+      })
+      setName('')
+      setPointsPerDay(5)
+      setPenalty(3)
+      setSelectedEmoji(HABIT_EMOJIS[0])
+      onClose()
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -57,9 +66,7 @@ export default function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalP
 
         <form onSubmit={handleSubmit}>
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Emoji
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-3">Emoji</label>
             <div className="grid grid-cols-8 gap-2">
               {HABIT_EMOJIS.map((emoji) => (
                 <button
@@ -79,9 +86,7 @@ export default function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalP
           </div>
 
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nombre
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
             <input
               type="text"
               value={name}
@@ -94,9 +99,7 @@ export default function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalP
 
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Puntos por día
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Puntos por día</label>
               <input
                 type="number"
                 value={pointsPerDay}
@@ -131,5 +134,5 @@ export default function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalP
         </form>
       </div>
     </div>
-  );
+  )
 }

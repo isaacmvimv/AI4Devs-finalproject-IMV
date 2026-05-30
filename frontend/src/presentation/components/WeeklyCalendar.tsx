@@ -1,9 +1,9 @@
 interface WeeklyCalendarProps {
-  weekDates: Array<{ day: string; date: number; month?: string }>;
-  weekRange: string;
-  onPrevWeek: () => void;
-  onNextWeek: () => void;
-  currentDayIndex: number;
+  weekDates: Array<{ day: string; date: number; month?: string }>
+  weekRange: string
+  onPrevWeek: () => void
+  onNextWeek: () => void
+  currentDayIndex: number
 }
 
 export default function WeeklyCalendar({
@@ -11,7 +11,7 @@ export default function WeeklyCalendar({
   weekRange,
   onPrevWeek,
   onNextWeek,
-  currentDayIndex
+  currentDayIndex,
 }: WeeklyCalendarProps) {
   return (
     <div className="mb-4">
@@ -42,9 +42,11 @@ export default function WeeklyCalendar({
         {weekDates.map((date, index) => (
           <div key={index} className="text-center">
             <div className="text-xs text-gray-500 mb-0.5">{date.day}</div>
-            <div className={`text-sm font-semibold ${
-              index === currentDayIndex ? 'text-green-600' : 'text-gray-700'
-            }`}>
+            <div
+              className={`text-sm font-semibold ${
+                index === currentDayIndex ? 'text-green-600' : 'text-gray-700'
+              }`}
+            >
               {date.date}
             </div>
           </div>
@@ -54,5 +56,5 @@ export default function WeeklyCalendar({
         <div></div>
       </div>
     </div>
-  );
+  )
 }
