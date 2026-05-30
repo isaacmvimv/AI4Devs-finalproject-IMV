@@ -46,7 +46,7 @@ NODE_ENV=development
 ```
 
 **Notas importantes:**
-- `DATABASE_URL` debe coincidir con las credenciales `POSTGRES_*` y con el default `conrutina` de `docker-compose.yml`
+- `DATABASE_URL` debe coincidir con las credenciales `POSTGRES_*` y el puerto `POSTGRES_PORT`
 - `API_PORT` por defecto es **3001** si no se define
 - Vite sirve el frontend en **5173** por defecto
 - No subas `.env` al repositorio (ya está en `.gitignore`); `.env.example` sí está versionado
@@ -62,22 +62,32 @@ El proyecto usa un monorepo mínimo: el `package.json` raíz gestiona frontend y
 ### 4. Base de datos (PostgreSQL con Docker)
 
 ```bash
-# Levantar PostgreSQL
-npm run docker:up
+# Levantar PostgreSQL (comando canónico)
+npm run db:up
+
+# Detener PostgreSQL (conserva el volumen)
+npm run db:down
 
 # Comprobar que está en marcha
-docker ps
+docker compose ps
 
 # Ver logs
 npm run docker:logs
 ```
 
+Los scripts `docker:up` / `docker:down` son alias retrocompatibles de `db:up` / `db:down`.
+
 PostgreSQL quedará disponible en:
+- **Servicio Compose:** `db` (contenedor `conrutina-db`)
 - **Host:** `localhost`
 - **Puerto:** `5432` (o el valor de `POSTGRES_PORT` en `.env`)
-- **Base de datos:** `conrutina` (default en `docker-compose.yml`)
-- **Usuario y contraseña:** según `POSTGRES_USER` y `POSTGRES_PASSWORD` en `.env` (ver `.env.example`)
-- **Volumen:** `conrutina_postgres_data`
+- **Base de datos:** según `POSTGRES_DB` en `.env` (ver `.env.example`)
+- **Usuario y contraseña:** según `POSTGRES_USER` y `POSTGRES_PASSWORD` en `.env`
+- **Volumen:** `ConRutina_postgres_data`
+
+**Migración desde volumen anterior:** si ya tenías datos en el volumen `conrutina_postgres_data`, el nuevo nombre es `ConRutina_postgres_data`. Puedes listar volúmenes con `docker volume ls` y, en desarrollo, recrear la BD o copiar datos manualmente si lo necesitas.
+
+Si quedó el contenedor antiguo `conrutina-postgres` ocupando el puerto, ejecuta una vez `docker compose down --remove-orphans` antes de `npm run db:up`.
 
 ### 5. Migraciones de base de datos
 
@@ -246,10 +256,12 @@ npx prisma migrate reset   # ¡Borra datos!
 ### Docker
 
 ```bash
-npm run docker:up
-npm run docker:down
-npm run docker:logs
-docker-compose down -v     # Elimina contenedor y volumen
+npm run db:up              # Levantar PostgreSQL (canónico)
+npm run db:down            # Detener PostgreSQL
+npm run docker:up          # Alias de db:up
+npm run docker:down        # Alias de db:down
+npm run docker:logs        # Logs del servicio db
+docker compose down -v     # Elimina contenedor y volumen ConRutina_postgres_data
 ```
 
 ### Desarrollo
@@ -288,10 +300,10 @@ O ajusta `API_PORT` en `.env` y el `target` del proxy en `vite.config.ts`.
 
 **Error:** `P1001: Can't reach database server`
 
-1. `docker ps` — Docker en marcha
-2. `npm run docker:up`
+1. `docker compose ps` — Docker en marcha
+2. `npm run db:up`
 3. Revisa `DATABASE_URL` en `.env`
-4. `docker logs conrutina-postgres`
+4. `docker logs conrutina-db`
 
 ### Perfil de usuario 404
 

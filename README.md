@@ -46,14 +46,16 @@ Consulta [Configuración](#configuración) para el detalle de cada variable.
 4. (Opcional) Levanta PostgreSQL con Docker (**raíz**):
 
 ```bash
-npm run docker:up
+npm run db:up
 ```
 
 o
 
 ```bash
-docker-compose up -d
+docker compose up -d db
 ```
+
+El volumen persistente se llama **`ConRutina_postgres_data`**; los datos se conservan entre reinicios del contenedor.
 
 5. Genera el cliente de Prisma (sólo la primera vez) (**raíz**; el esquema está en `backend/prisma/schema.prisma` y se resuelve desde la raíz gracias a `package.json`):
 
@@ -72,7 +74,13 @@ Aplica el esquema a la base de datos según tu flujo habitual con Prisma (por ej
 6. Parada de PostgreSQL con Docker (**raíz**):
 
 ```bash
-docker-compose down
+npm run db:down
+```
+
+o
+
+```bash
+docker compose stop db
 ```
 
 ## Uso
@@ -129,7 +137,7 @@ npm run preview
 | `frontend/`          | Raíz de la SPA para Vite (`index.html`, `src/`). Presentación (`presentation/`), dominio (`domain/`), casos de uso vía hooks (`application/`), adaptadores HTTP (`infrastructure/`).    |
 | `backend/src/`       | API Express: arranque en `main.ts`, composición HTTP en `presentation/http/createApp.ts`, casos de uso en `application/`, puertos en `application/ports/`, Prisma en `infrastructure/`. |
 | `backend/prisma/`    | Esquema Prisma (`schema.prisma`): modelos como `User` y `Calendar`, datasource PostgreSQL.                                                                                              |
-| `docker-compose.yml` | Servicio **PostgreSQL 16** (Alpine) con volumen persistente.                                                                                                                            |
+| `docker-compose.yml` | Servicio **`db`** (PostgreSQL 16 Alpine) con volumen persistente `ConRutina_postgres_data`.                                                                                                                            |
 | `vite.config.ts`     | Configuración de Vite: `root` en `frontend/`, alias `@` → `frontend/src`, proxy `/api` → `http://localhost:3001`.                                                                       |
 | `docs/`              | Documentación adicional; `docs/infrastructure.md` amplía arquitectura y stack.                                                                                                          |
 | `openspec/`          | Configuración OpenSpec (`config.yaml`); no forma parte del runtime de la aplicación.                                                                                                    |
@@ -145,7 +153,7 @@ Variables habituales:
 | `DATABASE_URL`      | Cadena de conexión **PostgreSQL** para Prisma y el `PrismaClient` del API. Obligatoria para el API con base de datos.                            |
 | `POSTGRES_USER`     | Usuario de la instancia en Docker Compose.                                                                                                       |
 | `POSTGRES_PASSWORD` | Contraseña de la instancia en Docker Compose.                                                                                                    |
-| `POSTGRES_DB`       | Nombre de la base en el contenedor; por defecto en `docker-compose.yml`: `**conrutina`\*\*.                                                      |
+| `POSTGRES_DB`       | Nombre de la base en el contenedor (ver `.env.example`).                                                                                      |
 | `POSTGRES_PORT`     | Puerto en el host; por defecto **5432**.                                                                                                         |
 | `API_PORT`          | Puerto del API Express; por defecto **3001**. Si lo cambias, ajusta también el `server.proxy` de `vite.config.ts` para que el `target` coincida. |
 | `CORS_ORIGIN`       | Origen permitido para CORS en desarrollo; por defecto **`http://localhost:5173`**. |
@@ -169,9 +177,11 @@ Los valores de ejemplo y comentarios de cada clave están en **`.env.example`**.
 | `npm run format:check`    | Comprueba formato Prettier sin modificar ficheros.                      |
 | `npm run test`            | Ejecuta Vitest una vez (`vitest run`).                                  |
 | `npm run test:watch`      | Vitest en modo observación.                                             |
-| `npm run docker:up`       | `docker compose up -d`.                                                 |
-| `npm run docker:down`     | `docker compose down`.                                                  |
-| `npm run docker:logs`     | Logs del servicio `postgres`.                                           |
+| `npm run db:up`           | `docker compose up -d db` — levanta PostgreSQL (comando canónico).      |
+| `npm run db:down`         | `docker compose stop db` — detiene PostgreSQL sin eliminar el volumen.  |
+| `npm run docker:up`       | Alias de `db:up`.                                                       |
+| `npm run docker:down`     | Alias de `db:down`.                                                     |
+| `npm run docker:logs`     | Logs del servicio `db`.                                                 |
 | `npm run prisma:init`     | `npx prisma init`.                                                      |
 | `npm run prisma:generate` | `npx prisma generate`.                                                  |
 | `npm run db:migrate`      | `npx prisma migrate deploy`.                                            |
