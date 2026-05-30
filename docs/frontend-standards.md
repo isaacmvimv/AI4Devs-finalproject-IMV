@@ -419,17 +419,33 @@ export async function getUserProfile(): Promise<UserProfile> {
 ```
 
 **Variables de tema:**
+
+Tokens ConRutina (DoD T-05-02) en `frontend/src/styles/theme.css`. Los valores `--color-*` son la fuente de verdad; las variables shadcn (`--background`, `--primary`, etc.) referencian la misma paleta.
+
 ```css
-/* styles/theme.css */
+/* frontend/src/styles/theme.css */
 :root {
-  --background: #FAF8F5;
+  /* Tokens ConRutina */
+  --color-background: #faf8f5;
+  --color-surface: #ffffff;
+  --color-primary: #22c55e;
+  --color-completed: #22c55e;
+  --color-failed: #ef4444;
+  --color-pending: #e5e7eb;
+
+  /* shadcn — sincronizados con ConRutina */
+  --background: var(--color-background);
   --foreground: #1a1a1a;
-  --card: #ffffff;
-  --primary: #22c55e;
+  --card: var(--color-surface);
+  --primary: var(--color-primary);
   --secondary: #fbbf24;
-  /* ... more variables */
+  /* ... más variables shadcn en theme.css */
 }
 ```
+
+Utilidades Tailwind generadas vía `@theme inline`: `bg-primary`, `bg-completed`, `bg-failed`, `bg-pending`, `bg-background`, `bg-surface`.
+
+Cadena de importación: `main.tsx` → `index.css` → `tailwind.css` + `theme.css`.
 
 ### Componentes Radix UI
 - Usar **primitivas Radix UI** para componentes interactivos

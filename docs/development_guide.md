@@ -249,6 +249,20 @@ npm run typecheck
 
 Equivalente manual: `tsc --noEmit -p frontend/tsconfig.json && tsc --noEmit -p backend/tsconfig.json`.
 
+### Estilos globales (Tailwind v4)
+
+La SPA carga estilos desde `frontend/src/main.tsx`, que importa `./styles/index.css`. Ese fichero orquesta la cadena:
+
+```
+index.css → tailwind.css → theme.css
+         ↘ fonts.css
+```
+
+- `tailwind.css`: `@import 'tailwindcss'` y `@source` para escanear componentes.
+- `theme.css`: variables `:root` ConRutina (`--color-*`) y `@theme inline` para utilidades Tailwind.
+
+Ver [frontend-standards.md](./frontend-standards.md) para la paleta completa.
+
 ## Pruebas
 
 ### Backend (previsto)

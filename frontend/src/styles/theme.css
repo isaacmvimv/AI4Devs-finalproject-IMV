@@ -1,15 +1,23 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Tokens ConRutina (DoD T-05-02) — fuente de verdad para paleta de producto */
+  --color-background: #faf8f5;
+  --color-surface: #ffffff;
+  --color-primary: #22c55e;
+  --color-completed: #22c55e;
+  --color-failed: #ef4444;
+  --color-pending: #e5e7eb;
+
   --font-size: 16px;
-  --background: #ffffff;
-  --foreground: oklch(0.145 0 0);
-  --card: #ffffff;
+  --background: var(--color-background);
+  --foreground: #1a1a1a;
+  --card: var(--color-surface);
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --popover: var(--color-surface);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: #030213;
-  --primary-foreground: oklch(1 0 0);
+  --primary: var(--color-primary);
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.95 0.0058 264.53);
   --secondary-foreground: #030213;
   --muted: #ececf0;
@@ -79,13 +87,17 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-primary: var(--color-primary);
+  --color-completed: var(--color-completed);
+  --color-failed: var(--color-failed);
+  --color-pending: var(--color-pending);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);

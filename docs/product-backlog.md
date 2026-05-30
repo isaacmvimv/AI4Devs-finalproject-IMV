@@ -1690,7 +1690,7 @@ gantt
 - **Tipo:** Frontend — Estilos
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Instalar Tailwind CSS v4 como plugin de Vite (sin `tailwind.config.js`). Definir el tema de color de ConRutina como CSS variables en `frontend/src/styles/theme.css`: colores primario, secundario, estados (completed=verde, failed=rojo, pending=gris), fondo, superficies.
 

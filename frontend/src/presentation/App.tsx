@@ -9,6 +9,7 @@ import RewardCard from './components/RewardCard'
 import AddHabitModal from './components/AddHabitModal'
 import AddRewardModal from './components/AddRewardModal'
 import UserProfileCard from './components/UserProfileCard'
+import ThemeSmoke from './components/ThemeSmoke'
 
 export default function App() {
   const {
@@ -45,6 +46,8 @@ export default function App() {
         </div>
 
         <ProgressBar progress={todayProgress} />
+
+        <ThemeSmoke />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
