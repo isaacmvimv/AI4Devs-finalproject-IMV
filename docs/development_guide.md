@@ -95,10 +95,13 @@ Si quedó el contenedor antiguo `conrutina-postgres` ocupando el puerto, ejecuta
 # Validar esquema (sin aplicar migraciones)
 npx prisma validate
 
-# Generar cliente Prisma (tras cambios en el esquema)
+# Crear y aplicar migración en desarrollo (p. ej. primera migración init)
+npx prisma migrate dev --name init
+
+# Generar cliente Prisma (tras cambios en el esquema o migración)
 npm run prisma:generate
 
-# Aplicar migraciones
+# Aplicar migraciones existentes (clones frescos, CI, tras pull)
 npm run db:migrate
 
 # (Opcional) Reset y seed
@@ -106,9 +109,16 @@ npx prisma migrate reset
 npx prisma db seed  # si existe script de seed
 ```
 
-**Esquema Prisma:** `backend/prisma/schema.prisma`
+**Esquema Prisma:** `backend/prisma/schema.prisma`  
+**Migraciones versionadas:** `backend/prisma/migrations/` (p. ej. `20260530120258_init/migration.sql`)
 
-El bloque `prisma.schema` en `package.json` permite usar la CLI sin `--schema`.
+El bloque `prisma.schema` en `package.json` permite usar la CLI sin `--schema`. Tras clonar el repo:
+
+```bash
+npm run db:up
+npm run db:migrate
+npm run prisma:generate
+```
 
 ### 6. Datos iniciales
 

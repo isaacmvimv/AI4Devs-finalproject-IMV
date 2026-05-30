@@ -10,15 +10,15 @@ Este documento describe el **modelo de datos objetivo** de ConRutina (seguimient
 
 | Entidad | PostgreSQL (Prisma) | Notas |
 | ------- | ------------------- | ----- |
-| `User` | Definida en Prisma | Schema completo (`avatarUrl`, `createdAt`). Tabla en BD pendiente de migración (T-03-02). |
-| `Week` | Definida en Prisma | Índice `[userId, startDate]`. Tabla en BD pendiente de migración (T-03-02). |
-| `Habit` | Definida en Prisma | Hoy la UI sigue en estado React (`frontend/src/domain/habit.ts`); ver [mapeo provisional](#mapeo-provisional-frontend--modelo-objetivo). |
-| `WeekHabit` | Definida en Prisma | `@@unique([weekId, habitId])`. Tabla en BD pendiente de migración (T-03-02). |
-| `HabitEntry` | Definida en Prisma | Enum `CompletionStatus`. Tabla en BD pendiente de migración (T-03-02). |
-| `Reward` | Definida en Prisma | Hoy la UI sigue en estado React (`frontend/src/domain/reward.ts`). |
-| `RewardRedemption` | Definida en Prisma | Tabla en BD pendiente de migración (T-03-02). |
+| `User` | **Migrada** | Schema completo (`avatarUrl`, `createdAt`). Tabla en BD vía migración `20260530120258_init`. |
+| `Week` | **Migrada** | Índice `[userId, startDate]`. |
+| `Habit` | **Migrada** | Hoy la UI sigue en estado React (`frontend/src/domain/habit.ts`); ver [mapeo provisional](#mapeo-provisional-frontend--modelo-objetivo). |
+| `WeekHabit` | **Migrada** | `@@unique([weekId, habitId])`. |
+| `HabitEntry` | **Migrada** | Enum `CompletionStatus`. |
+| `Reward` | **Migrada** | Hoy la UI sigue en estado React (`frontend/src/domain/reward.ts`). |
+| `RewardRedemption` | **Migrada** | FK a `Week` y `Reward`. |
 
-**Implementación actual en base de datos:** solo puede existir la tabla `User` si ya se aplicó una migración previa (lectura de perfil vía `GET /api/profile`, usuario fijo `id = 1`). Las siete entidades del dominio están **definidas en** `backend/prisma/schema.prisma`; la migración inicial a PostgreSQL corresponde a **T-03-02**.
+**Implementación actual en base de datos:** las siete entidades del dominio están **definidas en** `backend/prisma/schema.prisma` y **materializadas en PostgreSQL** con la migración inicial `20260530120258_init` (T-03-02 ✅). El endpoint `GET /api/profile` lee el usuario fijo `id = 1` desde la tabla `User`.
 
 ---
 
@@ -36,7 +36,7 @@ Representa a un usuario que registra hábitos, gestiona semanas y define recompe
 | `avatarUrl` | `String?` | URL opcional del avatar |
 | `createdAt` | `DateTime` | Fecha de creación de la cuenta |
 
-**Persistencia:** definida en Prisma (`id`, `email`, `name`, `avatarUrl`, `createdAt`). **Paso futuro:** migrar a PostgreSQL (T-03-02) y exponer `avatarUrl` en la API.
+**Persistencia:** migrada a PostgreSQL (T-03-02). **Paso futuro:** exponer `avatarUrl` en la API.
 
 **Implementación actual:**
 - Esquema: `backend/prisma/schema.prisma`
@@ -62,7 +62,7 @@ Representa una semana calendario del usuario, con bloqueo histórico y totales a
 | `totalPenalties` | `Int` | Penalizaciones acumuladas al bloquear |
 | `createdAt` | `DateTime` | Fecha de creación del registro |
 
-**Persistencia:** definida en Prisma; tabla en PostgreSQL pendiente de migración (T-03-02).
+**Persistencia:** migrada a PostgreSQL (T-03-02).
 
 **En el frontend (provisional):** la navegación semanal se calcula en memoria con `weekOffset` y `buildWeekData()` (`frontend/src/domain/week.ts`); la entidad `Week` aún no se persiste en BD.
 
@@ -83,7 +83,7 @@ Catálogo de hábitos del usuario (plantilla reutilizable en varias semanas).
 | `isActive` | `Boolean` | Disponible para añadir a nuevas semanas |
 | `createdAt` | `DateTime` | Fecha de creación |
 
-**Persistencia:** definida en Prisma; tabla en PostgreSQL pendiente de migración (T-03-02).
+**Persistencia:** migrada a PostgreSQL (T-03-02).
 
 **Reglas de validación (dominio):**
 - `pointsPerDay` ≥ 1; `penalty` ≥ 0
@@ -105,7 +105,7 @@ Tabla intermedia: asocia un hábito a una semana concreta. Cada semana puede ten
 | `snapshotPoints` | `Int` | Puntos al bloquear |
 | `snapshotPenalty` | `Int` | Penalización al bloquear |
 
-**Persistencia:** definida en Prisma; tabla en PostgreSQL pendiente de migración (T-03-02).
+**Persistencia:** migrada a PostgreSQL (T-03-02).
 
 ---
 
@@ -121,7 +121,7 @@ Estado de un hábito en un día concreto de la semana (7 filas por `WeekHabit`).
 | `status` | `Enum` | `pending`, `completed`, `failed` |
 | `updatedAt` | `DateTime` | Última actualización |
 
-**Persistencia:** definida en Prisma; tabla en PostgreSQL pendiente de migración (T-03-02).
+**Persistencia:** migrada a PostgreSQL (T-03-02).
 
 **Lógica de negocio:**
 - Solo `completed` suma `pointsPerDay`; solo `failed` aplica `penalty`
@@ -144,7 +144,7 @@ Recompensa canjeable definida por el usuario.
 | `isActive` | `Boolean` | Disponible para canje |
 | `createdAt` | `DateTime` | Fecha de creación |
 
-**Persistencia:** definida en Prisma; tabla en PostgreSQL pendiente de migración (T-03-02).
+**Persistencia:** migrada a PostgreSQL (T-03-02).
 
 ---
 
@@ -160,7 +160,7 @@ Registro de cada canje en una semana determinada.
 | `pointsSpent` | `Int` | Puntos descontados |
 | `redeemedAt` | `DateTime` | Momento del canje |
 
-**Persistencia:** definida en Prisma; tabla en PostgreSQL pendiente de migración (T-03-02).
+**Persistencia:** migrada a PostgreSQL (T-03-02).
 
 ---
 
@@ -300,7 +300,7 @@ erDiagram
 ## Roadmap de persistencia
 
 1. ~~**Completar schema Prisma**~~ — ✅ T-03-01: siete modelos del dominio + enum `CompletionStatus` en `backend/prisma/schema.prisma`.
-2. **Migración inicial a PostgreSQL (T-03-02)** — `npx prisma migrate dev --name init` y tablas en BD.
+2. ~~**Migración inicial a PostgreSQL (T-03-02)**~~ — ✅ `20260530120258_init` en `backend/prisma/migrations/`; tablas del dominio en BD.
 3. **Seed de datos demo (T-03-03)** — usuario, hábitos y recompensas de ejemplo.
 4. **API y frontend** — CRUD, calendario semanal con bloqueo, canje e historial.
 5. **Autenticación multiusuario** — dejar de fijar `userId = 1` en API.
