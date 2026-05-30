@@ -1451,7 +1451,7 @@ gantt
 - **Tipo:** Infra
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `tsconfig.json` en la raíz con `strict: true`, paths `@/*` mapeados a `frontend/src/*`, y referencias a `frontend/tsconfig.json` y `backend/tsconfig.json`. Cada subproyecto tiene su propio tsconfig que extiende el raíz.
 
