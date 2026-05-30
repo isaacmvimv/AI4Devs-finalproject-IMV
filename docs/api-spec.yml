@@ -26,6 +26,31 @@ servers:
     description: Servidor frontend de desarrollo (Vite con proxy)
 
 paths:
+  /health:
+    get:
+      summary: Health check del API
+      description: Indica que el proceso del servidor Express está disponible
+      tags:
+        - Sistema
+      responses:
+        '200':
+          description: Servidor disponible
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - timestamp
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-05-30T12:00:00.000Z"
+
   /api/profile:
     get:
       summary: Obtener perfil de usuario

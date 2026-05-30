@@ -6,12 +6,10 @@
 import './loadEnv.js'
 
 import { PrismaClient } from '@prisma/client'
-import { createPrismaUserRepository } from './infrastructure/prismaUserRepository'
 import { createApp } from './presentation/http/createApp'
 
 const prisma = new PrismaClient()
-const userRepository = createPrismaUserRepository(prisma)
-const app = createApp({ userRepository })
+const app = createApp(prisma)
 
 const port = Number(process.env.API_PORT) || 3001
 
@@ -26,7 +24,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.DATABASE_URL) {
 }
 
 const server = app.listen(port, () => {
-  console.log(`API escuchando en http://localhost:${port} (GET /api/profile)`)
+  console.log(`Server running on port ${port}`)
 })
 
 server.on('error', (err: NodeJS.ErrnoException) => {

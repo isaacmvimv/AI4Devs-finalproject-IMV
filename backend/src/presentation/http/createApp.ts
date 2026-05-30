@@ -1,16 +1,13 @@
+import type { PrismaClient } from '@prisma/client'
 import cors from 'cors'
 import express, { type Express } from 'express'
-import type { UserReadRepository } from '../../application/ports/UserReadRepository'
 import { getUserProfileById } from '../../application/getUserProfile'
+import { createPrismaUserRepository } from '../../infrastructure/prismaUserRepository'
 
-export interface CreateAppDeps {
-  userRepository: UserReadRepository
-  corsOrigin?: string
-}
-
-export function createApp(deps: CreateAppDeps): Express {
+export function createApp(prisma: PrismaClient): Express {
   const app = express()
-  const origin = deps.corsOrigin ?? 'http://localhost:5173'
+  const userRepository = createPrismaUserRepository(prisma)
+  const origin = process.env.CORS_ORIGIN ?? 'http://localhost:5173'
 
   app.use(
     cors({
@@ -19,9 +16,15 @@ export function createApp(deps: CreateAppDeps): Express {
     })
   )
 
+  app.use(express.json())
+
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() })
+  })
+
   app.get('/api/profile', async (_req, res) => {
     try {
-      const user = await getUserProfileById(deps.userRepository, 1)
+      const user = await getUserProfileById(userRepository, 1)
 
       if (!user) {
         return res.status(404).json({ error: 'Usuario con id 1 no encontrado' })

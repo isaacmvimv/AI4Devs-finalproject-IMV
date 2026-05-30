@@ -159,7 +159,7 @@ Salida esperada en consola (prefijos `web` y `api` de `concurrently`):
 [web]   VITE v6.x  ready in ... ms
 [web]   ➜  Local:   http://localhost:5173/
 [api]   [API] PostgreSQL → base de datos: conrutina
-[api]   API escuchando en http://localhost:3001 (GET /api/profile)
+[api]   Server running on port 3001
 ```
 
 **Atajos** (si solo necesitas un proceso):
@@ -167,6 +167,14 @@ Salida esperada en consola (prefijos `web` y `api` de `concurrently`):
 ```bash
 npm run dev:web   # Solo Vite → http://localhost:5173
 npm run dev:api   # Solo API → http://localhost:3001
+npm run api       # Alias de dev:api (mismo entrypoint)
+```
+
+**Smoke test del API** (con el servidor en marcha):
+
+```bash
+curl -s http://localhost:3001/health
+# Esperado: {"status":"ok","timestamp":"<ISO-8601>"}
 ```
 
 ### 8. Acceder a la aplicación
@@ -291,6 +299,7 @@ npm install
 npm run dev                # Frontend + API en paralelo
 npm run dev:web            # Solo frontend (Vite)
 npm run dev:api            # Solo backend (Express)
+npm run api                # Alias de dev:api (tsx watch backend/src/main.ts)
 npm run build              # Build producción → dist/
 npm run preview
 npm run typecheck          # tsc --noEmit (frontend + backend)

@@ -148,7 +148,8 @@ backend/
 │   │   └── getUserProfile.ts       # Casos de uso
 │   ├── presentation/
 │   │   └── http/
-│   │       └── createApp.ts        # Configuración HTTP
+│   │       ├── createApp.ts        # Configuración HTTP
+│   │       └── middleware/         # Middleware Express (errorHandler en T-04-02)
 │   ├── infrastructure/
 │   │   └── prismaUserRepository.ts # Implementaciones de repositorio
 │   ├── loadEnv.ts                  # Carga de entorno
@@ -159,7 +160,7 @@ backend/
 └── (dependencias en package.json raíz del monorepo)
 ```
 
-La **raíz de composición** es `main.ts`: instancia Prisma, repositorios y `createApp({ userRepository })`.
+La **raíz de composición** es `main.ts`: instancia `PrismaClient` y llama a `createApp(prisma)`. Los repositorios se crean dentro de `createApp`.
 
 ## Principios de Clean Architecture
 
@@ -365,11 +366,10 @@ export async function getUserProfileById(
 
 // main.ts — composición
 const prisma = new PrismaClient();
-const userRepository = createPrismaUserRepository(prisma);
-const app = createApp({ userRepository });
+const app = createApp(prisma);
 ```
 
-**Recomendación**: Inyectar dependencias en `createApp` y en constructores de casos de uso.
+**Recomendación**: Pasar `PrismaClient` a `createApp` desde `main.ts`; instanciar adaptadores de infraestructura dentro de la capa de presentación o en un módulo de composición dedicado.
 
 ### DRY (Don't Repeat Yourself)
 
@@ -617,7 +617,7 @@ app.use(
 );
 ```
 
-**Recomendación**: Origen configurable vía variable de entorno (`CORS_ORIGIN`) inyectada en `CreateAppDeps`.
+**Recomendación**: Origen configurable vía variable de entorno (`CORS_ORIGIN`) leída en `createApp` con default `http://localhost:5173`.
 
 ## Patrones de base de datos
 
