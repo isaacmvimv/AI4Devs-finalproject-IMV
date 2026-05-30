@@ -3,6 +3,8 @@ import cors from 'cors'
 import express, { type Express } from 'express'
 import { getUserProfileById } from '../../application/getUserProfile'
 import { createPrismaUserRepository } from '../../infrastructure/prismaUserRepository'
+import { asyncHandler } from './middleware/asyncHandler'
+import { errorHandler } from './middleware/errorHandler'
 
 export function createApp(prisma: PrismaClient): Express {
   const app = express()
@@ -22,8 +24,9 @@ export function createApp(prisma: PrismaClient): Express {
     res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() })
   })
 
-  app.get('/api/profile', async (_req, res) => {
-    try {
+  app.get(
+    '/api/profile',
+    asyncHandler(async (_req, res) => {
       const user = await getUserProfileById(userRepository, 1)
 
       if (!user) {
@@ -35,11 +38,10 @@ export function createApp(prisma: PrismaClient): Express {
         name: user.name,
         email: user.email,
       })
-    } catch (err) {
-      console.error('[api/profile]', err)
-      return res.status(500).json({ error: 'Error al leer el usuario' })
-    }
-  })
+    })
+  )
+
+  app.use(errorHandler)
 
   return app
 }

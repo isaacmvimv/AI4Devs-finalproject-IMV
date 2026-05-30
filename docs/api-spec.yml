@@ -69,11 +69,11 @@ paths:
                 name: "María García"
                 email: "maria@ejemplo.com"
         '404':
-          description: Usuario no encontrado
+          description: Usuario no encontrado (formato legacy hasta T-06-01)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/LegacyErrorResponse'
               example:
                 error: "Usuario con id 1 no encontrado"
         '500':
@@ -81,9 +81,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ApiErrorResponse'
               example:
-                error: "Error al leer el usuario"
+                code: "INTERNAL_ERROR"
+                message: "Error interno del servidor"
 
   # Endpoints futuros (planificados):
   
@@ -452,8 +453,39 @@ components:
         - description
         - cost
 
+    ApiErrorResponse:
+      type: object
+      description: Respuesta de error estándar del middleware errorHandler
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Código de error estable en inglés (p. ej. VALIDATION_ERROR, INTERNAL_ERROR)
+        message:
+          type: string
+          description: Mensaje legible para el usuario en español
+        details:
+          description: Detalles opcionales (array de campos de validación u objeto)
+        stack:
+          type: string
+          description: Stack trace; solo presente cuando NODE_ENV !== production
+
+    LegacyErrorResponse:
+      type: object
+      description: Formato legacy de error (pendiente migración en T-06-01)
+      properties:
+        error:
+          type: string
+          description: Mensaje de error (en español para el usuario)
+      required:
+        - error
+
     ErrorResponse:
       type: object
+      deprecated: true
+      description: Alias legacy; preferir ApiErrorResponse
       properties:
         error:
           type: string
