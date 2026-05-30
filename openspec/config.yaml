@@ -24,6 +24,7 @@ context: |
   - Change name: t-[US]-[SEQ]-[short-kebab-name] (e.g. t-13-01-habit-domain-types)
   - Git branch: feature/[TICKET-ID]-[short-kebab-name] (e.g. feature/T-13-01-habit-domain-types)
   - Git commits: NO commits during /opsx:apply; single commit with bullet-point message only when user accepts and /opsx:archive runs (then push feature branch to remote, then merge to develop)
+  - On /opsx:archive (last step after mv to archive/): attempt `npm run openspec:mark-ticket -- --change <name>` to set **Estado en código** to ✅ Implementado in docs/product-backlog.md section 4; if it fails, archive is still complete — fix backlog manually later
   - Documentation language: Spanish; code identifiers: English
   - The backlog may describe greenfield; always inspect existing code and reflect actual repo state in artifacts
 

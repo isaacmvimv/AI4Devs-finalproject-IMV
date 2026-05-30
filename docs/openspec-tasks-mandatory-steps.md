@@ -429,7 +429,7 @@ Esta regla aplica cuando:
 - Se actualizan archivos `tasks.md` existentes
 - Cualquier creación de tareas que implique cambios de backend
 - Se implementan tareas de `tasks.md` mediante `/opsx:apply` o la skill `openspec-apply-change` — el agente debe crear la rama desde `develop`, implementar en ella **sin commits**, y ejecutar las pruebas manuales
-- Se archiva un change mediante `/opsx:archive` o la skill `openspec-archive-change` — tras aceptación del usuario y pruebas OK: commit único en la rama de feature, push de la rama feature al remoto, merge contra `develop`, y archivado OpenSpec
+- Se archiva un change mediante `/opsx:archive` o la skill `openspec-archive-change` — tras aceptación del usuario y pruebas OK: commit único en la rama de feature, push de la rama feature al remoto, merge contra `develop`, archivado OpenSpec y **intento** de marcar el ticket como ✅ Implementado en `docs/product-backlog.md` (`npm run openspec:mark-ticket`; si falla, el archivado sigue siendo válido)
 
 ## 6. Estructura de ejemplo
 
@@ -524,7 +524,12 @@ Esta regla aplica cuando:
 - [ ] 17.7 Integrar la rama de feature: `git merge feature/T-13-01-habit-domain-types` (resolver conflictos si los hay)
 - [ ] 17.8 Verificar que `develop` compila y pasa las comprobaciones mínimas acordadas en el change
 - [ ] 17.9 (Opcional) Push de `develop` al remoto si el flujo del equipo lo requiere: `git push origin develop`
-- [ ] 17.10 Proceder con el archivado OpenSpec del change (`openspec archive` o flujo equivalente)
+- [ ] 17.10 Proceder con el archivado OpenSpec del change (`mv` a `openspec/changes/archive/YYYY-MM-DD-<name>/`)
+- [ ] 17.11 Intentar marcar el ticket en `docs/product-backlog.md` como **✅ Implementado** (último paso tras archivar; **no bloqueante**):
+  ```bash
+  npm run openspec:mark-ticket -- --change <change-name>
+  ```
+  Si tiene éxito, verificar que `**Estado en código:**` del ticket `T-XX-YY` (sección 4) quedó en `✅ Implementado`. Si falla, **no** impedir el cierre del change: documentar el error y corregir el backlog manualmente o re-ejecutar el script después.
 ```
 
 ## 7. Requisitos de ejecución del agente
@@ -566,7 +571,7 @@ Esta regla aplica cuando:
    - Acciones de restauración del estado de la base de datos
    - Cualquier problema encontrado y su resolución
 
-**CRÍTICO — al archivar el change**: Tras completar implementación y pruebas obligatorias, y **cuando el usuario acepte los cambios**, el agente (o quien archive) DEBE: (1) hacer commit único en la rama de feature, (2) **push de la rama feature al remoto** antes del merge, (3) integrar la rama en `develop`, y (4) archivar el change OpenSpec. No archivar dejando el código solo en la rama de feature sin merge ni sin push remoto, ni hacer commits durante apply.
+**CRÍTICO — al archivar el change**: Tras completar implementación y pruebas obligatorias, y **cuando el usuario acepte los cambios**, el agente (o quien archive) DEBE: (1) hacer commit único en la rama de feature, (2) **push de la rama feature al remoto** antes del merge, (3) integrar la rama en `develop`, (4) archivar el change OpenSpec (`mv` a `archive/`), y (5) como **último paso** intentar marcar el ticket en `docs/product-backlog.md` con `npm run openspec:mark-ticket -- --change <name>`. No archivar dejando el código solo en la rama de feature sin merge ni sin push remoto, ni hacer commits durante apply. Si el paso (5) falla, el change se considera **terminado** igualmente; registrar la advertencia y corregir el backlog aparte.
 
 ### Flujo Git resumido
 
@@ -577,18 +582,17 @@ flowchart LR
   apply["/opsx:apply\nImplementación sin commits"]
   review["Usuario revisa\ny acepta cambios"]
   tests["Pruebas obligatorias\nPASS"]
-  archive["/opsx:archive\ncommit + push feature + merge + archivar"]
-  pushFeature["git push origin feature/..."]
-  merge["git merge → develop"]
+  gitClose["commit + push feature + merge"]
+  specArchive["mv change → archive/"]
+  backlog["openspec:mark-ticket\n✅ en product-backlog.md"]
 
   develop --> feature
   feature --> apply
   apply --> tests
   tests --> review
-  review --> archive
-  archive --> pushFeature
-  pushFeature --> merge
-  merge --> develop
+  review --> gitClose
+  gitClose --> specArchive
+  specArchive --> backlog
 ```
 
 | Fase | Rama activa | Acción |
@@ -599,6 +603,7 @@ flowchart LR
 | Revisión | `feature/...` | Usuario acepta o pide ajustes |
 | Archivo (tests OK + aceptación) | `feature/...` → `develop` | Commit único + push feature + merge → `develop` |
 | Archivo OpenSpec | — | Mover change a `openspec/changes/archive/` |
+| Backlog | — | Intentar `npm run openspec:mark-ticket` → ✅ Implementado (fallo = advertencia, no bloquea) |
 
 ## Incumplimiento
 

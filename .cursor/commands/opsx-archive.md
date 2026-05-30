@@ -91,14 +91,25 @@ Archive a completed change in the experimental workflow.
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
 
-7. **Display summary**
+7. **Marcar ticket como Implementado en docs/product-backlog.md (último paso — no bloqueante)**
+
+   Tras el `mv` a `archive/`, ejecutar:
+   ```bash
+   npm run openspec:mark-ticket -- --change <name>
+   ```
+   Resuelve el Ticket ID desde `proposal.md` (`**Ticket:** T-XX-YY`) o desde el prefijo del change (`t-01-02-…` → `T-01-02`). Actualiza `**Estado en código:**` del ticket en la sección **4. Tickets de Desarrollo** a `✅ Implementado`.
+
+   **Si el comando falla:** no bloquear el archivado; el change sigue **terminado** (ya está en `archive/`). Mostrar advertencia en el resumen y sugerir corrección manual o re-ejecutar el script más tarde.
+
+8. **Display summary**
 
    Show archive completion summary including:
    - Change name
    - Schema that was used
    - Archive location
+   - Backlog: ✅ actualizado o ⚠ falló (con detalle si aplica)
    - Spec sync status (synced / sync skipped / no delta specs)
-   - Note about any warnings (incomplete artifacts/tasks)
+   - Note about any warnings (incomplete artifacts/tasks, fallo de backlog)
 
 **Output On Success**
 
@@ -108,6 +119,7 @@ Archive a completed change in the experimental workflow.
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Backlog:** ✓ Ticket T-XX-YY → ✅ Implementado en docs/product-backlog.md
 **Specs:** ✓ Synced to main specs
 
 All artifacts complete. All tasks complete.
@@ -121,6 +133,7 @@ All artifacts complete. All tasks complete.
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Backlog:** ✓ Ticket T-XX-YY → ✅ Implementado en docs/product-backlog.md
 **Specs:** No delta specs
 
 All artifacts complete. All tasks complete.
@@ -134,14 +147,30 @@ All artifacts complete. All tasks complete.
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Backlog:** ✓ Ticket T-XX-YY → ✅ Implementado en docs/product-backlog.md
 **Specs:** Sync skipped (user chose to skip)
 
 **Warnings:**
 - Archived with 2 incomplete artifacts
 - Archived with 3 incomplete tasks
 - Delta spec sync was skipped (user chose to skip)
+- Backlog: could not mark T-XX-YY as ✅ Implementado in docs/product-backlog.md (<error summary>)
 
-Review the archive if this was not intentional.
+Review the archive if this was not intentional. Re-run `npm run openspec:mark-ticket -- --change <name>` or fix the backlog manually when ready.
+```
+
+**Output On Success (Backlog update failed — archive still complete)**
+
+```
+## Archive Complete (with warnings)
+
+**Change:** <change-name>
+**Schema:** <schema-name>
+**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Backlog:** ⚠ No se pudo marcar T-XX-YY en docs/product-backlog.md (<error summary>)
+**Specs:** ✓ Synced to main specs
+
+The OpenSpec change is archived and considered complete.
 ```
 
 **Output On Error (Archive Exists)**
@@ -169,3 +198,4 @@ Target archive directory already exists.
 - If sync is requested, use the Skill tool to invoke `openspec-sync-specs` (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
 - **Commit + push feature + merge to develop happen in step 5**, only after user accepts changes — never during apply
+- **Step 7** runs after `archive/` — always attempt `npm run openspec:mark-ticket`; failure is a **warning only**, not a failed archive

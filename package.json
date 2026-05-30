@@ -18,7 +18,8 @@
     "docker:logs": "docker compose logs -f postgres",
     "prisma:init": "npx prisma init",
     "prisma:generate": "npx prisma generate",
-    "db:migrate": "npx prisma migrate deploy"
+    "db:migrate": "npx prisma migrate deploy",
+    "openspec:mark-ticket": "node scripts/openspec-mark-ticket-implemented.mjs"
   },
   "prisma": {
     "schema": "backend/prisma/schema.prisma"

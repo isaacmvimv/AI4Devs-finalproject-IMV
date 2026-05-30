@@ -208,6 +208,7 @@ Estructura obligatoria por ticket:
 - Viñeta **User Story:** `US-XX` y título idéntico al de la US.
 - Viñeta **Tipo:** Backend | Frontend | DB | Test | Infra | Docs (el que aplique).
 - Viñeta **Complejidad** y **Story Points** (entero).
+- Línea **Estado en código:** con emoji ✅ / 🟡 / ❌ (por defecto ❌ Pendiente; ✅ al archivar el change OpenSpec del ticket si `openspec:mark-ticket` tiene éxito — fallo no bloquea el archivado).
 - Párrafo **Descripción** (qué hacer técnicamente).
 - **Alcance / Definición de hecho:** checklist corto.
 - **Criterios / BDD que cubre:** referencia a escenarios de la US.

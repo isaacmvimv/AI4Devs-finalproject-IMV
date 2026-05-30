@@ -1410,8 +1410,9 @@ gantt
 
 ## 4. Tickets de Desarrollo
 
-> Todos los tickets están en estado ❌ Pendiente (proyecto greenfield).
 > **Formato de ID:** `T-[US]-[secuencial]`
+>
+> **Estado en código:** cada ticket incluye `❌ Pendiente` / `🟡 Parcial` / `✅ Implementado`. Al archivar el change (`/opsx:archive`), el flujo intenta `npm run openspec:mark-ticket` para pasar el ticket a **✅ Implementado**; si ese paso falla, el archivado OpenSpec sigue siendo válido y el backlog puede corregirse después.
 >
 > **v2 — Tests:** La sección **Tests unitarios sugeridos** aparece solo en tickets cuya lógica es imprescindible para el MVP (perfil, hábitos, semanas, entradas, recompensas, canjes, dominio frontend, validación/errores). Tickets Infra, Tooling, Docker, Tailwind/shadcn scaffold y build no incluyen tests unitarios (se verifican con `npm run dev`, migraciones o CI).
 
@@ -1426,6 +1427,8 @@ gantt
 - **User Story:** US-01 — Configurar repositorio, herramientas de desarrollo y estructura del proyecto
 - **Tipo:** Infra
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
+
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear el repositorio Git, inicializar con `.gitignore` estándar (node_modules, dist, .env, coverage), estructura de directorios `frontend/` y `backend/`, fichero `LICENSE` (MIT), `README.md` con instrucciones básicas y `package.json` raíz con scripts `dev`, `build`, `test`, `lint`.
 
@@ -1448,6 +1451,8 @@ gantt
 - **Tipo:** Infra
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `tsconfig.json` en la raíz con `strict: true`, paths `@/*` mapeados a `frontend/src/*`, y referencias a `frontend/tsconfig.json` y `backend/tsconfig.json`. Cada subproyecto tiene su propio tsconfig que extiende el raíz.
 
 **Alcance / Definición de hecho:**
@@ -1463,6 +1468,8 @@ gantt
 - **User Story:** US-01 — Configurar repositorio, herramientas de desarrollo y estructura del proyecto
 - **Tipo:** Infra
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Instalar ESLint con plugin de TypeScript y React, configurar reglas base. Instalar Prettier con configuración coherente con el estilo del equipo. Añadir script `lint` y `format` en `package.json` raíz.
 
@@ -1480,6 +1487,8 @@ gantt
 - **Tipo:** Infra + Docs
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `.env.example` con todas las variables de entorno necesarias para el proyecto, con comentarios explicativos y valores de ejemplo seguros.
 
 **Alcance / Definición de hecho:**
@@ -1495,6 +1504,8 @@ gantt
 - **User Story:** US-02 — Configurar entorno de base de datos con Docker y PostgreSQL
 - **Tipo:** Infra
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear `docker-compose.yml` de desarrollo con el servicio `db` (PostgreSQL 16 Alpine), volumen nombrado para datos persistentes, health check y variables de entorno desde `.env`.
 
@@ -1517,6 +1528,8 @@ gantt
 - **User Story:** US-03 — Configurar Prisma ORM con esquema inicial y migraciones
 - **Tipo:** Backend — Base de datos
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Instalar `prisma` y `@prisma/client`. Crear `backend/prisma/schema.prisma` con el datasource PostgreSQL y todos los modelos del PRD: `User`, `Week`, `Habit`, `WeekHabit`, `HabitEntry`, `Reward`, `RewardRedemption` con sus campos, relaciones, índices y enums.
 
@@ -1541,6 +1554,8 @@ gantt
 - **Tipo:** Backend — Base de datos
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Ejecutar la primera migración con nombre `init` sobre la BD de desarrollo. Añadir script `db:migrate` en `package.json`.
 
 **Alcance / Definición de hecho:**
@@ -1558,6 +1573,8 @@ gantt
 - **User Story:** US-03 — Configurar Prisma ORM
 - **Tipo:** Backend — Base de datos
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear `backend/prisma/seed.ts` con datos de desarrollo deterministas: 1 usuario, 3 hábitos, 1 semana activa con WeekHabits y HabitEntries, 2 recompensas.
 
@@ -1580,6 +1597,8 @@ gantt
 - **Tipo:** Backend — Presentación + Aplicación + Infraestructura
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear el scaffold del backend Express siguiendo Clean Architecture: directorios domain/, application/, infrastructure/, presentation/. Crear `main.ts` que inicializa PrismaClient y arranca el servidor. Crear `createApp.ts` con Express y middleware base.
 
 **Alcance / Definición de hecho:**
@@ -1598,6 +1617,8 @@ gantt
 - **User Story:** US-04 — Scaffold del backend
 - **Tipo:** Backend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear el middleware de error global de Express que captura todas las excepciones no controladas y las convierte en respuestas JSON estándar `{ code, message, details? }`.
 
@@ -1623,6 +1644,8 @@ gantt
 - **Tipo:** Backend — Infraestructura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `backend/src/config.ts` que valida con Zod las variables de entorno requeridas al arrancar. Si alguna falta, el proceso termina con mensaje claro.
 
 **Alcance / Definición de hecho:**
@@ -1646,6 +1669,8 @@ gantt
 - **Tipo:** Frontend — Infra
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear el scaffold Vite en `frontend/` con template React+TypeScript. Configurar `vite.config.ts` en la raíz con `root: "frontend"`, alias `@` → `frontend/src` y proxy `/api` → `http://localhost:3001`.
 
 **Alcance / Definición de hecho:**
@@ -1665,6 +1690,8 @@ gantt
 - **Tipo:** Frontend — Estilos
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Instalar Tailwind CSS v4 como plugin de Vite (sin `tailwind.config.js`). Definir el tema de color de ConRutina como CSS variables en `frontend/src/styles/theme.css`: colores primario, secundario, estados (completed=verde, failed=rojo, pending=gris), fondo, superficies.
 
 **Alcance / Definición de hecho:**
@@ -1683,6 +1710,8 @@ gantt
 - **Tipo:** Frontend — Componentes UI
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Añadir los primitivos de shadcn/ui necesarios para el proyecto. Crear el directorio `frontend/src/presentation/components/ui/` con los componentes: Button, Dialog, Input, Label, Card, Progress, Badge, Sonner (toast). Añadir la función utilitaria `cn()` con clsx + tailwind-merge.
 
 **Alcance / Definición de hecho:**
@@ -1700,6 +1729,8 @@ gantt
 - **User Story:** US-05 — Scaffold del frontend
 - **Tipo:** Frontend — Arquitectura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear los directorios de capas del frontend y un `App.tsx` base con el layout de la SPA. Añadir `frontend/src/infrastructure/` para clientes HTTP, `frontend/src/application/` para hooks, `frontend/src/domain/` para tipos y lógica pura.
 
@@ -1722,6 +1753,8 @@ gantt
 - **User Story:** US-06 — API y dominio: gestión de perfil de usuario
 - **Tipo:** Backend — Dominio + Aplicación + Infraestructura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Implementar el puerto `UserReadRepository` (interfaz), el repositorio `PrismaUserRepository`, el caso de uso `getUserProfile(userId)` y la entidad `UserProfile`. Seguir el patrón de Clean Architecture del scaffold.
 
@@ -1746,6 +1779,8 @@ gantt
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Registrar la ruta `GET /api/profile` en `createApp.ts`. Usar el caso de uso `getUserProfile(1)` (userId hardcodeado para MVP; el middleware de auth placeholder resolverá el userId real cuando esté implementado).
 
 **Alcance / Definición de hecho:**
@@ -1767,6 +1802,8 @@ gantt
 - **User Story:** US-07 — API y dominio: creación y listado de hábitos
 - **Tipo:** Backend — Dominio + Aplicación + Infraestructura
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Implementar `HabitRepository` (puerto), `PrismaHabitRepository`, casos de uso `createHabit(userId, input)` y `getActiveHabits(userId)`. Validar `name` no vacío, `pointsPerDay > 0`, `penalty >= 0`, `emoji` presente.
 
@@ -1791,6 +1828,8 @@ gantt
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Registrar `GET /api/habits` y `POST /api/habits` en `createApp.ts`. Aplicar middleware de validación Zod sobre el body del POST.
 
 **Alcance / Definición de hecho:**
@@ -1814,6 +1853,8 @@ gantt
 - **Tipo:** Backend — Presentación HTTP + Aplicación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Implementar `PATCH /api/habits/:id` (actualizar campos mutables: emoji, name, pointsPerDay, penalty) y `DELETE /api/habits/:id` (baja lógica: `isActive=false`). Verificar que el hábito pertenece al usuario actual.
 
 **Alcance / Definición de hecho:**
@@ -1836,6 +1877,8 @@ gantt
 - **User Story:** US-13 — Lógica de dominio frontend
 - **Tipo:** Frontend — Dominio
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear `frontend/src/domain/habit.ts` con los tipos `CompletionStatus`, `Habit`, `HabitStats`, `HabitFormInput` y todas las funciones puras del dominio.
 
@@ -1869,6 +1912,8 @@ gantt
 - **Tipo:** Frontend — Dominio
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `frontend/src/domain/reward.ts` con `Reward`, `RewardFormInput` y `createRewardFromFormInput`. Crear `frontend/src/domain/week.ts` con `WeekDayLabel`, `WeekData`, `buildWeekData(offset)`, `getCurrentDayIndexForWeek()`.
 
 **Alcance / Definición de hecho:**
@@ -1892,6 +1937,8 @@ gantt
 - **Tipo:** Backend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `backend/src/presentation/http/middleware/validateBody.ts`: factory de middleware `validateBody(schema)` que valida `req.body` contra un schema Zod. Si falla, lanza `ValidationError` con los detalles de cada campo para que el error handler lo convierta en 400.
 
 **Alcance / Definición de hecho:**
@@ -1914,6 +1961,8 @@ gantt
 - **Tipo:** Backend — Middleware
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Instalar `helmet`, `express-rate-limit`. Aplicar `helmet()` y `rateLimit({ windowMs: 60000, max: 100 })` como primeros middlewares en `createApp.ts`. Configurar CORS con origen desde `CORS_ORIGIN` env.
 
 **Alcance / Definición de hecho:**
@@ -1931,6 +1980,8 @@ gantt
 - **User Story:** US-21 — Seguridad
 - **Tipo:** Backend — Middleware
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear `backend/src/presentation/http/middleware/authenticate.ts`. En MVP: extrae `X-User-Id` del header o usa `1` por defecto. Añade `req.userId` a la request. Aplicarlo a todas las rutas protegidas (todos los endpoints /api/* excepto /health).
 
@@ -1958,6 +2009,8 @@ gantt
 - **Tipo:** Backend — Aplicación + Dominio
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 4
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Implementar el caso de uso `getCurrentWeek(userId)`. Calcula el lunes de la semana actual (00:00 UTC). Busca en BD si existe la semana para ese startDate. Si no existe, la crea con sus WeekHabits y HabitEntries iniciales (status=pending).
 
 **Alcance / Definición de hecho:**
@@ -1983,6 +2036,8 @@ gantt
 - **Tipo:** Backend — Aplicación
 - **Complejidad:** `L` &nbsp;·&nbsp; **Story Points:** 5
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Implementar el caso de uso `lockWeekAndTransition(userId)`. Si existe una semana anterior no bloqueada, la bloquea calculando `totalPointsEarned`, `totalPenalties` y guardando snapshots en WeekHabit. Luego crea la nueva semana.
 
 **Alcance / Definición de hecho:**
@@ -2006,6 +2061,8 @@ gantt
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Registrar `GET /api/weeks/current` y `GET /api/weeks?offset=n` en `createApp.ts`. El endpoint `current` orquesta la detección de cambio de semana y devuelve la semana activa con sus datos completos.
 
 **Alcance / Definición de hecho:**
@@ -2027,6 +2084,8 @@ gantt
 - **User Story:** US-10 — API: actualización de estados diarios
 - **Tipo:** Backend — Presentación HTTP + Aplicación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Implementar `PATCH /api/habit-entries/:id`. Validar que la semana no está bloqueada antes de actualizar. Responder con la entrada actualizada.
 
@@ -2053,6 +2112,8 @@ gantt
 - **Tipo:** Backend — Dominio + Aplicación + Infraestructura
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Implementar `RewardRepository` (puerto), `PrismaRewardRepository`, casos de uso `createReward`, `getActiveRewards`, `softDeleteReward`. Mismos patrones que hábitos.
 
 **Alcance / Definición de hecho:**
@@ -2077,6 +2138,8 @@ gantt
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Registrar `GET /api/rewards`, `POST /api/rewards` y `DELETE /api/rewards/:id`.
 
 **Alcance / Definición de hecho:**
@@ -2099,6 +2162,8 @@ gantt
 - **User Story:** US-12 — API: canjear recompensa
 - **Tipo:** Backend — Aplicación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Implementar `redeemReward(userId, weekId, rewardId)`. Calcular el saldo disponible de la semana: `sum(completados × pointsPerDay) - sum(fallados × penalty) - sum(redemptions.pointsSpent)`. Verificar saldo >= coste y crear RewardRedemption en transacción.
 
@@ -2124,6 +2189,8 @@ gantt
 - **User Story:** US-12 — API: canjear recompensa
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Registrar `POST /api/weeks/:weekId/redemptions`. Body: `{ rewardId }`. Delega en el caso de uso de T-12-01.
 
@@ -2152,6 +2219,8 @@ gantt
 - **Tipo:** Frontend — Aplicación + Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `frontend/src/infrastructure/profileApi.ts` con `fetchUserProfile()`. Crear hook `frontend/src/application/useUserProfile.ts`. Crear componente `UserProfileCard.tsx` que muestra nombre, email, avatar (con fallback a iniciales).
 
 **Alcance / Definición de hecho:**
@@ -2177,6 +2246,8 @@ gantt
 - **Tipo:** Frontend — Infraestructura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `frontend/src/infrastructure/habitApi.ts` con funciones: `fetchHabits()`, `createHabit(input)`, `deleteHabit(id)` y `frontend/src/infrastructure/habitEntryApi.ts` con `updateHabitEntry(entryId, status)`.
 
 **Alcance / Definición de hecho:**
@@ -2200,6 +2271,8 @@ gantt
 - **User Story:** US-16 — UI: crear y gestionar hábitos
 - **Tipo:** Frontend — Aplicación
 - **Complejidad:** `L` &nbsp;·&nbsp; **Story Points:** 5
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear `frontend/src/application/useHabitDashboard.ts`. Carga la semana actual desde `GET /api/weeks/current` al montar. Gestiona el estado de hábitos, entradas, stats y semana. Expone handlers: `handleAddHabit`, `handleDeleteHabit`, `handleToggleDay`, `handleAddReward`, `handleRedeemReward`, `handleDeleteReward`, `handleWeekNav(offset)`.
 
@@ -2227,6 +2300,8 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `HabitRow.tsx`. Muestra emoji, nombre del hábito, contador de racha, 7 botones de día (ciclo pending/completed/failed con colores), y botón de eliminar. Acepta prop `isReadOnly` para modo lectura.
 
 **Alcance / Definición de hecho:**
@@ -2252,6 +2327,8 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `AddHabitModal.tsx` usando el componente `Dialog` de shadcn/ui. Formulario con campos: emoji (selector o text), nombre, puntos por día (number), penalización (number). Validaciones inline antes de llamar a la API.
 
 **Alcance / Definición de hecho:**
@@ -2276,6 +2353,8 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `WeeklyCalendar.tsx` que muestra el rango de fechas de la semana, los días de la semana como columnas (Lu-Do) y los botones "‹" y "›" de navegación. Destaca el día actual cuando `weekOffset=0`.
 
 **Alcance / Definición de hecho:**
@@ -2299,6 +2378,8 @@ gantt
 - **Tipo:** Frontend — Infraestructura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `frontend/src/infrastructure/rewardApi.ts` con: `fetchRewards()`, `createReward(input)`, `deleteReward(id)`, `redeemReward(weekId, rewardId)`.
 
 **Alcance / Definición de hecho:**
@@ -2318,6 +2399,8 @@ gantt
 - **User Story:** US-17 — UI: sistema de recompensas
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear `RewardCard.tsx`. Muestra emoji, nombre, descripción, coste y puntos actuales del usuario. El botón "Canjear" está habilitado solo si `currentPoints >= reward.cost`; de lo contrario, muestra cuántos puntos faltan.
 
@@ -2342,6 +2425,8 @@ gantt
 - **User Story:** US-17 — UI: sistema de recompensas
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear `AddRewardModal.tsx` con campos: emoji, nombre, descripción, coste. Validaciones inline y gestión de errores de API igual que `AddHabitModal`.
 
@@ -2368,6 +2453,8 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `StatCard.tsx` (genérico: icono, valor, etiqueta, color de fondo) y `ProgressBar.tsx` (porcentaje de hábitos completados hoy). Conectarlos a los valores reales de `useHabitDashboard`.
 
 **Alcance / Definición de hecho:**
@@ -2390,6 +2477,8 @@ gantt
 - **User Story:** US-18 — UI: estadísticas y navegación histórica
 - **Tipo:** Frontend — Aplicación + Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Modificar `useHabitDashboard` para que al cambiar `weekOffset` llame a `weekApi.fetchWeek(offset)` y actualice el estado con los datos históricos. Crear `frontend/src/infrastructure/weekApi.ts` con `fetchCurrentWeek()` y `fetchWeek(offset)`.
 
@@ -2414,6 +2503,8 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Completar `App.tsx` integrando todos los componentes: `UserProfileCard`, `ProgressBar`, los 4 `StatCard`, `WeeklyCalendar`, lista de `HabitRow` y sección de `RewardCard`. Gestionar correctamente los estados vacíos, de carga y de error de cada sección.
 
 **Alcance / Definición de hecho:**
@@ -2434,6 +2525,8 @@ gantt
 - **Tipo:** Tooling — Calidad
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Instalar y configurar Vitest + `@vitest/coverage-v8`. Crear `vitest.config.ts`. Scripts: `test` (vitest run), `test:watch` (vitest), `test:coverage` (vitest run --coverage).
 
 **Alcance / Definición de hecho:**
@@ -2449,6 +2542,8 @@ gantt
 - **User Story:** US-20 — Testing automatizado
 - **Tipo:** Testing — Dominio Frontend
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear `frontend/src/domain/habit.test.ts`, `reward.test.ts` y `week.test.ts` con tests unitarios de todas las funciones puras implementadas en US-13.
 
@@ -2470,6 +2565,8 @@ gantt
 - **User Story:** US-20 — Testing automatizado
 - **Tipo:** Testing — Backend Integración
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Configurar `supertest` y una BD de test (PostgreSQL efímero en Docker o SQLite via Prisma). Crear tests de integración para los endpoints más críticos.
 
@@ -2504,6 +2601,8 @@ gantt
 - **Tipo:** Frontend — Build
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Analizar el bundle de producción con `rollup-plugin-visualizer`. Configurar `manualChunks` en `vite.config.ts` para separar vendor chunk. Eliminar componentes de shadcn/ui no usados.
 
 **Alcance / Definición de hecho:**
@@ -2521,6 +2620,8 @@ gantt
 - **User Story:** US-22 — Rendimiento
 - **Tipo:** Backend — Base de datos
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Verificar los índices del schema Prisma para las queries más frecuentes. Añadir los que falten vía migración.
 
@@ -2542,6 +2643,8 @@ gantt
 - **Tipo:** Infra — Docker
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `backend/Dockerfile` multi-stage: stage `builder` (compilación TS), stage `runner` (node:20-alpine, solo runtime deps). El entrypoint ejecuta `prisma migrate deploy` antes de arrancar.
 
 **Alcance / Definición de hecho:**
@@ -2559,6 +2662,8 @@ gantt
 - **Tipo:** Infra — Docker
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `frontend/Dockerfile` multi-stage: stage `builder` (genera el bundle Vite), stage `runner` (nginx:alpine sirve los estáticos y hace proxy de `/api`).
 
 **Alcance / Definición de hecho:**
@@ -2575,6 +2680,8 @@ gantt
 - **Tipo:** Infra — Docker
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
+**Estado en código:** ❌ Pendiente
+
 **Descripción:** Crear `docker-compose.prod.yml` que orqueste los tres servicios: `db`, `api`, `web`. Con health checks y dependencias declaradas correctamente.
 
 **Alcance / Definición de hecho:**
@@ -2590,6 +2697,8 @@ gantt
 - **User Story:** US-23 — CI/CD y despliegue
 - **Tipo:** Infra — CI/CD
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
+
+**Estado en código:** ❌ Pendiente
 
 **Descripción:** Crear `.github/workflows/ci.yml`. Pipeline en dos jobs: `quality` (lint + typecheck + test) y `build` (vite build + docker build). Se ejecuta en push a `develop` y en Pull Requests hacia `develop`.
 

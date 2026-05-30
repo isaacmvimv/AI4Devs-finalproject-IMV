@@ -95,14 +95,42 @@ Archive a completed change in the experimental workflow.
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
 
-7. **Display summary**
+7. **Marcar ticket como Implementado en el product backlog (último paso — no bloqueante)**
+
+   Tras mover el change a `archive/`, intentar actualizar `docs/product-backlog.md` para el ticket vinculado al change.
+
+   **Resolver el Ticket ID** (en este orden):
+   1. Campo `**Ticket:** T-XX-YY` en `proposal.md` del change (activo o ya archivado en `openspec/changes/archive/YYYY-MM-DD-<name>/`).
+   2. Si falta, derivar del nombre del change: `t-01-02-foo` → `T-01-02`.
+
+   **Actualizar el backlog** (ejecutar el script del repo; no omitir el intento):
+   ```bash
+   npm run openspec:mark-ticket -- --change <name>
+   ```
+   Equivalente: `node scripts/openspec-mark-ticket-implemented.mjs --change <name>`
+
+   El script sustituye en la sección del ticket (apartado **4. Tickets de Desarrollo**), justo antes de **Descripción**, la línea:
+   - `**Estado en código:** ❌ Pendiente` (o `🟡 Parcial`) → `**Estado en código:** ✅ Implementado`
+
+   Si el ticket ya está en ✅ Implementado, el script termina sin error (idempotente).
+
+   **Si el script falla (exit code ≠ 0):**
+   - **No bloquear** el archivado ni revertir el `mv` a `archive/`.
+   - Dar el change por **terminado** igualmente (el cierre OpenSpec ya ocurrió en el paso 6).
+   - Registrar el error en el resumen (salida del script + ticket ID si se conoció).
+   - Indicar al usuario que corrija manualmente `docs/product-backlog.md` o vuelva a ejecutar `npm run openspec:mark-ticket -- --change <name>` cuando convenga.
+
+   Incluir `docs/product-backlog.md` en el commit de cierre (paso 5) solo si el script tuvo éxito y el fichero cambió; si el paso 7 falló, el commit de backlog puede hacerse después de forma separada.
+
+8. **Display summary**
 
    Show archive completion summary including:
    - Change name
    - Schema that was used
    - Archive location
+   - Estado del backlog: ✅ actualizado / ⚠️ falló (detalle)
    - Whether specs were synced (if applicable)
-   - Note about any warnings (incomplete artifacts/tasks)
+   - Note about any warnings (incomplete artifacts/tasks, fallo de backlog)
 
 **Output On Success**
 
@@ -112,9 +140,25 @@ Archive a completed change in the experimental workflow.
 **Change:** <change-name>
 **Schema:** <schema-name>
 **Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Backlog:** ✓ Ticket T-XX-YY marcado como ✅ Implementado en docs/product-backlog.md
 **Specs:** ✓ Synced to main specs (or "No delta specs" or "Sync skipped")
 
 All artifacts complete. All tasks complete.
+```
+
+**Output On Success (Backlog update failed — archive still complete)**
+
+```
+## Archive Complete (with warnings)
+
+**Change:** <change-name>
+**Schema:** <schema-name>
+**Archived to:** openspec/changes/archive/YYYY-MM-DD-<name>/
+**Backlog:** ⚠ No se pudo marcar T-XX-YY en docs/product-backlog.md (<error summary>)
+**Specs:** ✓ Synced to main specs (or "No delta specs" or "Sync skipped")
+
+The OpenSpec change is archived and considered complete. Fix the backlog manually or re-run:
+`npm run openspec:mark-ticket -- --change <name>`
 ```
 
 **Guardrails**
@@ -126,3 +170,4 @@ All artifacts complete. All tasks complete.
 - If sync is requested, use openspec-sync-specs approach (agent-driven)
 - If delta specs exist, always run the sync assessment and show the combined summary before prompting
 - **Commit + push feature + merge to develop happen in step 5**, only after user accepts changes — never during apply
+- **Step 7 runs after step 6** — always attempt `npm run openspec:mark-ticket`; a failure there is a **warning only**, not a reason to undo archive or withhold "Archive Complete"

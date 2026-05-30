@@ -50,7 +50,7 @@ Para directrices detalladas por área del proyecto:
 | Especificar ad hoc | `/opsx:propose` → skill `openspec-propose` |
 | Explorar requisitos | `/opsx:explore` → skill `openspec-explore` |
 | Implementar | `/opsx:apply` → skill `openspec-apply-change` |
-| Archivar | `/opsx:archive` → skill `openspec-archive-change` |
+| Archivar | `/opsx:archive` → skill `openspec-archive-change` (cierra Git, archiva change e intenta marcar el ticket ✅ en `docs/product-backlog.md`; fallo de backlog no bloquea el cierre) |
 
 Contexto y reglas por artefacto: `openspec/config.yaml`. Tickets y sprints: `docs/product-backlog.md`.
 

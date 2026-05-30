@@ -307,7 +307,7 @@ Procesar **un ticket a la vez**, en orden de sprint según [product-backlog.md](
 2. **Revisar** artefactos (alcance = DoD del ticket, Paso 0 con rama `feature/T-XX-YY-nombre`).
 3. **Implementar:** `/opsx:apply t-xx-yy-nombre` — código en la rama de feature **sin commits**, pruebas obligatorias ejecutadas por el agente.
 4. **Revisar** cambios en el working tree; el usuario acepta o pide ajustes.
-5. **Archivar:** `/opsx:archive t-xx-yy-nombre` — commit único, push de la rama feature, merge a `develop` y mover change a `openspec/changes/archive/`.
+5. **Archivar:** `/opsx:archive t-xx-yy-nombre` — commit único, push de la rama feature, merge a `develop`, mover change a `openspec/changes/archive/` e intentar marcar el ticket ✅ en `docs/product-backlog.md` (`npm run openspec:mark-ticket`; si falla, el change queda terminado igualmente).
 
 Ejemplo para el primer ticket del Sprint 0:
 
