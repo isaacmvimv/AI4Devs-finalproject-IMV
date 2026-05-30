@@ -1644,7 +1644,7 @@ gantt
 - **Tipo:** Backend — Infraestructura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `backend/src/config.ts` que valida con Zod las variables de entorno requeridas al arrancar. Si alguna falta, el proceso termina con mensaje claro.
 
