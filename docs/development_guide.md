@@ -92,6 +92,9 @@ Si quedó el contenedor antiguo `conrutina-postgres` ocupando el puerto, ejecuta
 ### 5. Migraciones de base de datos
 
 ```bash
+# Validar esquema (sin aplicar migraciones)
+npx prisma validate
+
 # Generar cliente Prisma (tras cambios en el esquema)
 npm run prisma:generate
 
