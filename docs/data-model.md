@@ -301,7 +301,7 @@ erDiagram
 
 1. ~~**Completar schema Prisma**~~ — ✅ T-03-01: siete modelos del dominio + enum `CompletionStatus` en `backend/prisma/schema.prisma`.
 2. ~~**Migración inicial a PostgreSQL (T-03-02)**~~ — ✅ `20260530120258_init` en `backend/prisma/migrations/`; tablas del dominio en BD.
-3. **Seed de datos demo (T-03-03)** — usuario, hábitos y recompensas de ejemplo.
+3. ~~**Seed de datos demo (T-03-03)**~~ — ✅ `backend/prisma/seed.ts`; `npm run db:seed`; usuario demo, hábitos, semana activa y recompensas.
 4. **API y frontend** — CRUD, calendario semanal con bloqueo, canje e historial.
 5. **Autenticación multiusuario** — dejar de fijar `userId = 1` en API.
 

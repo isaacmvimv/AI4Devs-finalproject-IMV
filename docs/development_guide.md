@@ -104,40 +104,46 @@ npm run prisma:generate
 # Aplicar migraciones existentes (clones frescos, CI, tras pull)
 npm run db:migrate
 
-# (Opcional) Reset y seed
+# Reset completo (borra datos, reaplica migraciones y ejecuta seed automáticamente)
 npx prisma migrate reset
-npx prisma db seed  # si existe script de seed
+
+# Re-sembrar sin reset (idempotente)
+npm run db:seed
 ```
 
 **Esquema Prisma:** `backend/prisma/schema.prisma`  
+**Seed de desarrollo:** `backend/prisma/seed.ts` (usuario demo, hábitos, semana activa, recompensas)  
 **Migraciones versionadas:** `backend/prisma/migrations/` (p. ej. `20260530120258_init/migration.sql`)
 
-El bloque `prisma.schema` en `package.json` permite usar la CLI sin `--schema`. Tras clonar el repo:
+El bloque `prisma` en `package.json` define `schema` y `seed` para la CLI sin rutas extra. Tras clonar el repo:
 
 ```bash
 npm run db:up
 npm run db:migrate
 npm run prisma:generate
+npm run db:seed
 ```
 
 ### 6. Datos iniciales
 
-Crea un usuario con `id = 1` para el endpoint de perfil (Prisma Studio o SQL):
+El seed de desarrollo (`npm run db:seed`) inserta datos deterministas e idempotentes:
+
+- **Usuario:** `id = 1`, `email = "demo@ConRutina.app"`, `name = "Demo User"`
+- **Hábitos:** Correr, Meditar, Leer (3 registros)
+- **Semana activa:** lunes–domingo de la semana en curso, con 3 `WeekHabit` y 21 `HabitEntry` (`pending`)
+- **Recompensas:** Tarde libre (50 pts), Cena especial (80 pts)
+
+```bash
+npm run db:seed
+```
+
+Para inspeccionar o depurar datos:
 
 ```bash
 npx prisma studio
 ```
 
-Registro de ejemplo:
-- id: 1
-- email: "usuario@ejemplo.com"
-- name: "María García"
-
-O con SQL:
-
-```sql
-INSERT INTO "User" (id, email, name) VALUES (1, 'usuario@ejemplo.com', 'María García');
-```
+Tras `npx prisma migrate reset`, el seed se ejecuta automáticamente al final del reset.
 
 ### 7. Arrancar servidores de desarrollo
 
@@ -179,8 +185,9 @@ Deberías ver:
 
 **Si el perfil no carga:**
 1. Comprueba que el API está en el puerto 3001
-2. PostgreSQL accesible
-3. Existe `User` con `id = 1`
+2. PostgreSQL accesible (`npm run db:up`)
+3. Migraciones aplicadas (`npm run db:migrate`)
+4. Seed ejecutado (`npm run db:seed`) — debe existir `User` con `id = 1`
 
 ## Estructura del proyecto
 

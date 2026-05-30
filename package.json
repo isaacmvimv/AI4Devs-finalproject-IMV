@@ -24,10 +24,12 @@
     "prisma:init": "npx prisma init",
     "prisma:generate": "npx prisma generate",
     "db:migrate": "npx prisma migrate deploy",
+    "db:seed": "npx prisma db seed",
     "openspec:mark-ticket": "node scripts/openspec-mark-ticket-implemented.mjs"
   },
   "prisma": {
-    "schema": "backend/prisma/schema.prisma"
+    "schema": "backend/prisma/schema.prisma",
+    "seed": "tsx backend/prisma/seed.ts"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
