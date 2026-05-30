@@ -1505,7 +1505,7 @@ gantt
 - **Tipo:** Infra
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `docker-compose.yml` de desarrollo con el servicio `db` (PostgreSQL 16 Alpine), volumen nombrado para datos persistentes, health check y variables de entorno desde `.env`.
 
