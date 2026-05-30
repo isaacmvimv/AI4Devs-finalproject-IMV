@@ -170,13 +170,13 @@
 
 - [x] 10.3 Confirmar con el usuario aceptación antes de commitear
 
-- [ ] 10.4 Commit único en la rama feature (mensaje en viñetas breves)
+- [x] 10.4 Commit único en la rama feature (mensaje en viñetas breves)
 
-- [ ] 10.5 Push: `git push -u origin feature/T-04-02-global-error-handler`
+- [x] 10.5 Push: `git push -u origin feature/T-04-02-global-error-handler`
 
-- [ ] 10.6 Merge en `develop`: `git checkout develop`, `git pull`, `git merge feature/T-04-02-global-error-handler`
+- [x] 10.6 Merge en `develop`: `git checkout develop`, `git pull`, `git merge feature/T-04-02-global-error-handler`
 
-- [ ] 10.7 Archivar change: `mv` a `openspec/changes/archive/YYYY-MM-DD-t-04-02-global-error-handler/`
+- [x] 10.7 Archivar change: `mv` a `openspec/changes/archive/YYYY-MM-DD-t-04-02-global-error-handler/`
 
-- [ ] 10.8 Intentar marcar ticket: `npm run openspec:mark-ticket -- --change t-04-02-global-error-handler`
+- [x] 10.8 Intentar marcar ticket: `npm run openspec:mark-ticket -- --change t-04-02-global-error-handler`
 

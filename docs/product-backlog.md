@@ -1618,7 +1618,7 @@ gantt
 - **Tipo:** Backend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear el middleware de error global de Express que captura todas las excepciones no controladas y las convierte en respuestas JSON estándar `{ code, message, details? }`.
 
