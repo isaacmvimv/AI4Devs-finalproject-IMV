@@ -263,6 +263,22 @@ index.css → tailwind.css → theme.css
 
 Ver [frontend-standards.md](./frontend-standards.md) para la paleta completa.
 
+### Componentes shadcn/ui (T-05-03)
+
+El monorepo incluye `components.json` en la raíz con la convención shadcn CLI:
+
+- **CSS Tailwind:** `frontend/src/styles/tailwind.css`
+- **Primitivos UI:** `frontend/src/presentation/components/ui/`
+- **Alias `@`:** resuelve a `frontend/src` (ver `vite.config.ts`)
+
+Para añadir un primitivo nuevo desde la raíz del proyecto:
+
+```bash
+npx shadcn@latest add button --overwrite
+```
+
+Los ocho primitivos del DoD T-05-03 (`button`, `dialog`, `input`, `label`, `card`, `progress`, `badge`, `sonner`) ya están presentes. `<Toaster />` se monta en `App.tsx` para toasts globales vía `toast()` de la librería `sonner`.
+
 ## Pruebas
 
 ### Backend (previsto)

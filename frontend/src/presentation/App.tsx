@@ -9,6 +9,7 @@ import RewardCard from './components/RewardCard'
 import AddHabitModal from './components/AddHabitModal'
 import AddRewardModal from './components/AddRewardModal'
 import UserProfileCard from './components/UserProfileCard'
+import { Toaster } from './components/ui/sonner'
 
 export default function App() {
   const {
@@ -143,6 +144,8 @@ export default function App() {
         onClose={() => setIsRewardModalOpen(false)}
         onAdd={handleAddReward}
       />
+
+      <Toaster />
     </div>
   )
 }

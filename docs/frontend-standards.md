@@ -454,12 +454,23 @@ Cadena de importación: `main.tsx` → `index.css` → `tailwind.css` + `theme.c
 - **Personalizar con clases Tailwind**
 
 **Componentes UI disponibles (en `presentation/components/ui/`):**
-- Dialog, Sheet, Drawer — Modales y paneles laterales
-- Button, Input, Textarea — Elementos de formulario
-- Card, Accordion, Tabs — Componentes de layout
-- Select, Checkbox, Switch — Controles de formulario
-- Tooltip, Popover, Dropdown Menu — Superposiciones
-- Y más de 40 componentes adicionales
+
+**DoD T-05-03 — primitivos base instalados y configurados:**
+
+| Primitivo | Fichero | Uso principal |
+|-----------|---------|---------------|
+| Button | `button.tsx` | Acciones y envío de formularios |
+| Dialog | `dialog.tsx` | Modales accesibles (Radix) |
+| Input | `input.tsx` | Campos de texto |
+| Label | `label.tsx` | Etiquetas de formulario |
+| Card | `card.tsx` | Contenedores de contenido |
+| Progress | `progress.tsx` | Barras de progreso |
+| Badge | `badge.tsx` | Etiquetas y estados |
+| Sonner | `sonner.tsx` | Wrapper de `<Toaster />` para toasts globales |
+
+Configuración CLI: `components.json` en la raíz del monorepo (alias `@/` → `frontend/src`). Para añadir primitivos futuros: `npx shadcn@latest add <component>` desde la raíz.
+
+**Componentes adicionales** (scaffold inicial, fuera del DoD T-05-03): Dialog, Sheet, Drawer, Textarea, Accordion, Tabs, Select, Checkbox, Switch, Tooltip, Popover, Dropdown Menu y más (~40 ficheros en `ui/`).
 
 **Ejemplo de ConRutina:**
 ```typescript
