@@ -1710,7 +1710,7 @@ gantt
 - **Tipo:** Frontend — Componentes UI
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Añadir los primitivos de shadcn/ui necesarios para el proyecto. Crear el directorio `frontend/src/presentation/components/ui/` con los componentes: Button, Dialog, Input, Label, Card, Progress, Badge, Sonner (toast). Añadir la función utilitaria `cn()` con clsx + tailwind-merge.
 
