@@ -1730,7 +1730,7 @@ gantt
 - **Tipo:** Frontend — Arquitectura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear los directorios de capas del frontend y un `App.tsx` base con el layout de la SPA. Añadir `frontend/src/infrastructure/` para clientes HTTP, `frontend/src/application/` para hooks, `frontend/src/domain/` para tipos y lógica pura.
 
