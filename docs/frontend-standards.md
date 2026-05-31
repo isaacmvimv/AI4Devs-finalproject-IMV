@@ -101,10 +101,16 @@ frontend/
 │   │   ├── useHabitDashboard.ts  # Lógica principal del dashboard
 │   │   └── useUserProfile.ts     # Lógica del perfil de usuario
 │   ├── infrastructure/       # Adaptadores externos
-│   │   └── profileApi.ts     # Cliente HTTP para la API
+│   │   ├── httpClient.ts     # Cliente HTTP base (fetch /api)
+│   │   └── profileApi.ts     # Adaptador GET /api/profile
 │   ├── presentation/         # Capa de UI
 │   │   ├── App.tsx          # Componente principal de la aplicación
 │   │   └── components/      # Componentes React
+│   │       ├── layout/      # Shell de la SPA (AppLayout, secciones)
+│   │       │   ├── AppLayout.tsx
+│   │       │   ├── StatsSection.tsx
+│   │       │   ├── CalendarSection.tsx
+│   │       │   └── RewardsSection.tsx
 │   │       ├── Header.tsx
 │   │       ├── HabitRow.tsx
 │   │       ├── RewardCard.tsx
@@ -194,10 +200,13 @@ export function useHabitDashboard() {
 
 **Ejemplo:**
 ```typescript
-// infrastructure/profileApi.ts
-export async function getUserProfile(): Promise<UserProfile> {
-  const response = await fetch('/api/profile');
-  return response.json();
+// infrastructure/httpClient.ts + profileApi.ts
+import { apiGet } from './httpClient';
+
+export async function fetchUserProfile(): Promise<ProfileApiResult> {
+  const result = await apiGet<ProfileUserDto>('/profile');
+  if (result.ok) return { ok: true, user: result.data };
+  return { ok: false, error: result.message };
 }
 ```
 
@@ -409,7 +418,7 @@ export async function getUserProfile(): Promise<UserProfile> {
 
 **Ejemplo de ConRutina:**
 ```typescript
-<div className="min-h-screen" style={{ backgroundColor: '#FAF8F5' }}>
+<div className="min-h-screen bg-background">
   <div className="max-w-5xl mx-auto px-4 py-8">
     <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
       <h2 className="text-xl font-semibold text-gray-800">Calendario semanal</h2>
@@ -445,7 +454,9 @@ Tokens ConRutina (DoD T-05-02) en `frontend/src/styles/theme.css`. Los valores `
 
 Utilidades Tailwind generadas vía `@theme inline`: `bg-primary`, `bg-completed`, `bg-failed`, `bg-pending`, `bg-background`, `bg-surface`.
 
-Cadena de importación: `main.tsx` → `index.css` → `tailwind.css` + `theme.css`.
+Cadena de importación: `main.tsx` → `index.css` → `fonts.css` + `tailwind.css` + `theme.css`.
+
+Tipografía: `--font-sans` (Inter) para UI; `--font-display` (Georgia) para títulos. Utilidades Tailwind: `font-sans`, `font-display`.
 
 ### Componentes Radix UI
 - Usar **primitivas Radix UI** para componentes interactivos

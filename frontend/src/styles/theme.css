@@ -10,6 +10,8 @@
   --color-pending: #e5e7eb;
 
   --font-size: 16px;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: Georgia, 'Times New Roman', serif;
   --background: var(--color-background);
   --foreground: #1a1a1a;
   --card: var(--color-surface);
@@ -87,6 +89,8 @@
 }
 
 @theme inline {
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
   --color-background: var(--color-background);
   --color-surface: var(--color-surface);
   --color-primary: var(--color-primary);
@@ -137,7 +141,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 
   /**

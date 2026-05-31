@@ -1,4 +1,3 @@
-import { Calendar, Gift } from 'lucide-react'
 import { useHabitDashboard } from '../application/useHabitDashboard'
 import Header from './components/Header'
 import ProgressBar from './components/ProgressBar'
@@ -10,6 +9,10 @@ import AddHabitModal from './components/AddHabitModal'
 import AddRewardModal from './components/AddRewardModal'
 import UserProfileCard from './components/UserProfileCard'
 import { Toaster } from './components/ui/sonner'
+import AppLayout from './components/layout/AppLayout'
+import StatsSection from './components/layout/StatsSection'
+import CalendarSection from './components/layout/CalendarSection'
+import RewardsSection from './components/layout/RewardsSection'
 
 export default function App() {
   const {
@@ -34,21 +37,22 @@ export default function App() {
     handleDeleteReward,
   } = useHabitDashboard()
 
-  return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FAF8F5' }}>
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* relative: ancla la tarjeta de perfil arriba-derecha sin mover el título centrado */}
-        <div className="relative mb-8">
-          <div className="absolute top-0 right-0 z-10 hidden sm:block">
-            <UserProfileCard />
-          </div>
-          <Header />
+  const header = (
+    <>
+      <div className="relative mb-8">
+        <div className="absolute top-0 right-0 z-10 hidden sm:block">
+          <UserProfileCard />
         </div>
+        <Header />
+      </div>
+      <ProgressBar progress={todayProgress} />
+    </>
+  )
 
-        <ProgressBar progress={todayProgress} />
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  return (
+    <>
+      <AppLayout header={header}>
+        <StatsSection>
           <StatCard
             icon="📊"
             value={stats.lastWeekPoints}
@@ -58,23 +62,18 @@ export default function App() {
           <StatCard icon="🏆" value={stats.thisWeekPoints} label="Esta semana" bgColor="#C8E6C9" />
           <StatCard icon="⚠️" value={-stats.penalties} label="Penalizaciones" bgColor="#FFCDD2" />
           <StatCard icon="🔥" value={stats.maxStreak} label="Mejor racha" bgColor="#FFE0B2" />
-        </div>
+        </StatsSection>
 
-        {/* Weekly Calendar Section */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-green-600" />
-              <h2 className="text-xl font-semibold text-gray-800">Calendario semanal</h2>
-            </div>
+        <CalendarSection
+          action={
             <button
               onClick={() => setIsHabitModalOpen(true)}
               className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
             >
               + Nuevo hábito
             </button>
-          </div>
-
+          }
+        >
           <WeeklyCalendar
             weekDates={weekData.dates}
             weekRange={weekData.range}
@@ -98,23 +97,18 @@ export default function App() {
               />
             ))}
           </div>
-        </div>
+        </CalendarSection>
 
-        {/* Rewards Section */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Gift className="w-5 h-5 text-yellow-600" />
-              <h2 className="text-xl font-semibold text-gray-800">Recompensas</h2>
-            </div>
+        <RewardsSection
+          action={
             <button
               onClick={() => setIsRewardModalOpen(true)}
               className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 rounded-lg font-medium transition-colors flex items-center gap-2"
             >
               + Nueva recompensa
             </button>
-          </div>
-
+          }
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {rewards.map((reward) => (
               <RewardCard
@@ -129,10 +123,9 @@ export default function App() {
               />
             ))}
           </div>
-        </div>
-      </div>
+        </RewardsSection>
+      </AppLayout>
 
-      {/* Modals */}
       <AddHabitModal
         isOpen={isHabitModalOpen}
         onClose={() => setIsHabitModalOpen(false)}
@@ -146,6 +139,6 @@ export default function App() {
       />
 
       <Toaster />
-    </div>
+    </>
   )
 }
