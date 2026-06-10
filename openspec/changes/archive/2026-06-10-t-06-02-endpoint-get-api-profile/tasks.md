@@ -134,11 +134,11 @@
 
 - [x] C.3 Commit único en feature (viñetas) — solo en `/opsx:archive`
 
-- [ ] C.4 `git push -u origin feature/T-06-02-endpoint-get-api-profile`
+- [x] C.4 `git push -u origin feature/T-06-02-endpoint-get-api-profile`
 
-- [ ] C.5 Merge a `develop`
+- [x] C.5 Merge a `develop`
 
-- [ ] C.6 `mv` change → `openspec/changes/archive/YYYY-MM-DD-t-06-02-endpoint-get-api-profile/`
+- [x] C.6 `mv` change → `openspec/changes/archive/YYYY-MM-DD-t-06-02-endpoint-get-api-profile/`
 
-- [ ] C.7 `npm run openspec:mark-ticket -- --change t-06-02-endpoint-get-api-profile`
+- [x] C.7 `npm run openspec:mark-ticket -- --change t-06-02-endpoint-get-api-profile`
 

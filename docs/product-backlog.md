@@ -1779,7 +1779,7 @@ gantt
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Registrar la ruta `GET /api/profile` en `createApp.ts`. Usar el caso de uso `getUserProfile(1)` (userId hardcodeado para MVP; el middleware de auth placeholder resolverá el userId real cuando esté implementado).
 
