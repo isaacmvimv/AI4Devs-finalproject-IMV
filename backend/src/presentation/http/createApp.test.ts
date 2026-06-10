@@ -2,8 +2,10 @@ import type { PrismaClient } from '@prisma/client'
 import request from 'supertest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createHabit } from '../../application/createHabit'
+import { deactivateHabit } from '../../application/deactivateHabit'
 import { getActiveHabits } from '../../application/getActiveHabits'
 import { getUserProfileById } from '../../application/getUserProfile'
+import { updateHabit } from '../../application/updateHabit'
 import { NotFoundError, ValidationError } from '../../domain/errors/appErrors'
 import type { Habit } from '../../domain/habit'
 import type { UserProfile } from '../../domain/userProfile'
@@ -21,9 +23,19 @@ vi.mock('../../application/getActiveHabits', () => ({
   getActiveHabits: vi.fn(),
 }))
 
+vi.mock('../../application/updateHabit', () => ({
+  updateHabit: vi.fn(),
+}))
+
+vi.mock('../../application/deactivateHabit', () => ({
+  deactivateHabit: vi.fn(),
+}))
+
 const mockGetUserProfileById = vi.mocked(getUserProfileById)
 const mockCreateHabit = vi.mocked(createHabit)
 const mockGetActiveHabits = vi.mocked(getActiveHabits)
+const mockUpdateHabit = vi.mocked(updateHabit)
+const mockDeactivateHabit = vi.mocked(deactivateHabit)
 
 function createPrismaStub(): PrismaClient {
   return {} as PrismaClient
@@ -215,6 +227,111 @@ describe('POST /api/habits', () => {
     expect(response.body).toMatchObject({
       code: 'VALIDATION_ERROR',
       details: expect.arrayContaining([expect.objectContaining({ field: 'emoji' })]),
+    })
+  })
+})
+
+describe('PATCH /api/habits/:id', () => {
+  const updatedHabit: Habit = {
+    ...sampleHabit,
+    id: 5,
+    pointsPerDay: 15,
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 200 with updated habit on happy path', async () => {
+    mockUpdateHabit.mockResolvedValue(updatedHabit)
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .patch('/api/habits/5')
+      .send({ pointsPerDay: 15 })
+
+    expect(response.status).toBe(200)
+    expect(response.body).toMatchObject({
+      id: 5,
+      pointsPerDay: 15,
+    })
+    expect(mockUpdateHabit).toHaveBeenCalledWith(expect.anything(), 1, 5, { pointsPerDay: 15 })
+  })
+
+  it('returns 400 VALIDATION_ERROR when validation fails', async () => {
+    mockUpdateHabit.mockRejectedValue(
+      new ValidationError('Datos inválidos', [{ field: 'input', message: 'Debe proporcionar al menos un campo para actualizar' }])
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).patch('/api/habits/5').send({})
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Datos inválidos',
+    })
+  })
+
+  it('returns 404 HABIT_NOT_FOUND when habit not found', async () => {
+    mockUpdateHabit.mockRejectedValue(
+      new NotFoundError('Hábito no encontrado', 'HABIT_NOT_FOUND')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .patch('/api/habits/5')
+      .send({ pointsPerDay: 15 })
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'HABIT_NOT_FOUND',
+      message: 'Hábito no encontrado',
+    })
+  })
+
+  it('returns 404 without invoking use case when id is invalid', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .patch('/api/habits/abc')
+      .send({ pointsPerDay: 15 })
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'HABIT_NOT_FOUND',
+    })
+    expect(mockUpdateHabit).not.toHaveBeenCalled()
+  })
+})
+
+describe('DELETE /api/habits/:id', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 204 with empty body on happy path', async () => {
+    mockDeactivateHabit.mockResolvedValue({ ...sampleHabit, isActive: false })
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).delete('/api/habits/5')
+
+    expect(response.status).toBe(204)
+    expect(response.body).toEqual({})
+    expect(mockDeactivateHabit).toHaveBeenCalledWith(expect.anything(), 1, 5)
+  })
+
+  it('returns 404 HABIT_NOT_FOUND when habit not found', async () => {
+    mockDeactivateHabit.mockRejectedValue(
+      new NotFoundError('Hábito no encontrado', 'HABIT_NOT_FOUND')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).delete('/api/habits/5')
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'HABIT_NOT_FOUND',
+      message: 'Hábito no encontrado',
     })
   })
 })

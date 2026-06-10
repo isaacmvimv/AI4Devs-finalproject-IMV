@@ -653,7 +653,7 @@ GET    /api/profile         // Perfil de usuario (id fijo 1 en la implementació
 ```typescript
 GET    /api/habits
 POST   /api/habits
-PUT    /api/habits/:id
+PATCH  /api/habits/:id
 DELETE /api/habits/:id
 GET    /api/rewards
 POST   /api/rewards

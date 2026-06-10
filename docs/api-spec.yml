@@ -142,9 +142,9 @@ paths:
           description: Error interno del servidor
 
   /api/habits/{id}:
-    put:
-      summary: Actualizar hábito (PLANIFICADO)
-      description: Actualiza un hábito existente
+    patch:
+      summary: Actualizar hábito
+      description: Actualiza parcialmente un hábito existente (userId=1 en MVP sin auth). Solo muta la tabla Habit; los snapshots WeekHabit permanecen inmutables.
       tags:
         - Hábitos
       parameters:
@@ -152,8 +152,8 @@ paths:
           name: id
           required: true
           schema:
-            type: string
-          description: Identificador del hábito
+            type: integer
+          description: Identificador numérico del hábito
       requestBody:
         required: true
         content:
@@ -166,15 +166,38 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Habit'
+                $ref: '#/components/schemas/HabitApi'
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Datos inválidos
+                details:
+                  - field: input
+                    message: Debe proporcionar al menos un campo para actualizar
         '404':
           description: Hábito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: HABIT_NOT_FOUND
+                message: Hábito no encontrado
         '500':
           description: Error interno del servidor
-    
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
     delete:
-      summary: Eliminar hábito (PLANIFICADO)
-      description: Elimina un hábito
+      summary: Desactivar hábito
+      description: Baja lógica del hábito (isActive=false). No elimina filas WeekHabit ni muta snapshots históricos.
       tags:
         - Hábitos
       parameters:
@@ -182,15 +205,26 @@ paths:
           name: id
           required: true
           schema:
-            type: string
-          description: Identificador del hábito
+            type: integer
+          description: Identificador numérico del hábito
       responses:
         '204':
-          description: Hábito eliminado correctamente
+          description: Hábito desactivado correctamente (sin cuerpo)
         '404':
           description: Hábito no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: HABIT_NOT_FOUND
+                message: Hábito no encontrado
         '500':
           description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
 
   /api/habits/{id}/toggle/{dayIndex}:
     post:
@@ -384,7 +418,7 @@ components:
 
     HabitApi:
       type: object
-      description: Respuesta de persistencia para GET/POST /api/habits
+      description: Respuesta de persistencia para GET/POST/PATCH /api/habits
       properties:
         id:
           type: integer

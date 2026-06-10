@@ -3,12 +3,23 @@ import cors from 'cors'
 import express, { type Express } from 'express'
 import { config } from '../../config.js'
 import { createHabit } from '../../application/createHabit'
+import { deactivateHabit } from '../../application/deactivateHabit'
 import { getActiveHabits } from '../../application/getActiveHabits'
 import { getUserProfileById } from '../../application/getUserProfile'
+import { updateHabit } from '../../application/updateHabit'
+import { NotFoundError } from '../../domain/errors/appErrors'
 import { createPrismaHabitRepository } from '../../infrastructure/prismaHabitRepository'
 import { createPrismaUserRepository } from '../../infrastructure/prismaUserRepository'
 import { asyncHandler } from './middleware/asyncHandler'
 import { errorHandler } from './middleware/errorHandler'
+
+function parseHabitIdParam(id: string): number {
+  const habitId = Number.parseInt(id, 10)
+  if (Number.isNaN(habitId)) {
+    throw new NotFoundError('Hábito no encontrado', 'HABIT_NOT_FOUND')
+  }
+  return habitId
+}
 
 export function createApp(prisma: PrismaClient): Express {
   const app = express()
@@ -50,6 +61,24 @@ export function createApp(prisma: PrismaClient): Express {
     asyncHandler(async (req, res) => {
       const habit = await createHabit(habitRepository, 1, req.body)
       return res.status(201).json(habit)
+    })
+  )
+
+  app.patch(
+    '/api/habits/:id',
+    asyncHandler(async (req, res) => {
+      const habitId = parseHabitIdParam(req.params.id)
+      const habit = await updateHabit(habitRepository, 1, habitId, req.body)
+      return res.status(200).json(habit)
+    })
+  )
+
+  app.delete(
+    '/api/habits/:id',
+    asyncHandler(async (req, res) => {
+      const habitId = parseHabitIdParam(req.params.id)
+      await deactivateHabit(habitRepository, 1, habitId)
+      return res.status(204).send()
     })
   )
 
