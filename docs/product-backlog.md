@@ -1853,7 +1853,7 @@ gantt
 - **Tipo:** Backend — Presentación HTTP + Aplicación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Implementar `PATCH /api/habits/:id` (actualizar campos mutables: emoji, name, pointsPerDay, penalty) y `DELETE /api/habits/:id` (baja lógica: `isActive=false`). Verificar que el hábito pertenece al usuario actual.
 
