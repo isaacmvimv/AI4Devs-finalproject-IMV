@@ -1878,7 +1878,7 @@ gantt
 - **Tipo:** Frontend — Dominio
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `frontend/src/domain/habit.ts` con los tipos `CompletionStatus`, `Habit`, `HabitStats`, `HabitFormInput` y todas las funciones puras del dominio.
 
