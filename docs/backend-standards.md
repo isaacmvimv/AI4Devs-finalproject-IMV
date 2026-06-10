@@ -150,17 +150,24 @@ backend/
 ├── src/
 │   ├── domain/
 │   │   ├── errors/                 # Clases de error (AppError, ValidationError, …)
-│   │   └── userProfile.ts          # Entidades de dominio
+│   │   ├── userProfile.ts          # Entidades de dominio
+│   │   └── habit.ts                # Entidad Habit + tipos CreateHabitData / UpdateHabitData
 │   ├── application/
 │   │   ├── ports/                  # Interfaces puerto
-│   │   │   └── UserReadRepository.ts
-│   │   └── getUserProfile.ts       # Casos de uso
+│   │   │   ├── UserReadRepository.ts
+│   │   │   └── HabitRepository.ts
+│   │   ├── validation/
+│   │   │   └── habit.ts            # Schema Zod + parseCreateHabitInput
+│   │   ├── getUserProfile.ts       # Casos de uso
+│   │   ├── createHabit.ts
+│   │   └── getActiveHabits.ts
 │   ├── presentation/
 │   │   └── http/
 │   │       ├── createApp.ts        # Configuración HTTP
 │   │       └── middleware/         # errorHandler, asyncHandler (T-04-02)
 │   ├── infrastructure/
-│   │   └── prismaUserRepository.ts # Implementaciones de repositorio
+│   │   ├── prismaUserRepository.ts # Implementaciones de repositorio
+│   │   └── prismaHabitRepository.ts
 │   ├── loadEnv.ts                  # Carga de entorno
 │   └── main.ts                     # Punto de entrada (composición)
 ├── prisma/
@@ -187,6 +194,17 @@ export interface UserProfile {
   email: string;
   avatarUrl: string | null;
 }
+
+export interface Habit {
+  id: number;
+  userId: number;
+  emoji: string;
+  name: string;
+  pointsPerDay: number;
+  penalty: number;
+  isActive: boolean;
+  createdAt: Date;
+}
 ```
 
 **Buena práctica**: Mantener el dominio puro y libre de frameworks; solo lógica de negocio.
@@ -208,6 +226,22 @@ export async function getUserProfileById(
     throw new NotFoundError('Usuario no encontrado');
   }
   return profile;
+}
+
+export async function createHabit(
+  repository: HabitRepository,
+  userId: number,
+  input: unknown
+): Promise<Habit> {
+  const validated = parseCreateHabitInput(input);
+  return repository.create({ userId, ...validated });
+}
+
+export async function getActiveHabits(
+  repository: HabitRepository,
+  userId: number
+): Promise<Habit[]> {
+  return repository.findActiveByUserId(userId);
 }
 ```
 
@@ -549,17 +583,42 @@ app.use(errorHandler);
 - Validar antes de ejecutar lógica de negocio o persistencia
 
 ```typescript
-import { validateCreateHabitInput } from '../application/validation/habit';
+import { createHabit } from '../application/createHabit';
 
 app.post('/api/habits', async (req, res, next) => {
   try {
-    const input = validateCreateHabitInput(req.body);
-    const habit = await createHabit(deps.habitRepository, input);
+    const habit = await createHabit(deps.habitRepository, 1, req.body);
     return res.status(201).json(habit);
   } catch (error) {
     next(error);
   }
 });
+```
+
+Validación Zod centralizada en `application/validation/habit.ts`:
+
+```typescript
+import { z } from 'zod';
+import { ValidationError } from '../../domain/errors/appErrors';
+
+const createHabitSchema = z.object({
+  emoji: z.string().trim().min(1, 'El emoji es obligatorio'),
+  name: z.string().trim().min(1, 'El nombre es obligatorio'),
+  pointsPerDay: z.number().int().positive('Los puntos por día deben ser mayores que 0'),
+  penalty: z.number().int().min(0, 'La penalización no puede ser negativa'),
+});
+
+export function parseCreateHabitInput(input: unknown) {
+  const result = createHabitSchema.safeParse(input);
+  if (!result.success) {
+    const details = result.error.issues.map((issue) => ({
+      field: issue.path.join('.') || 'input',
+      message: issue.message,
+    }));
+    throw new ValidationError('Datos inválidos', details);
+  }
+  return result.data;
+}
 ```
 
 ### Estándares de logging
@@ -685,6 +744,15 @@ export interface UserReadRepository {
   findById(id: number): Promise<UserProfile | null>;
 }
 
+// application/ports/HabitRepository.ts
+export interface HabitRepository {
+  create(data: CreateHabitData): Promise<Habit>;
+  findActiveByUserId(userId: number): Promise<Habit[]>;
+  findById(id: number): Promise<Habit | null>;
+  update(id: number, data: UpdateHabitData): Promise<Habit>;
+  softDelete(id: number): Promise<Habit>;
+}
+
 // infrastructure/prismaUserRepository.ts
 export function createPrismaUserRepository(prisma: PrismaClient): UserReadRepository {
   return {
@@ -692,6 +760,20 @@ export function createPrismaUserRepository(prisma: PrismaClient): UserReadReposi
       const user = await prisma.user.findUnique({ where: { id } });
       return user ? mapToUserProfile(user) : null;
     },
+  };
+}
+
+// infrastructure/prismaHabitRepository.ts
+export function createPrismaHabitRepository(prisma: PrismaClient): HabitRepository {
+  return {
+    async findActiveByUserId(userId: number): Promise<Habit[]> {
+      const habits = await prisma.habit.findMany({
+        where: { userId, isActive: true },
+        orderBy: { createdAt: 'asc' },
+      });
+      return habits.map(mapToHabit);
+    },
+    // create, findById, update, softDelete …
   };
 }
 ```
