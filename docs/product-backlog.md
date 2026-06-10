@@ -1754,7 +1754,7 @@ gantt
 - **Tipo:** Backend — Dominio + Aplicación + Infraestructura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Implementar el puerto `UserReadRepository` (interfaz), el repositorio `PrismaUserRepository`, el caso de uso `getUserProfile(userId)` y la entidad `UserProfile`. Seguir el patrón de Clean Architecture del scaffold.
 
