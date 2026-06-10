@@ -1912,7 +1912,7 @@ gantt
 - **Tipo:** Frontend — Dominio
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `frontend/src/domain/reward.ts` con `Reward`, `RewardFormInput` y `createRewardFromFormInput`. Crear `frontend/src/domain/week.ts` con `WeekDayLabel`, `WeekData`, `buildWeekData(offset)`, `getCurrentDayIndexForWeek()`.
 
