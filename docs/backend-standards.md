@@ -185,6 +185,7 @@ export interface UserProfile {
   id: number;
   name: string | null;
   email: string;
+  avatarUrl: string | null;
 }
 ```
 
@@ -201,8 +202,12 @@ Los casos de uso orquestan el flujo entre entidades e infraestructura.
 export async function getUserProfileById(
   repository: UserReadRepository,
   userId: number
-): Promise<UserProfile | null> {
-  return await repository.findById(userId);
+): Promise<UserProfile> {
+  const profile = await repository.findById(userId);
+  if (!profile) {
+    throw new NotFoundError('Usuario no encontrado');
+  }
+  return profile;
 }
 ```
 
@@ -243,7 +248,9 @@ export function createPrismaUserRepository(prisma: PrismaClient): UserReadReposi
   return {
     async findById(id: number): Promise<UserProfile | null> {
       const user = await prisma.user.findUnique({ where: { id } });
-      return user ? { id: user.id, name: user.name, email: user.email } : null;
+      return user
+        ? { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl }
+        : null;
     },
   };
 }
@@ -271,14 +278,19 @@ export interface UserProfile {
   id: number;
   name: string | null;
   email: string;
+  avatarUrl: string | null;
 }
 
 // Aplicación: orquestación
 export async function getUserProfileById(
   repository: UserReadRepository,
   userId: number
-): Promise<UserProfile | null> {
-  return await repository.findById(userId);
+): Promise<UserProfile> {
+  const profile = await repository.findById(userId);
+  if (!profile) {
+    throw new NotFoundError('Usuario no encontrado');
+  }
+  return profile;
 }
 
 // Infraestructura: acceso a datos
@@ -286,7 +298,9 @@ export function createPrismaUserRepository(prisma: PrismaClient): UserReadReposi
   return {
     async findById(id: number): Promise<UserProfile | null> {
       const user = await prisma.user.findUnique({ where: { id } });
-      return user ? { id: user.id, name: user.name, email: user.email } : null;
+      return user
+        ? { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl }
+        : null;
     },
   };
 }
@@ -369,8 +383,12 @@ Los módulos de alto nivel dependen de abstracciones, no de Prisma ni Express di
 export async function getUserProfileById(
   repository: UserReadRepository,
   userId: number
-): Promise<UserProfile | null> {
-  return await repository.findById(userId);
+): Promise<UserProfile> {
+  const profile = await repository.findById(userId);
+  if (!profile) {
+    throw new NotFoundError('Usuario no encontrado');
+  }
+  return profile;
 }
 
 // main.ts — composición
@@ -401,6 +419,7 @@ function mapToUserProfile(user: User): UserProfile {
     id: user.id,
     name: user.name,
     email: user.email,
+    avatarUrl: user.avatarUrl,
   };
 }
 ```
@@ -506,7 +525,7 @@ export class ValidationError extends AppError {
 app.get('/api/profile', asyncHandler(async (_req, res) => {
   const user = await getUserProfileById(deps.userRepository, 1);
   if (!user) {
-    return res.status(404).json({ error: 'Usuario con id 1 no encontrado' }); // legacy hasta T-06-01
+    return res.status(404).json({ error: 'Usuario con id 1 no encontrado' }); // legacy hasta T-06-02
   }
   return res.json(user);
 }));
@@ -705,14 +724,24 @@ describe('getUserProfileById', () => {
     it('returns UserProfile when repository finds user', async () => {
       // Arrange
       const mockRepo: UserReadRepository = {
-        findById: vi.fn().mockResolvedValue({ id: 1, name: 'Ana', email: 'a@test.com' }),
+        findById: vi.fn().mockResolvedValue({
+          id: 1,
+          name: 'Ana',
+          email: 'a@test.com',
+          avatarUrl: null,
+        }),
       };
 
       // Act
       const result = await getUserProfileById(mockRepo, 1);
 
       // Assert
-      expect(result).toEqual({ id: 1, name: 'Ana', email: 'a@test.com' });
+      expect(result).toEqual({
+        id: 1,
+        name: 'Ana',
+        email: 'a@test.com',
+        avatarUrl: null,
+      });
       expect(mockRepo.findById).toHaveBeenCalledWith(1);
     });
   });
