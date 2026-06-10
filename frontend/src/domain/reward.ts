@@ -6,9 +6,13 @@ export interface Reward {
   cost: number
 }
 
-export function createRewardFromFormInput(
-  input: { emoji: string; name: string; description: string; cost: number },
-  id: string
-): Reward {
+export interface RewardFormInput {
+  emoji: string
+  name: string
+  description: string
+  cost: number
+}
+
+export function createRewardFromFormInput(input: RewardFormInput, id: string): Reward {
   return { id, ...input }
 }
