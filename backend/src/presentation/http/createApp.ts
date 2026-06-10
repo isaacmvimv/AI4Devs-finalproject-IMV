@@ -29,16 +29,7 @@ export function createApp(prisma: PrismaClient): Express {
     '/api/profile',
     asyncHandler(async (_req, res) => {
       const user = await getUserProfileById(userRepository, 1)
-
-      if (!user) {
-        return res.status(404).json({ error: 'Usuario con id 1 no encontrado' })
-      }
-
-      return res.json({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      })
+      return res.json(user)
     })
   )
 

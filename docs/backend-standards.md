@@ -524,9 +524,6 @@ export class ValidationError extends AppError {
 // presentation/http/middleware/asyncHandler.ts
 app.get('/api/profile', asyncHandler(async (_req, res) => {
   const user = await getUserProfileById(deps.userRepository, 1);
-  if (!user) {
-    return res.status(404).json({ error: 'Usuario con id 1 no encontrado' }); // legacy hasta T-06-02
-  }
   return res.json(user);
 }));
 
@@ -618,7 +615,8 @@ POST   /api/rewards/:id/redeem
 {
   "id": 1,
   "name": "John Doe",
-  "email": "john@example.com"
+  "email": "john@example.com",
+  "avatarUrl": null
 }
 ```
 
@@ -627,12 +625,12 @@ POST   /api/rewards/:id/redeem
 ```typescript
 {
   "code": "USER_NOT_FOUND",
-  "message": "Usuario con id 1 no encontrado",
+  "message": "Usuario no encontrado",
   "details": { "userId": 1 }  // opcional
 }
 ```
 
-**Nota:** `GET /api/profile` mantiene temporalmente `{ error: "..." }` en 404 hasta T-06-01; los errores 500 de la ruta pasan por el handler global con `{ code, message }`.
+Los errores de `/api/profile` (p. ej. usuario inexistente) se propagan vía `asyncHandler` al `errorHandler` global con el formato anterior.
 
 ### Configuración CORS
 
