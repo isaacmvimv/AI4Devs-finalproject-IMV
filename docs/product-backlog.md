@@ -1803,7 +1803,7 @@ gantt
 - **Tipo:** Backend — Dominio + Aplicación + Infraestructura
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Implementar `HabitRepository` (puerto), `PrismaHabitRepository`, casos de uso `createHabit(userId, input)` y `getActiveHabits(userId)`. Validar `name` no vacío, `pointsPerDay > 0`, `penalty >= 0`, `emoji` presente.
 
