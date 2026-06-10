@@ -4,3 +4,5 @@ dist/
 *.log
 coverage/
 prompts/
+# Guía humana OpenSpec (no indexar en contexto del agente)
+docs/openspec-customization-guide.md

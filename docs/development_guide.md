@@ -297,7 +297,7 @@ npm run test:coverage
 npm test
 ```
 
-E2E con Playwright MCP cuando aplique (ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md)).
+E2E con Playwright MCP cuando aplique (ver [openspec/tasks-core.md](./openspec/tasks-core.md)).
 
 ## Comandos habituales
 
@@ -400,7 +400,7 @@ npm run prisma:generate
 6. Tras pasar pruebas obligatorias y **aceptación del usuario** (OpenSpec `/opsx:archive`): commit único con mensaje en **viñetas breves** en español, **push de la rama feature al remoto** (`git push -u origin feature/...`), merge en `develop` (`git checkout develop` → `git pull origin develop` → `git merge feature/...`)
 7. Push de `develop` al remoto si el flujo del equipo lo requiere: `git push origin develop`
 
-Detalle completo del flujo Git con OpenSpec: [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).
+Detalle del flujo Git con OpenSpec: [openspec/tasks-core.md](./openspec/tasks-core.md). Extraer ticket: `npm run openspec:extract-ticket -- --ticket T-XX-YY`.
 
 ### Flujo OpenSpec (desde el product backlog)
 

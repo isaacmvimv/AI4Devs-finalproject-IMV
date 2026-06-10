@@ -1,77 +1,54 @@
 ---
-
-## description: Reglas y directrices de desarrollo de ConRutina, aplicables a todos los agentes de IA (Claude, Cursor, Codex, Gemini, etc.).
+description: Reglas mínimas de ConRutina para todos los agentes de IA. Estándares detallados se cargan bajo demanda según el área de trabajo.
 alwaysApply: true
+---
 
-## 1. Principios fundamentales
+# Estándares base — ConRutina
 
-- **Tareas pequeñas, una a la vez**: Trabajar en pasos incrementales. No avanzar más de un paso a la vez.
-- **Desarrollo guiado por pruebas (TDD)**: Empezar con pruebas que fallen para cualquier funcionalidad nueva, según el detalle de la tarea.
-- **Tipado estricto**: Todo el código debe estar completamente tipado.
-- **Nombres claros**: Usar nombres descriptivos en variables y funciones.
-- **Cambios incrementales**: Preferir cambios acotados y focalizados frente a modificaciones grandes.
-- **Cuestionar suposiciones**: Revisar siempre inferencias y premisas.
-- **Detección de patrones**: Identificar y señalar código repetido.
+## Principios
 
-## 2. Estándares de idioma
+- Pasos incrementales; un cambio acotado por tarea.
+- TDD cuando el ticket lo exija; tipado estricto; nombres claros en inglés en código.
+- Documentación en `docs/`: **español**. UI y errores visibles al usuario: **español**. Identificadores de código: **inglés**.
 
-- **Documentación técnica (`docs/`)**: Escribir en **español**, salvo identificadores técnicos, rutas, comandos y bloques de código.
-- **Interfaz de usuario**: Textos visibles al usuario en **español** (etiquetas, botones, mensajes de error, toasts).
-- **Código fuente**:
-  - Identificadores (variables, funciones, clases, tipos): **inglés** (convención TypeScript/React).
-  - Comentarios en código: **español** cuando aporten contexto de negocio; pueden ser breves en inglés si son puramente técnicos.
-  - Mensajes de error/logs orientados al usuario o al operador en desarrollo: **español** (p. ej. `"Usuario con id 1 no encontrado"`).
-- **Commits**: Un **commit único** con mensaje en **viñetas breves** en español, **solo al archivar** el change OpenSpec (cuando el usuario acepta los cambios); **no** commitear durante `/opsx:apply`. Push de la rama feature al remoto e integración en `develop` tras el commit. Ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).
-- **Esquemas y API**: Nombres de modelos/campos en inglés en Prisma y OpenAPI; descripciones y ejemplos de error en español.
+## Git y OpenSpec
 
-## 3. Estándares específicos
+- Rama base: `develop`. Trabajo: `feature/[ticket-id]-[ticket-name]`.
+- **Sin commits durante** `/opsx:apply`. Commit único (viñetas breves) **solo al archivar**, tras aceptación del usuario: push de la feature + merge a `develop`.
+- Un ticket del backlog = un change OpenSpec. Config: `openspec/config.yaml`.
 
-Para directrices detalladas por área del proyecto:
+| Fase | Comando | Skill |
+|------|---------|-------|
+| Especificar desde ticket | `/opsx-propose-ticket T-XX-YY` | `propose-from-ticket` |
+| Especificar ad hoc | `/opsx:propose` | `openspec-propose` |
+| Explorar | `/opsx:explore` | `openspec-explore` |
+| Implementar | `/opsx:apply` | `openspec-apply-change` |
+| Archivar | `/opsx:archive` | `openspec-archive-change` |
 
-- [Estándares backend](./backend-standards.md) — API, Clean Architecture, Prisma, PostgreSQL, pruebas y seguridad
-- [Estándares frontend](./frontend-standards.md) — React + Vite, Tailwind v4, Radix UI, UI/UX y arquitectura frontend
-- [Estándares de documentación](./documentation-standards.md) — Estructura, formato y mantenimiento de la documentación
-- [Pasos obligatorios OpenSpec](./openspec-tasks-mandatory-steps.md) — Checklist al crear o actualizar `tasks.md`
-- [Guía de desarrollo](./development_guide.md) — Instalación, entorno y flujo de trabajo
-- [Especificación API](./api-spec.yml) — Endpoints REST de ConRutina
-- [Modelo de datos](./data-model.md) — Entidades, relaciones y evolución prevista
+Índice de tickets: `docs/product-backlog-list.md`. Detalle de ticket: sección en `docs/product-backlog.md` (no cargar el archivo completo salvo necesidad).
 
-## 4. Skills del proyecto
+## Documentación bajo demanda
 
-- Las skills viven en `.cursor/skills/` (y enlaces equivalentes en otros agentes).
-- Si la petición encaja con una skill, cargar y seguir su `SKILL.md` antes de continuar.
-- Cargar también los ficheros referenciados en la skill cuando lo exija.
+Cargar **solo** el documento que corresponda al trabajo actual (no leer todos por defecto):
 
-**Flujo OpenSpec (un ticket del backlog = un change):**
+| Área | Documento |
+|------|-----------|
+| Backend / API | [backend-standards.md](./backend-standards.md), [api-spec.yml](./api-spec.yml) |
+| Frontend / UI | [frontend-standards.md](./frontend-standards.md) |
+| Modelo de dominio | [data-model.md](./data-model.md), [prd.md](./prd.md) |
+| Entorno local | [development_guide.md](./development_guide.md) |
+| Mantener docs | [documentation-standards.md](./documentation-standards.md) |
+| Tasks OpenSpec (crear tasks.md) | [openspec/tasks-core.md](./openspec/tasks-core.md), [tasks-by-type.md](./openspec/tasks-by-type.md) |
+| Ticket del backlog (propose) | `npm run openspec:extract-ticket -- --ticket T-XX-YY` |
 
-| Fase | Comando / skill |
-|------|-----------------|
-| Especificar desde ticket `T-XX-YY` | `/opsx-propose-ticket` → skill `propose-from-ticket` |
-| Especificar ad hoc | `/opsx:propose` → skill `openspec-propose` |
-| Explorar requisitos | `/opsx:explore` → skill `openspec-explore` |
-| Implementar | `/opsx:apply` → skill `openspec-apply-change` |
-| Archivar | `/opsx:archive` → skill `openspec-archive-change` (cierra Git, archiva change e intenta marcar el ticket ✅ en `docs/product-backlog.md`; fallo de backlog no bloquea el cierre) |
+## Skills
 
-Contexto y reglas por artefacto: `openspec/config.yaml`. Tickets y sprints: `docs/product-backlog.md`.
+- Skills en `.cursor/skills/`. Si la petición encaja, leer y seguir `SKILL.md` antes de improvisar.
 
-## 5. Requisito de modelo para planificación
+## Post-apply (antes de archivar)
 
-## 6. Integridad de symlinks y portabilidad multiagente
+Correcciones o alcance nuevo tras `/opsx:apply`: actualizar primero artefactos OpenSpec (`tasks.md`, `design.md`, specs), luego código. No parches solo en código sin actualizar el change.
 
-- **Fuente canónica**: Mantener artefactos reutilizables en la ubicación acordada del repo; rutas específicas de agente (`.cursor`, `.claude`) deben referenciarlos por symlink cuando sea posible.
-- **Seguridad al actualizar**: Tras renombrar o mover ficheros, verificar symlinks antes de dar por cerrado el cambio.
-- **Nuevos artefactos**: Crear symlinks desde las rutas que esperen otros agentes.
-- **Puerta de cierre**: Un cambio no está completo si deja symlinks rotos o duplicados inconsistentes.
+## Symlinks multiagente
 
-## 7. Actualización obligatoria de artefactos OpenSpec tras cambios post-apply
-
-Cuando surja una corrección o petición nueva después de `opsx:apply` (o `/apply`) y antes de `opsx:archive` (o `/archive`), tratarla primero como actualización de especificación, no como arreglo informal.
-
-Orden requerido:
-
-1. Actualizar los artefactos OpenSpec afectados (escenarios, specs, `tasks.md`). No añadir tareas sueltas como "bugfix" fuera de la sección de diseño.
-2. Si hace falta regenerar artefactos, ejecutar el paso OpenSpec correspondiente antes de codificar.
-3. Implementar código solo cuando los artefactos reflejen la petición.
-4. Verificar de nuevo frente a los artefactos actualizados antes de archivar.
-
-No aplicar parches solo en código en esta ventana sin actualizar OpenSpec.
+Artefactos canónicos en el repo; rutas `.cursor`/otros agentes por symlink. Verificar symlinks tras mover o renombrar ficheros.

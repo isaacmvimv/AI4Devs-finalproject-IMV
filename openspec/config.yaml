@@ -3,21 +3,24 @@ schema: spec-driven
 # Project context (optional)
 # This is shown to AI when creating artifacts.
 context: |
-  Single source of truth: follow docs/base-standards.md for all project rules, workflow, and quality expectations. Do not treat other rule sources as authoritative if they conflict with base-standards.
+  Single source of truth: docs/base-standards.md (reglas mínimas + punteros). Estándares detallados se cargan bajo demanda según tipo de ticket, no todos a la vez.
 
-  Product and backlog (read for every change tied to a ticket):
-  - docs/product-backlog.md — tickets T-XX-YY, sprints, DoD, happy path, edge cases; User Stories US-XX with Gherkin AC in section 1
-  - docs/prd.md — product vision, domain model, system design
+  Product and backlog (ticket changes — use extract script, NOT full product-backlog.md):
+  - npm run openspec:extract-ticket -- --ticket T-XX-YY — ticket + US + sprint + metadatos
+  - docs/product-backlog-list.md — índice de tickets y sprints (si hace falta orientación)
+  - docs/prd.md — solo si el ticket requiere contexto de producto no cubierto por el extract
 
-  Standards and references (read as needed for the work):
-  - docs/openspec-tasks-mandatory-steps.md — mandatory steps for openspec tasks.md and apply/archive workflow
-  - docs/base-standards.md — primary rulebook; links to detailed standards below
-  - docs/backend-standards.md — backend conventions (API, Clean Architecture, Prisma, PostgreSQL)
-  - docs/frontend-standards.md — frontend conventions (React, Vite, Tailwind v4, layers)
-  - docs/documentation-standards.md — documentation structure and maintenance
-  - docs/development_guide.md — local setup, scripts, environment
-  - docs/api-spec.yml — API contract and behavior
-  - docs/data-model.md — domain entities, relationships, evolution
+  OpenSpec tasks (al crear tasks.md; NOT during apply):
+  - docs/openspec/tasks-core.md — reglas, §0, secuencia, patrón tasks.md por referencia
+  - docs/openspec/tasks-by-type.md — matriz unit/curl/e2e/docs por tipo de ticket
+  - docs/openspec/templates/ — plantillas de informes (solo al generar reports en apply)
+
+  Standards (load ONE primary doc by ticket type + contracts only if API/DB touched):
+  - Backend/API: docs/backend-standards.md, docs/api-spec.yml
+  - Frontend/UI: docs/frontend-standards.md
+  - Domain/DB: docs/data-model.md
+  - Infra/tooling: docs/development_guide.md
+  - docs/documentation-standards.md — solo al actualizar documentación técnica
 
   OpenSpec workflow conventions:
   - One change per development ticket (T-XX-YY), processed in sprint order from product-backlog.md
@@ -49,9 +52,12 @@ rules:
     - Call out dependencies on prior tickets/sprints when relevant
     - Write in Spanish; code paths and identifiers in English
   tasks:
-    - Follow docs/openspec-tasks-mandatory-steps.md exactly (Paso 0 branch, tests, reports, docs, push feature, merge)
-    - Paso 0 MUST be first: branch feature/[ticket-id]-[ticket-name] from develop
-    - Do NOT include git commit subtasks in implementation sections; commit is only in the final archive/closure step after user acceptance
+    - Follow docs/openspec/tasks-core.md and docs/openspec/tasks-by-type.md (reference pattern; do NOT inline report templates)
+    - Header MUST include Ticket, US, Change, Rama, and line "Pasos aplicables: unit|curl|e2e|docs" per tasks-by-type matrix
+    - Paso 0 MUST be first: branch feature/[ticket-id]-[ticket-name] from develop (→ tasks-core §0)
+    - Mandatory verification steps: reference tasks-core §N+1..§Cierre; link report path under openspec/changes/<name>/reports/
+    - Do NOT include git commit subtasks in implementation sections; commit only at archive (tasks-core §Cierre)
+    - Single blank line between sections in tasks.md, not between every checkbox
     - Include concrete project commands (npm run dev, npm run dev:api, docker compose, prisma, curl examples)
     - Map each implementation subtask to a checklist item from the ticket DoD
     - Mark mandatory steps with (OBLIGATORIO)

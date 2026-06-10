@@ -1,7 +1,14 @@
 ---
 description: Estándares de desarrollo frontend, buenas prácticas y convenciones para la aplicación React de ConRutina, incluyendo patrones de componentes, gestión de estado, directrices UI/UX y prácticas de pruebas
-globs: ["frontend/src/**/*.{js,jsx,ts,tsx}", "frontend/tsconfig.json", "frontend/vite.config.ts", "frontend/package.json"]
-alwaysApply: true
+globs:
+  - "frontend/src/**/*.{js,jsx,ts,tsx}"
+  - "frontend/tsconfig.json"
+  - "frontend/vite.config.ts"
+  - "frontend/package.json"
+  - "openspec/changes/**/design.md"
+  - "openspec/changes/**/tasks.md"
+  - "openspec/changes/**/specs/**/*.md"
+alwaysApply: false
 ---
 
 # Configuración del proyecto frontend y buenas prácticas — ConRutina
@@ -741,7 +748,7 @@ const handleToggleDay = useCallback((habitId: string, dayIndex: number) => {
 - **Cierre**: Tras pruebas obligatorias (p. ej. al archivar un change OpenSpec), push de la rama de feature al remoto y merge en `develop`
 - **Ramas pequeñas**: Mantener cambios focalizados y manejables
 
-Ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md) para el flujo detallado con OpenSpec.
+Ver [openspec/tasks-core.md](./openspec/tasks-core.md) para el flujo detallado con OpenSpec.
 
 ### Scripts de desarrollo
 ```bash

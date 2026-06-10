@@ -103,6 +103,7 @@ After completing all artifacts, summarize:
   - These guide what you write, but should never appear in the output
 
 **Guardrails**
+- For `tasks` artifact: follow `docs/openspec/tasks-core.md` + `tasks-by-type.md` (reference pattern; no inline report templates)
 - Create ALL artifacts needed for implementation (as defined by schema's `apply.requires`)
 - Always read dependency artifacts before creating a new one
 - If context is critically unclear, ask the user - but prefer making reasonable decisions to keep momentum

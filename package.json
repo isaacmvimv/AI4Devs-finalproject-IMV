@@ -26,7 +26,8 @@
     "prisma:generate": "npx prisma generate",
     "db:migrate": "npx prisma migrate deploy",
     "db:seed": "npx prisma db seed",
-    "openspec:mark-ticket": "node scripts/openspec-mark-ticket-implemented.mjs"
+    "openspec:mark-ticket": "node scripts/openspec-mark-ticket-implemented.mjs",
+    "openspec:extract-ticket": "node scripts/openspec-extract-ticket.mjs"
   },
   "prisma": {
     "schema": "backend/prisma/schema.prisma",

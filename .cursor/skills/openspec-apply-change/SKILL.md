@@ -49,12 +49,24 @@ Implement tasks from an OpenSpec change.
    - If `state: "all_done"`: congratulate, suggest archive
    - Otherwise: proceed to implementation
 
-4. **Read context files**
+4. **Cargar contexto de forma incremental** (no leer todos los artefactos al inicio)
 
-   Read every file path listed under `contextFiles` from the apply instructions output.
-   The files depend on the schema being used:
-   - **spec-driven**: proposal, specs, design, tasks
-   - Other schemas: follow the contextFiles from CLI output
+   Usar las rutas de `contextFiles` del CLI, pero con esta prioridad:
+
+   **Siempre al empezar la sesión:**
+   - Leer solo el artefacto de tareas (`tasks.md` o el path que indique el CLI para `tasks`).
+
+   **Bajo demanda, antes de cada tarea pendiente:**
+   - `design.md` — si la tarea implica rutas, capas, decisiones técnicas o archivos no obvios.
+   - `specs/**/*.md` — si la tarea es verificación, pruebas, informes o validación de AC.
+   - `proposal.md` — solo si faltan Ticket ID, rama o alcance y no están en `tasks.md`.
+
+   **No cargar por defecto:**
+   - `proposal.md` durante implementación de código (salvo el caso anterior).
+   - `docs/openspec/tasks-core.md` / `tasks-full.md` — los pasos obligatorios ya están en `tasks.md`; plantillas en `docs/openspec/templates/` solo al escribir informes.
+   - Estándares backend/frontend completos — usar lo referenciado en `design.md` o leer una sección puntual si hace falta.
+
+   Si una tarea requiere un artefacto aún no leído, leerlo en ese momento (no precargar todo al inicio).
 
 5. **Show current progress**
 
@@ -140,14 +152,14 @@ What would you like to do?
 
 **Guardrails**
 - Keep going through tasks until done or blocked
-- Always read context files before starting (from the apply instructions output)
+- Carga incremental: empezar solo con `tasks.md`; leer `design.md` / specs / `proposal.md` cuando la tarea actual lo requiera
 - If task is ambiguous, pause and ask before implementing
 - If implementation reveals issues, pause and suggest artifact updates
 - Keep code changes minimal and scoped to each task
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements - don't guess
 - Use contextFiles from CLI output, don't assume specific file names
-- **Never run `git commit` during apply** — changes stay uncommitted on the feature branch for user review; commit happens only at archive after user acceptance (see docs/openspec-tasks-mandatory-steps.md)
+- **Never run `git commit` during apply** — changes stay uncommitted on the feature branch for user review; commit happens only at archive after user acceptance (see docs/openspec/tasks-core.md §Cierre)
 
 **Fluid Workflow Integration**
 

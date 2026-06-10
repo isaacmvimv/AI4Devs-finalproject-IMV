@@ -1,7 +1,15 @@
 ---
 description: Estándares de desarrollo backend, buenas prácticas y convenciones para la aplicación ConRutina en Node.js/TypeScript/Express, incluyendo Clean Architecture, principios SOLID, patrones de arquitectura, diseño de API y prácticas de pruebas
-globs: ["backend/src/**/*.ts", "backend/prisma/**/*.{prisma,ts}", "backend/tsconfig.json", "backend/package.json"]
-alwaysApply: true
+globs:
+  - "backend/src/**/*.ts"
+  - "backend/prisma/**/*.{prisma,ts}"
+  - "backend/tsconfig.json"
+  - "backend/package.json"
+  - "docs/api-spec.yml"
+  - "openspec/changes/**/design.md"
+  - "openspec/changes/**/tasks.md"
+  - "openspec/changes/**/specs/**/*.md"
+alwaysApply: false
 ---
 
 # Estándares y buenas prácticas del backend — ConRutina
@@ -409,7 +417,7 @@ function mapToUserProfile(user: User): UserProfile {
 | Comentarios en código | **Inglés** (opcional; preferir código autodocumentado) |
 | Respuestas JSON de error visibles al usuario/cliente | **Español** |
 | Logs operativos en consola para operadores | **Español** o inglés técnico; mensajes de negocio al usuario en español |
-| Mensajes de commit | **Viñetas breves** en español; **un commit único al archivar** (no durante apply); ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md) |
+| Mensajes de commit | **Viñetas breves** en español; **un commit único al archivar** (no durante apply); ver [openspec/tasks-core.md](./openspec/tasks-core.md) |
 | Este documento y specs en `docs/` | **Español** |
 
 **Nomenclatura:**
@@ -885,7 +893,7 @@ El objeto exportado `config` expone valores tipados:
 - **Cierre**: Push de la rama de feature al remoto y merge en `develop` tras pasar las pruebas obligatorias (p. ej. al archivar un change OpenSpec)
 - Cambios pequeños y acotados
 
-Ver [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).
+Ver [openspec/tasks-core.md](./openspec/tasks-core.md).
 
 ### Scripts de desarrollo
 

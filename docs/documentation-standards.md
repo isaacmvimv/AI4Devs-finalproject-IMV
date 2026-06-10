@@ -1,8 +1,11 @@
 ---
-
-## description: Estándares y buenas prácticas para la documentación técnica de ConRutina, incluyendo estructura, procesos de actualización y reglas de idioma.
+description: Estándares y buenas prácticas para la documentación técnica de ConRutina, incluyendo estructura, procesos de actualización y reglas de idioma.
 globs:
-alwaysApply: true
+  - "docs/**/*.md"
+  - "docs/**/*.yml"
+  - "README.md"
+alwaysApply: false
+---
 
 # Reglas y patrones para documentación y especificaciones de IA — ConRutina
 
@@ -56,7 +59,8 @@ Este documento complementa la sección de idioma de [base-standards.md](./base-s
 | [data-model.md](./data-model.md)                                         | Entidades y relaciones                | Español                  | Actualizar con cambios en Prisma o dominio frontend                               |
 | [api-spec.yml](./api-spec.yml)                                           | OpenAPI REST                          | Español en descripciones | Nombres de rutas/campos JSON en inglés                                            |
 | [base-standards.md](./base-standards.md)                                 | Reglas globales para IA               | Español                  | Reglas transversales del proyecto                                                 |
-| [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md) | Checklist OpenSpec                    | Español                  | Pasos obligatorios en `tasks.md`                                                  |
+| [openspec/tasks-core.md](./openspec/tasks-core.md) | Checklist OpenSpec (núcleo)           | Español                  | Pasos obligatorios en `tasks.md` (referencia, no copia masiva)                    |
+| [openspec/tasks-by-type.md](./openspec/tasks-by-type.md) | Matriz pasos por tipo de ticket | Español                  | unit / curl / e2e / docs según ticket                                           |
 
 
 ---
@@ -73,7 +77,7 @@ Antes de un commit, push, o cuando se pida documentar un cambio, **revisar siemp
   - Nueva o modificada ruta en `backend/src/presentation/http/` → [api-spec.yml](./api-spec.yml).
   - Cambio en dependencias, scripts npm, Docker o variables de entorno → [development_guide.md](./development_guide.md) y/o [backend-standards.md](./backend-standards.md) / [frontend-standards.md](./frontend-standards.md).
   - Cambio en convenciones de componentes o hooks → [frontend-standards.md](./frontend-standards.md).
-  - Cambio en flujo OpenSpec o verificación manual → [openspec-tasks-mandatory-steps.md](./openspec-tasks-mandatory-steps.md).
+  - Cambio en flujo OpenSpec o verificación manual → [openspec/tasks-core.md](./openspec/tasks-core.md).
 3. **Actualizar** cada fichero afectado **en español**, manteniendo estructura y tono del documento existente.
 4. **Verificar** coherencia interna: mismos endpoints, entidades, puertos y comandos en todos los docs tocados.
 5. **No modificar** `infrastructure.md`, `prd.md` ni `product-backlog.md` salvo petición explícita del usuario.
@@ -134,7 +138,7 @@ Al documentar ConRutina, enlazar o mantener coherencia con:
 - [Infraestructura](./infrastructure.md) — stack, puertos (5173 Vite, 3001 API), proxy `/api`, Docker PostgreSQL.
 - [Modelo de datos](./data-model.md) — entidades del PRD (§5): `User`, `Week`, `Habit`, `WeekHabit`, `HabitEntry`, `Reward`, `RewardRedemption`; estado de persistencia en PostgreSQL; mapeo provisional frontend (`Habit`/`Reward` en React). El modelo Prisma `Calendar` (LTI) no forma parte del dominio ConRutina.
 - [Especificación API](./api-spec.yml) — endpoint actual `GET /api/profile`.
-- [Pasos obligatorios OpenSpec](./openspec-tasks-mandatory-steps.md) — verificación manual y informes en `specs/<change-name>/reports/`.
+- [Pasos obligatorios OpenSpec](./openspec/tasks-core.md) — verificación manual e informes en `openspec/changes/<change-name>/reports/`.
 
 ---
 
