@@ -1828,7 +1828,7 @@ gantt
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Registrar `GET /api/habits` y `POST /api/habits` en `createApp.ts`. Aplicar middleware de validación Zod sobre el body del POST.
 
