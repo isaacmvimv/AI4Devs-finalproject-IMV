@@ -92,8 +92,8 @@ paths:
   
   /api/habits:
     get:
-      summary: Listar hábitos (PLANIFICADO)
-      description: Obtiene todos los hábitos del usuario autenticado
+      summary: Listar hábitos activos
+      description: Obtiene todos los hábitos activos del usuario (userId=1 en MVP sin auth)
       tags:
         - Hábitos
       responses:
@@ -104,12 +104,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Habit'
+                  $ref: '#/components/schemas/HabitApi'
         '500':
           description: Error interno del servidor
     
     post:
-      summary: Crear hábito (PLANIFICADO)
+      summary: Crear hábito
       description: Crea un nuevo hábito para seguimiento
       tags:
         - Hábitos
@@ -125,9 +125,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Habit'
+                $ref: '#/components/schemas/HabitApi'
         '400':
           description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Datos inválidos
+                details:
+                  - field: name
+                    message: El nombre es obligatorio
         '500':
           description: Error interno del servidor
 
@@ -337,6 +347,7 @@ components:
 
     Habit:
       type: object
+      description: Contrato frontend (UI) con racha y estado semanal; no usado en GET/POST /api/habits del backend
       properties:
         id:
           type: string
@@ -370,6 +381,45 @@ components:
         - penalty
         - streak
         - completionStatus
+
+    HabitApi:
+      type: object
+      description: Respuesta de persistencia para GET/POST /api/habits
+      properties:
+        id:
+          type: integer
+          description: Identificador único del hábito
+        userId:
+          type: integer
+          description: ID del usuario propietario
+        emoji:
+          type: string
+          description: Emoji que representa el hábito
+        name:
+          type: string
+          description: Nombre del hábito
+        pointsPerDay:
+          type: integer
+          description: Puntos al completar el hábito
+        penalty:
+          type: integer
+          description: Puntos descontados si falla el hábito
+        isActive:
+          type: boolean
+          description: Indica si el hábito está activo (soft delete)
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha de creación del hábito
+      required:
+        - id
+        - userId
+        - emoji
+        - name
+        - pointsPerDay
+        - penalty
+        - isActive
+        - createdAt
 
     CreateHabitRequest:
       type: object

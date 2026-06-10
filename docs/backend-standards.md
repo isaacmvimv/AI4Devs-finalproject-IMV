@@ -584,15 +584,15 @@ app.use(errorHandler);
 
 ```typescript
 import { createHabit } from '../application/createHabit';
+import { asyncHandler } from './middleware/asyncHandler';
 
-app.post('/api/habits', async (req, res, next) => {
-  try {
+app.post(
+  '/api/habits',
+  asyncHandler(async (req, res) => {
     const habit = await createHabit(deps.habitRepository, 1, req.body);
     return res.status(201).json(habit);
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 ```
 
 Validación Zod centralizada en `application/validation/habit.ts`:
