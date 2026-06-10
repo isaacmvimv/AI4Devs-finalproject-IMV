@@ -10,19 +10,31 @@ export interface Habit {
   completionStatus: CompletionStatus[]
 }
 
-export function computeStreakFromStatus(status: CompletionStatus[]): number {
+export interface HabitFormInput {
+  emoji: string
+  name: string
+  pointsPerDay: number
+  penalty: number
+}
+
+export function computeStreakFromStatus(
+  statuses: CompletionStatus[],
+  currentDayIndex: number
+): number {
+  if (currentDayIndex < 0 || currentDayIndex > 6) return 0
   let streak = 0
-  for (let i = 0; i < status.length; i++) {
-    if (status[i] === 'completed') {
-      streak++
-    } else {
-      break
-    }
+  for (let i = currentDayIndex; i >= 0; i--) {
+    if (statuses[i] === 'completed') streak++
+    else break
   }
   return streak
 }
 
 export function toggleHabitDayCompletion(habit: Habit, dayIndex: number): Habit {
+  if (dayIndex < 0 || dayIndex > 6) {
+    return { ...habit }
+  }
+
   const newStatus = [...habit.completionStatus]
   const currentStatus = newStatus[dayIndex]
 
@@ -37,7 +49,7 @@ export function toggleHabitDayCompletion(habit: Habit, dayIndex: number): Habit 
   return {
     ...habit,
     completionStatus: newStatus,
-    streak: computeStreakFromStatus(newStatus),
+    streak: computeStreakFromStatus(newStatus, dayIndex),
   }
 }
 
@@ -48,10 +60,9 @@ export interface HabitStats {
   maxStreak: number
 }
 
-/** `lastWeekPoints` se mantiene como valor fijo de demo (comportamiento previo en App). */
 export function calculateHabitStats(habits: Habit[]): HabitStats {
   let thisWeekPoints = 0
-  const lastWeekPoints = 72
+  const lastWeekPoints = 0
   let penalties = 0
   let maxStreak = 0
 
@@ -75,13 +86,10 @@ export function calculateTodayProgressPercent(habits: Habit[], currentDayIndex: 
   const completedToday = habits.filter(
     (h) => h.completionStatus[currentDayIndex] === 'completed'
   ).length
-  return Math.round((completedToday / habits.length) * 100)
+  return Math.round((completedToday / habits.length) * 10000) / 100
 }
 
-export function createHabitFromFormInput(
-  input: { emoji: string; name: string; pointsPerDay: number; penalty: number },
-  id: string
-): Habit {
+export function createHabitFromFormInput(input: HabitFormInput, id: string): Habit {
   return {
     id,
     ...input,
