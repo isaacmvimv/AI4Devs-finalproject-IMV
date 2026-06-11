@@ -2061,7 +2061,7 @@ gantt
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Registrar `GET /api/weeks/current` y `GET /api/weeks?offset=n` en `createApp.ts`. El endpoint `current` orquesta la detección de cambio de semana y devuelve la semana activa con sus datos completos.
 
