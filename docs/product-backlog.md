@@ -1937,7 +1937,7 @@ gantt
 - **Tipo:** Backend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `backend/src/presentation/http/middleware/validateBody.ts`: factory de middleware `validateBody(schema)` que valida `req.body` contra un schema Zod. Si falla, lanza `ValidationError` con los detalles de cada campo para que el error handler lo convierta en 400.
 
