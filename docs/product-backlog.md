@@ -2009,7 +2009,7 @@ gantt
 - **Tipo:** Backend — Aplicación + Dominio
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 4
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Implementar el caso de uso `getCurrentWeek(userId)`. Calcula el lunes de la semana actual (00:00 UTC). Busca en BD si existe la semana para ese startDate. Si no existe, la crea con sus WeekHabits y HabitEntries iniciales (status=pending).
 
