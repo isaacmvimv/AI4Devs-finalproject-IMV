@@ -66,6 +66,16 @@ Representa una semana calendario del usuario, con bloqueo histórico y totales a
 
 **Límites semanales (backend):** `getWeekBoundaries(date)` en `backend/src/domain/week.ts` calcula `startDate` (lunes 00:00:00.000 UTC) y `endDate` (domingo 23:59:59.999 UTC) de la semana ISO que contiene `date`. El caso de uso `getCurrentWeek` usa esta utilidad para localizar o crear la semana activa del usuario.
 
+**Flujo de bloqueo (T-09-02):** al iniciar una nueva semana, `lockWeekAndTransition` detecta la semana desbloqueada anterior (`findUnlockedWeekBefore`) y la cierra con `lockWeek` antes de delegar en `getCurrentWeek`. Dentro de una transacción Prisma, `lockWeek`:
+
+1. Si `isLocked === true`, retorna sin modificar (idempotente).
+2. Por cada `WeekHabit`, cuenta entradas `completed` y `failed`.
+3. Calcula `totalPointsEarned` = Σ(completados × `Habit.pointsPerDay`) y `totalPenalties` = Σ(fallados × `Habit.penalty`) usando el hábito maestro en el momento del bloqueo.
+4. Escribe snapshots definitivos en `WeekHabit` (`snapshotName`, `snapshotPoints`, `snapshotPenalty`) desde el hábito maestro.
+5. Marca `Week.isLocked = true` con los totales calculados.
+
+Si la semana no tiene entradas completadas ni fallidas, los totales quedan en 0; los snapshots se escriben igualmente. Tras el bloqueo, editar el hábito maestro no altera el histórico de la semana cerrada.
+
 **En el frontend (provisional):** la navegación semanal se calcula en memoria con `weekOffset` y `buildWeekData()` (`frontend/src/domain/week.ts`); la entidad `Week` aún no se expone vía API (T-09-03).
 
 ---

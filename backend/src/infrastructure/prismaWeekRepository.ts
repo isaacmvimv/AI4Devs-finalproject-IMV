@@ -116,6 +116,93 @@ export function createPrismaWeekRepository(prisma: PrismaClient): WeekRepository
       )
     },
 
+    async findUnlockedWeekBefore(
+      userId: number,
+      beforeStartDate: Date
+    ): Promise<WeekWithDetails | null> {
+      const week = await prisma.week.findFirst({
+        where: {
+          userId,
+          isLocked: false,
+          startDate: { lt: beforeStartDate },
+        },
+        orderBy: { startDate: 'desc' },
+        include: {
+          weekHabits: {
+            include: { habitEntries: { orderBy: { dayIndex: 'asc' } } },
+            orderBy: { order: 'asc' },
+          },
+        },
+      })
+
+      if (!week) return null
+
+      return mapToWeekWithDetails(
+        week,
+        week.weekHabits.map(mapToWeekHabitWithEntries)
+      )
+    },
+
+    async lockWeek(weekId: number): Promise<Week> {
+      return prisma.$transaction(async (tx) => {
+        const week = await tx.week.findUnique({
+          where: { id: weekId },
+          include: {
+            weekHabits: {
+              include: {
+                habitEntries: true,
+                habit: true,
+              },
+            },
+          },
+        })
+
+        if (!week) {
+          throw new Error(`Week ${weekId} not found`)
+        }
+
+        if (week.isLocked) {
+          return mapToWeek(week)
+        }
+
+        let totalPointsEarned = 0
+        let totalPenalties = 0
+
+        for (const weekHabit of week.weekHabits) {
+          const { habit } = weekHabit
+          const completedCount = weekHabit.habitEntries.filter(
+            (entry) => entry.status === CompletionStatus.completed
+          ).length
+          const failedCount = weekHabit.habitEntries.filter(
+            (entry) => entry.status === CompletionStatus.failed
+          ).length
+
+          totalPointsEarned += completedCount * habit.pointsPerDay
+          totalPenalties += failedCount * habit.penalty
+
+          await tx.weekHabit.update({
+            where: { id: weekHabit.id },
+            data: {
+              snapshotName: habit.name,
+              snapshotPoints: habit.pointsPerDay,
+              snapshotPenalty: habit.penalty,
+            },
+          })
+        }
+
+        const updatedWeek = await tx.week.update({
+          where: { id: weekId },
+          data: {
+            isLocked: true,
+            totalPointsEarned,
+            totalPenalties,
+          },
+        })
+
+        return mapToWeek(updatedWeek)
+      })
+    },
+
     async createWeekWithHabitsAndEntries(
       userId: number,
       startDate: Date,

@@ -60,6 +60,8 @@ describe('getCurrentWeek', () => {
     it('creates week with 7 pending entries per active habit (US-09 S1)', async () => {
       const mockWeekRepo: WeekRepository = {
         findCurrentWeek: vi.fn().mockResolvedValue(null),
+        findUnlockedWeekBefore: vi.fn(),
+        lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn().mockResolvedValue(createdWeek),
       }
       const mockHabitRepo: HabitRepository = {
@@ -94,6 +96,8 @@ describe('getCurrentWeek', () => {
       const existingWeek: WeekWithDetails = { ...createdWeek, id: 5 }
       const mockWeekRepo: WeekRepository = {
         findCurrentWeek: vi.fn().mockResolvedValue(existingWeek),
+        findUnlockedWeekBefore: vi.fn(),
+        lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn(),
       }
       const mockHabitRepo: HabitRepository = {
@@ -120,6 +124,8 @@ describe('getCurrentWeek', () => {
       }
       const mockWeekRepo: WeekRepository = {
         findCurrentWeek: vi.fn().mockResolvedValue(null),
+        findUnlockedWeekBefore: vi.fn(),
+        lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn().mockResolvedValue(emptyWeek),
       }
       const mockHabitRepo: HabitRepository = {
@@ -147,6 +153,8 @@ describe('getCurrentWeek', () => {
       const txError = new Error('Transaction failed')
       const mockWeekRepo: WeekRepository = {
         findCurrentWeek: vi.fn().mockResolvedValue(null),
+        findUnlockedWeekBefore: vi.fn(),
+        lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn().mockRejectedValue(txError),
       }
       const mockHabitRepo: HabitRepository = {

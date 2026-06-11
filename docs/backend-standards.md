@@ -786,12 +786,12 @@ export function createPrismaHabitRepository(prisma: PrismaClient): HabitReposito
 }
 ```
 
-### Semanas (T-09-01)
+### Semanas (T-09-01, T-09-02)
 
 - **Dominio:** `backend/src/domain/week.ts` — tipos `Week`, `WeekHabit`, `HabitEntry` y utilidad `getWeekBoundaries(date)` (lunes–domingo en UTC).
-- **Puertos:** `WeekRepository` (`findCurrentWeek`, `createWeekWithHabitsAndEntries`) y `WeekHabitRepository` (`createWeekHabits`).
-- **Infraestructura:** `prismaWeekRepository.ts` y `prismaWeekHabitRepository.ts`; la creación de semana usa `prisma.$transaction` para Week + WeekHabits + 7×HabitEntry `pending`.
-- **Caso de uso:** `getCurrentWeek(weekRepo, habitRepo, userId, now?)` — idempotente para la semana en curso.
+- **Puertos:** `WeekRepository` (`findCurrentWeek`, `findUnlockedWeekBefore`, `lockWeek`, `createWeekWithHabitsAndEntries`) y `WeekHabitRepository` (`createWeekHabits`).
+- **Infraestructura:** `prismaWeekRepository.ts` y `prismaWeekHabitRepository.ts`; la creación de semana usa `prisma.$transaction` para Week + WeekHabits + 7×HabitEntry `pending`. El bloqueo (`lockWeek`) usa otra transacción Prisma: carga week + weekHabits + habitEntries + hábito maestro, calcula totales, escribe snapshots definitivos y marca `isLocked`.
+- **Casos de uso:** `getCurrentWeek(weekRepo, habitRepo, userId, now?)` — idempotente para la semana en curso. `lockWeekAndTransition(...)` — bloquea semana stale anterior y devuelve la semana actual vía `getCurrentWeek`.
 
 ```typescript
 // application/getCurrentWeek.ts
