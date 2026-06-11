@@ -10,7 +10,12 @@ import {
   totalPointsFromStats,
 } from '../domain/habit'
 import { createRewardFromFormInput } from '../domain/reward'
-import { buildWeekData, getCurrentDayIndexForWeek } from '../domain/week'
+import {
+  buildWeekData,
+  getCurrentDayIndexForWeek,
+  isCurrentWeek,
+  isWeekLocked,
+} from '../domain/week'
 
 export function useHabitDashboard() {
   const [habits, setHabits] = useState<Habit[]>(INITIAL_HABITS)
@@ -30,8 +35,12 @@ export function useHabitDashboard() {
   )
 
   const weekData = useMemo(() => buildWeekData(weekOffset), [weekOffset])
+  const weekIsCurrent = isCurrentWeek(weekOffset)
+  const weekIsLocked = isWeekLocked(weekOffset)
 
   const handleToggleDay = (habitId: string, dayIndex: number) => {
+    if (weekIsLocked) return
+
     setHabits(
       habits.map((habit) =>
         habit.id === habitId ? toggleHabitDayCompletion(habit, dayIndex) : habit
@@ -83,6 +92,8 @@ export function useHabitDashboard() {
     setIsRewardModalOpen,
     weekOffset,
     setWeekOffset,
+    isCurrentWeek: weekIsCurrent,
+    isWeekLocked: weekIsLocked,
     stats,
     totalPoints,
     currentDayIndex,

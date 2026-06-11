@@ -1,3 +1,11 @@
+export function isCurrentWeek(weekOffset: number): boolean {
+  return weekOffset === 0
+}
+
+export function isWeekLocked(weekOffset: number): boolean {
+  return weekOffset !== 0
+}
+
 /** Índice del día en la semana mostrada: 0 = lunes … 6 = domingo. Si no es la semana actual, -1. */
 export function getCurrentDayIndexForWeek(weekOffset: number, now: Date = new Date()): number {
   if (weekOffset !== 0) return -1

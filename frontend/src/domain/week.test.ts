@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildWeekData, getCurrentDayIndexForWeek } from './week'
+import { buildWeekData, getCurrentDayIndexForWeek, isCurrentWeek, isWeekLocked } from './week'
 
 // Miércoles 10 jun 2026 (el 11 es jueves en calendario real 2026)
 const wednesdayJune10_2026 = new Date(2026, 5, 10)
@@ -28,6 +28,19 @@ describe('buildWeekData', () => {
 
     expect(week.dates[0].date).toBe(29)
     expect(week.dates[6].date).toBe(5)
+  })
+})
+
+describe('isCurrentWeek / isWeekLocked', () => {
+  it('only weekOffset 0 is the current editable week', () => {
+    expect(isCurrentWeek(0)).toBe(true)
+    expect(isWeekLocked(0)).toBe(false)
+
+    expect(isCurrentWeek(-1)).toBe(false)
+    expect(isWeekLocked(-1)).toBe(true)
+
+    expect(isCurrentWeek(1)).toBe(false)
+    expect(isWeekLocked(1)).toBe(true)
   })
 })
 

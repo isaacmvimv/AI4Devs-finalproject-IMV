@@ -24,6 +24,7 @@ export default function App() {
     setIsRewardModalOpen,
     weekOffset,
     setWeekOffset,
+    isWeekLocked,
     stats,
     totalPoints,
     currentDayIndex,
@@ -94,6 +95,7 @@ export default function App() {
                 completionStatus={habit.completionStatus}
                 onToggleDay={handleToggleDay}
                 onDelete={handleDeleteHabit}
+                isReadOnly={isWeekLocked}
               />
             ))}
           </div>
