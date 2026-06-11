@@ -226,6 +226,79 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
 
+  /api/weeks/current:
+    get:
+      summary: Obtener la semana activa del usuario
+      description: >
+        Devuelve la semana activa con WeekHabits, HabitEntries y estadísticas calculadas.
+        Si ha cambiado de semana ISO, bloquea la anterior y crea la nueva con entries pending.
+      tags:
+        - Semanas
+      responses:
+        '200':
+          description: Semana activa encontrada o creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeekResponse'
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /api/weeks:
+    get:
+      summary: Obtener semana por offset respecto a la semana ISO actual
+      description: >
+        offset=0 equivale a /api/weeks/current (incluye lockWeekAndTransition).
+        offset negativo devuelve semanas históricas sin mutar BD.
+      tags:
+        - Semanas
+      parameters:
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: Desplazamiento en semanas (0=actual, -1=anterior, etc.)
+      responses:
+        '200':
+          description: Semana encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeekResponse'
+        '400':
+          description: Parámetro offset inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Datos inválidos
+                details:
+                  - field: offset
+                    message: El offset debe ser un número entero
+        '404':
+          description: Semana no encontrada en el offset solicitado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: WEEK_NOT_FOUND
+                message: Semana no encontrada
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
   /api/habits/{id}/toggle/{dayIndex}:
     post:
       summary: Alternar completitud del hábito (PLANIFICADO)
@@ -496,6 +569,119 @@ components:
           minimum: 0
           description: Puntos descontados si falla el hábito
 
+    WeekStats:
+      type: object
+      description: Estadísticas agregadas de la semana visible
+      properties:
+        thisWeekPoints:
+          type: integer
+          description: Suma de snapshotPoints por entries completed
+        lastWeekPoints:
+          type: integer
+          description: totalPointsEarned de la última semana bloqueada anterior
+        penalties:
+          type: integer
+          description: Suma de snapshotPenalty por entries failed
+        maxStreak:
+          type: integer
+          description: Máxima racha de completed consecutivos entre hábitos
+      required:
+        - thisWeekPoints
+        - lastWeekPoints
+        - penalties
+        - maxStreak
+
+    WeekResponse:
+      type: object
+      description: Payload de GET /api/weeks/current y GET /api/weeks
+      properties:
+        week:
+          type: object
+          properties:
+            id:
+              type: integer
+            startDate:
+              type: string
+              format: date-time
+            endDate:
+              type: string
+              format: date-time
+            isLocked:
+              type: boolean
+            totalPointsEarned:
+              type: integer
+            totalPenalties:
+              type: integer
+          required:
+            - id
+            - startDate
+            - endDate
+            - isLocked
+            - totalPointsEarned
+            - totalPenalties
+        habits:
+          type: array
+          items:
+            type: object
+            properties:
+              weekHabit:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  habitId:
+                    type: integer
+                  order:
+                    type: integer
+                  snapshotName:
+                    type: string
+                  snapshotPoints:
+                    type: integer
+                  snapshotPenalty:
+                    type: integer
+                required:
+                  - id
+                  - habitId
+                  - order
+                  - snapshotName
+                  - snapshotPoints
+                  - snapshotPenalty
+              entries:
+                type: array
+                minItems: 7
+                maxItems: 7
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    dayIndex:
+                      type: integer
+                      minimum: 0
+                      maximum: 6
+                    status:
+                      type: string
+                      enum: [pending, completed, failed]
+                  required:
+                    - id
+                    - dayIndex
+                    - status
+            required:
+              - weekHabit
+              - entries
+        stats:
+          $ref: '#/components/schemas/WeekStats'
+        redemptions:
+          type: array
+          description: Vacío hasta implementar canjes HTTP
+          items:
+            type: object
+      required:
+        - week
+        - habits
+        - stats
+        - redemptions
+
     Reward:
       type: object
       properties:
@@ -588,5 +774,7 @@ tags:
     description: Operaciones de perfil de usuario
   - name: Hábitos
     description: Seguimiento y gestión de hábitos
+  - name: Semanas
+    description: Semana activa e histórico semanal
   - name: Recompensas
     description: Gestión y canje de recompensas

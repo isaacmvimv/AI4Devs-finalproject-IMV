@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createHabit } from '../../application/createHabit'
 import { deactivateHabit } from '../../application/deactivateHabit'
 import { getActiveHabits } from '../../application/getActiveHabits'
+import { getCurrentWeekResponse } from '../../application/getCurrentWeekResponse'
+import { getWeekByOffset } from '../../application/getWeekByOffset'
 import { getUserProfileById } from '../../application/getUserProfile'
 import { updateHabit } from '../../application/updateHabit'
 import { NotFoundError, ValidationError } from '../../domain/errors/appErrors'
@@ -31,11 +33,21 @@ vi.mock('../../application/deactivateHabit', () => ({
   deactivateHabit: vi.fn(),
 }))
 
+vi.mock('../../application/getCurrentWeekResponse', () => ({
+  getCurrentWeekResponse: vi.fn(),
+}))
+
+vi.mock('../../application/getWeekByOffset', () => ({
+  getWeekByOffset: vi.fn(),
+}))
+
 const mockGetUserProfileById = vi.mocked(getUserProfileById)
 const mockCreateHabit = vi.mocked(createHabit)
 const mockGetActiveHabits = vi.mocked(getActiveHabits)
 const mockUpdateHabit = vi.mocked(updateHabit)
 const mockDeactivateHabit = vi.mocked(deactivateHabit)
+const mockGetCurrentWeekResponse = vi.mocked(getCurrentWeekResponse)
+const mockGetWeekByOffset = vi.mocked(getWeekByOffset)
 
 function createPrismaStub(): PrismaClient {
   return {} as PrismaClient
@@ -351,5 +363,106 @@ describe('DELETE /api/habits/:id', () => {
       code: 'HABIT_NOT_FOUND',
       message: 'Hábito no encontrado',
     })
+  })
+})
+
+const sampleWeekPayload = {
+  week: {
+    id: 3,
+    startDate: '2026-06-08T00:00:00.000Z',
+    endDate: '2026-06-14T23:59:59.999Z',
+    isLocked: false,
+    totalPointsEarned: 0,
+    totalPenalties: 0,
+  },
+  habits: [
+    {
+      weekHabit: {
+        id: 10,
+        habitId: 1,
+        order: 0,
+        snapshotName: 'Correr',
+        snapshotPoints: 10,
+        snapshotPenalty: 5,
+      },
+      entries: [{ id: 1, dayIndex: 0, status: 'pending' }],
+    },
+  ],
+  stats: { thisWeekPoints: 0, penalties: 0, lastWeekPoints: 0, maxStreak: 0 },
+  redemptions: [] as [],
+}
+
+describe('GET /api/weeks/current', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 200 with week, habits, stats and redemptions (US-09 S3)', async () => {
+    mockGetCurrentWeekResponse.mockResolvedValue(sampleWeekPayload)
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).get('/api/weeks/current')
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual(sampleWeekPayload)
+    expect(mockGetCurrentWeekResponse).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1)
+  })
+
+  it('returns same week on two consecutive calls (US-09 S4)', async () => {
+    mockGetCurrentWeekResponse.mockResolvedValue(sampleWeekPayload)
+
+    const app = createApp(createPrismaStub())
+    const first = await request(app).get('/api/weeks/current')
+    const second = await request(app).get('/api/weeks/current')
+
+    expect(first.status).toBe(200)
+    expect(second.status).toBe(200)
+    expect(first.body.week.id).toBe(second.body.week.id)
+    expect(mockGetCurrentWeekResponse).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('GET /api/weeks', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 200 with locked historical week for offset=-1 (US-09 S5–6)', async () => {
+    const lockedPayload = {
+      ...sampleWeekPayload,
+      week: { ...sampleWeekPayload.week, id: 2, isLocked: true },
+    }
+    mockGetWeekByOffset.mockResolvedValue(lockedPayload)
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).get('/api/weeks?offset=-1')
+
+    expect(response.status).toBe(200)
+    expect(response.body.week.isLocked).toBe(true)
+    expect(mockGetWeekByOffset).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1, -1)
+  })
+
+  it('returns 404 WEEK_NOT_FOUND for offset=-5 (US-09 S6)', async () => {
+    mockGetWeekByOffset.mockRejectedValue(new NotFoundError('Semana no encontrada', 'WEEK_NOT_FOUND'))
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).get('/api/weeks?offset=-5')
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'WEEK_NOT_FOUND',
+      message: 'Semana no encontrada',
+    })
+  })
+
+  it('returns 400 VALIDATION_ERROR for invalid offset', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app).get('/api/weeks?offset=abc')
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_ERROR',
+    })
+    expect(mockGetWeekByOffset).not.toHaveBeenCalled()
   })
 })

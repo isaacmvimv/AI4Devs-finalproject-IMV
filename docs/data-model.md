@@ -76,7 +76,7 @@ Representa una semana calendario del usuario, con bloqueo histórico y totales a
 
 Si la semana no tiene entradas completadas ni fallidas, los totales quedan en 0; los snapshots se escriben igualmente. Tras el bloqueo, editar el hábito maestro no altera el histórico de la semana cerrada.
 
-**En el frontend (provisional):** la navegación semanal se calcula en memoria con `weekOffset` y `buildWeekData()` (`frontend/src/domain/week.ts`); la entidad `Week` aún no se expone vía API (T-09-03).
+**En el frontend (provisional):** la navegación semanal se calculaba en memoria con `weekOffset` y `buildWeekData()` (`frontend/src/domain/week.ts`). Desde T-09-03, `GET /api/weeks/current` y `GET /api/weeks?offset=n` exponen la semana y el histórico; el hook `useHabitDashboard` (T-10-xx) sustituirá la navegación provisional.
 
 ---
 
@@ -182,12 +182,12 @@ Estos tipos existen en el frontend para la UI y los cálculos; **no son tablas**
 
 ### HabitStats (estadísticas agregadas)
 
-Calculado a partir de los hábitos de la semana visible (`frontend/src/domain/habit.ts`):
+Objeto de valor calculado en backend (`backend/src/application/calculateWeekStats.ts`) y expuesto en `GET /api/weeks/current` / `GET /api/weeks` dentro de `stats`:
 
 - `thisWeekPoints`, `lastWeekPoints`, `penalties`, `maxStreak`
 - `totalPoints = thisWeekPoints + lastWeekPoints - penalties`
 
-En el modelo objetivo, los totales de semana pasan a `Week.totalPointsEarned` y `Week.totalPenalties` al bloquear; `lastWeekPoints` fijo (72) en demo será sustituido por lectura de semanas históricas.
+En el frontend (provisional), el mismo shape se calcula en memoria (`frontend/src/domain/habit.ts`) hasta que `useHabitDashboard` consuma la API. Los totales de semana bloqueada persisten en `Week.totalPointsEarned` y `Week.totalPenalties`; `lastWeekPoints` proviene de la última semana bloqueada anterior.
 
 ### WeekData (vista de calendario)
 
@@ -205,7 +205,7 @@ Hasta completar la migración a PostgreSQL, el cliente usa un modelo simplificad
 | `Habit.completionStatus[7]` | 7 × `HabitEntry` por cada `WeekHabit` |
 | `Habit.streak` (calculado) | Derivado de `HabitEntry.status` |
 | `Reward` en `fixtures.ts` / React | `Reward` + `RewardRedemption` |
-| `weekOffset` + fechas calculadas | `Week` (`startDate`, `endDate`, `isLocked`) |
+| `weekOffset` + fechas calculadas | `Week` (`startDate`, `endDate`, `isLocked`) vía `GET /api/weeks?offset=n` (T-09-03 ✅) |
 
 Datos de demo: `frontend/src/domain/fixtures.ts`. Estado: `useHabitDashboard` (`useState`); se pierde al recargar la página.
 

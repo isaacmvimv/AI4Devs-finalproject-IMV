@@ -5,12 +5,16 @@ import { config } from '../../config.js'
 import { createHabit } from '../../application/createHabit'
 import { deactivateHabit } from '../../application/deactivateHabit'
 import { getActiveHabits } from '../../application/getActiveHabits'
+import { getCurrentWeekResponse } from '../../application/getCurrentWeekResponse'
+import { getWeekByOffset } from '../../application/getWeekByOffset'
 import { getUserProfileById } from '../../application/getUserProfile'
+import { parseWeekOffsetQuery } from '../../application/parseWeekOffsetQuery'
 import { updateHabit } from '../../application/updateHabit'
 import { createHabitSchema, updateHabitSchema } from '../../application/validation/habit'
 import { NotFoundError } from '../../domain/errors/appErrors'
 import { createPrismaHabitRepository } from '../../infrastructure/prismaHabitRepository'
 import { createPrismaUserRepository } from '../../infrastructure/prismaUserRepository'
+import { createPrismaWeekRepository } from '../../infrastructure/prismaWeekRepository'
 import { asyncHandler } from './middleware/asyncHandler'
 import { errorHandler } from './middleware/errorHandler'
 import { validateBody } from './middleware/validateBody'
@@ -27,6 +31,7 @@ export function createApp(prisma: PrismaClient): Express {
   const app = express()
   const userRepository = createPrismaUserRepository(prisma)
   const habitRepository = createPrismaHabitRepository(prisma)
+  const weekRepository = createPrismaWeekRepository(prisma)
   const origin = config.corsOrigin
 
   app.use(
@@ -83,6 +88,23 @@ export function createApp(prisma: PrismaClient): Express {
       const habitId = parseHabitIdParam(req.params.id)
       await deactivateHabit(habitRepository, 1, habitId)
       return res.status(204).send()
+    })
+  )
+
+  app.get(
+    '/api/weeks/current',
+    asyncHandler(async (_req, res) => {
+      const payload = await getCurrentWeekResponse(weekRepository, habitRepository, 1)
+      return res.status(200).json(payload)
+    })
+  )
+
+  app.get(
+    '/api/weeks',
+    asyncHandler(async (req, res) => {
+      const offset = parseWeekOffsetQuery(req.query.offset)
+      const payload = await getWeekByOffset(weekRepository, habitRepository, 1, offset)
+      return res.status(200).json(payload)
     })
   )
 

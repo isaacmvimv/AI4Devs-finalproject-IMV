@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getWeekBoundaries } from './week'
+import { addUtcWeeks, getWeekBoundaries } from './week'
 
 describe('getWeekBoundaries', () => {
   describe('should_return_monday_to_sunday_boundaries_for_monday_input', () => {
@@ -48,5 +48,19 @@ describe('getWeekBoundaries', () => {
       expect(startDate.toISOString()).toBe('2025-12-29T00:00:00.000Z')
       expect(endDate.toISOString()).toBe('2026-01-04T23:59:59.999Z')
     })
+  })
+})
+
+describe('addUtcWeeks', () => {
+  it('adds positive weeks in UTC', () => {
+    const start = new Date('2026-06-08T00:00:00.000Z')
+    const result = addUtcWeeks(start, 2)
+    expect(result.toISOString()).toBe('2026-06-22T00:00:00.000Z')
+  })
+
+  it('subtracts weeks with negative offset', () => {
+    const start = new Date('2026-06-08T00:00:00.000Z')
+    const result = addUtcWeeks(start, -1)
+    expect(result.toISOString()).toBe('2026-06-01T00:00:00.000Z')
   })
 })

@@ -50,3 +50,9 @@ export function getWeekBoundaries(date: Date): { startDate: Date; endDate: Date 
 
   return { startDate, endDate }
 }
+
+export function addUtcWeeks(startDate: Date, weeks: number): Date {
+  const result = new Date(startDate)
+  result.setUTCDate(result.getUTCDate() + weeks * 7)
+  return result
+}

@@ -222,5 +222,43 @@ export function createPrismaWeekRepository(prisma: PrismaClient): WeekRepository
         return mapToWeekWithDetails(week, weekHabits)
       })
     },
+
+    async findWeekByUserAndStartDate(
+      userId: number,
+      startDate: Date
+    ): Promise<WeekWithDetails | null> {
+      const week = await prisma.week.findFirst({
+        where: { userId, startDate },
+        include: {
+          weekHabits: {
+            include: { habitEntries: { orderBy: { dayIndex: 'asc' } } },
+            orderBy: { order: 'asc' },
+          },
+        },
+      })
+
+      if (!week) return null
+
+      return mapToWeekWithDetails(
+        week,
+        week.weekHabits.map(mapToWeekHabitWithEntries)
+      )
+    },
+
+    async findLastLockedWeekBefore(
+      userId: number,
+      beforeStartDate: Date
+    ): Promise<Week | null> {
+      const week = await prisma.week.findFirst({
+        where: {
+          userId,
+          isLocked: true,
+          startDate: { lt: beforeStartDate },
+        },
+        orderBy: { startDate: 'desc' },
+      })
+
+      return week ? mapToWeek(week) : null
+    },
   }
 }
