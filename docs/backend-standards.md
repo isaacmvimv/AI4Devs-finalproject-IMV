@@ -786,6 +786,40 @@ export function createPrismaHabitRepository(prisma: PrismaClient): HabitReposito
 }
 ```
 
+### Semanas (T-09-01)
+
+- **Dominio:** `backend/src/domain/week.ts` — tipos `Week`, `WeekHabit`, `HabitEntry` y utilidad `getWeekBoundaries(date)` (lunes–domingo en UTC).
+- **Puertos:** `WeekRepository` (`findCurrentWeek`, `createWeekWithHabitsAndEntries`) y `WeekHabitRepository` (`createWeekHabits`).
+- **Infraestructura:** `prismaWeekRepository.ts` y `prismaWeekHabitRepository.ts`; la creación de semana usa `prisma.$transaction` para Week + WeekHabits + 7×HabitEntry `pending`.
+- **Caso de uso:** `getCurrentWeek(weekRepo, habitRepo, userId, now?)` — idempotente para la semana en curso.
+
+```typescript
+// application/getCurrentWeek.ts
+export async function getCurrentWeek(
+  weekRepo: WeekRepository,
+  habitRepo: HabitRepository,
+  userId: number,
+  now: Date = new Date(),
+): Promise<WeekWithDetails> {
+  const { startDate, endDate } = getWeekBoundaries(now);
+  const existing = await weekRepo.findCurrentWeek(userId, startDate);
+  if (existing !== null) return existing;
+  const activeHabits = await habitRepo.findActiveByUserId(userId);
+  return weekRepo.createWeekWithHabitsAndEntries(userId, startDate, endDate, activeHabits);
+}
+
+// application/ports/WeekRepository.ts
+export interface WeekRepository {
+  findCurrentWeek(userId: number, startDate: Date): Promise<WeekWithDetails | null>;
+  createWeekWithHabitsAndEntries(
+    userId: number,
+    startDate: Date,
+    endDate: Date,
+    activeHabits: Habit[],
+  ): Promise<WeekWithDetails>;
+}
+```
+
 ## Estándares de pruebas
 
 El proyecto usa **Vitest** (`npm run test`, `npm run test:watch`). Las pruebas deben respetar Clean Architecture: unitarias sin base de datos real; integración con contenedor o base de datos de test cuando se definan.

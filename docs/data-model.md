@@ -55,8 +55,8 @@ Representa una semana calendario del usuario, con bloqueo histórico y totales a
 | -------- | ---- | ----------- |
 | `id` | `Int` (PK, autoincrement) | Identificador único |
 | `userId` | `Int` (FK → User) | Usuario propietario |
-| `startDate` | `DateTime` | Lunes de la semana (00:00:00) |
-| `endDate` | `DateTime` | Domingo de la semana (23:59:59) |
+| `startDate` | `DateTime` | Lunes de la semana (00:00:00 UTC) |
+| `endDate` | `DateTime` | Domingo de la semana (23:59:59.999 UTC) |
 | `isLocked` | `Boolean` | `true` cuando la semana ha terminado y no puede modificarse |
 | `totalPointsEarned` | `Int` | Puntos positivos acumulados al bloquear |
 | `totalPenalties` | `Int` | Penalizaciones acumuladas al bloquear |
@@ -64,7 +64,9 @@ Representa una semana calendario del usuario, con bloqueo histórico y totales a
 
 **Persistencia:** migrada a PostgreSQL (T-03-02).
 
-**En el frontend (provisional):** la navegación semanal se calcula en memoria con `weekOffset` y `buildWeekData()` (`frontend/src/domain/week.ts`); la entidad `Week` aún no se persiste en BD.
+**Límites semanales (backend):** `getWeekBoundaries(date)` en `backend/src/domain/week.ts` calcula `startDate` (lunes 00:00:00.000 UTC) y `endDate` (domingo 23:59:59.999 UTC) de la semana ISO que contiene `date`. El caso de uso `getCurrentWeek` usa esta utilidad para localizar o crear la semana activa del usuario.
+
+**En el frontend (provisional):** la navegación semanal se calcula en memoria con `weekOffset` y `buildWeekData()` (`frontend/src/domain/week.ts`); la entidad `Week` aún no se expone vía API (T-09-03).
 
 ---
 
