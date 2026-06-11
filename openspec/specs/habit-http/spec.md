@@ -1,6 +1,6 @@
 # Spec — habit-http
 
-**Ticket:** T-07-02, T-08-01 · **User Story:** US-07, US-08
+**Ticket:** T-07-02, T-08-01, T-19-01 · **User Story:** US-07, US-08, US-19
 
 Exposición HTTP de hábitos: listado, creación, actualización parcial y baja lógica (`GET`, `POST`, `PATCH`, `DELETE /api/habits`) — T-07-02 / US-07, T-08-01 / US-08.
 
@@ -46,12 +46,13 @@ The system SHALL respond with HTTP `200` and a JSON array where each element inc
 
 ### Requirement: POST /api/habits route registered
 
-The system SHALL register `POST /api/habits` in `createApp.ts`, wrapped with `asyncHandler`, invoking `createHabit(habitRepository, 1, req.body)` with hardcoded user id `1` for MVP.
+The system SHALL register `POST /api/habits` in `createApp.ts` with `validateBody(createHabitSchema)` before `asyncHandler`, invoking `createHabit(habitRepository, 1, req.body)` with hardcoded user id `1` for MVP.
 
 #### Scenario: Route accepts JSON body
 
 - **WHEN** a client sends `POST /api/habits` with `Content-Type: application/json`
-- **THEN** the request body is passed to `createHabit` as `unknown` input for Zod validation
+- **THEN** `validateBody(createHabitSchema)` validates the body before the handler runs
+- **AND** invalid bodies never reach `createHabit` (rejected with `ValidationError` at middleware)
 
 ### Requirement: Successful habit creation
 
@@ -66,7 +67,7 @@ The system SHALL respond with HTTP `201` and the created habit JSON when `create
 
 ### Requirement: Validation error response on POST
 
-The system SHALL propagate `ValidationError` from `createHabit` / `parseCreateHabitInput` through `asyncHandler` to `errorHandler`, responding with HTTP `400` and body `{ code: "VALIDATION_ERROR", message, details }` where `details` is an array of `{ field, message }` (US-07 Scenarios 3–5).
+The system SHALL reject invalid POST bodies via `validateBody(createHabitSchema)` before the use case, propagating `ValidationError` through `next(err)` to `errorHandler`, responding with HTTP `400` and body `{ code: "VALIDATION_ERROR", message, details }` where `details` is an array of `{ field, message }` (US-07 Scenarios 3–5, US-19 Scenario 2).
 
 #### Scenario: Empty or missing name returns 400
 
@@ -110,12 +111,12 @@ The system SHALL include Vitest tests using supertest with mocked `createHabit` 
 
 ### Requirement: PATCH /api/habits/:id route registered
 
-The system SHALL register `PATCH /api/habits/:id` in `createApp.ts`, wrapped with `asyncHandler`, parsing `:id` as integer and invoking `updateHabit(habitRepository, 1, habitId, req.body)` with hardcoded user id `1` for MVP.
+The system SHALL register `PATCH /api/habits/:id` in `createApp.ts` with `validateBody(updateHabitSchema)` before `asyncHandler`, invoking `updateHabit(habitRepository, 1, habitId, req.body)` after parsing `:id` as a numeric habit id.
 
 #### Scenario: Route accepts partial JSON body
 
-- **WHEN** a client sends `PATCH /api/habits/5` with `Content-Type: application/json`
-- **THEN** the request body is passed to `updateHabit` as `unknown` input for Zod partial validation
+- **WHEN** a client sends `PATCH /api/habits/:id` with a partial JSON body
+- **THEN** `validateBody(updateHabitSchema)` validates the body before `updateHabit` runs
 
 #### Scenario: Invalid habit id returns 404
 
@@ -144,20 +145,19 @@ The system SHALL respond with HTTP `200` and the updated habit JSON when `update
 
 ### Requirement: Validation error response on PATCH
 
-The system SHALL propagate `ValidationError` from `updateHabit` / `parseUpdateHabitInput` through `asyncHandler` to `errorHandler`, responding with HTTP `400` and body `{ code: "VALIDATION_ERROR", message, details }` when provided fields fail Zod rules.
+The system SHALL reject invalid PATCH bodies via `validateBody(updateHabitSchema)`, responding with HTTP `400` and `{ code: "VALIDATION_ERROR", details }` when validation fails (US-08 edge cases, US-10 validation).
 
-#### Scenario: Invalid pointsPerDay on PATCH returns 400
-
-- **WHEN** a client sends `PATCH /api/habits/5` with body `{ "pointsPerDay": 0 }`
-- **THEN** the response status is `400`
-- **AND** the response body has `code: "VALIDATION_ERROR"`
-- **AND** `details` includes an entry with `field: "pointsPerDay"`
-
-#### Scenario: Empty patch body returns 400
+#### Scenario: Empty PATCH body returns 400
 
 - **WHEN** a client sends `PATCH /api/habits/5` with body `{}`
 - **THEN** the response status is `400`
-- **AND** the response body has `code: "VALIDATION_ERROR"`
+- **AND** `details` includes an entry with `field: "input"` indicating at least one field is required
+
+#### Scenario: Invalid pointsPerDay on PATCH returns 400
+
+- **WHEN** a client sends `PATCH /api/habits/5` with `{ "pointsPerDay": 0 }`
+- **THEN** the response status is `400`
+- **AND** `details` includes an entry with `field: "pointsPerDay"`
 
 ### Requirement: DELETE /api/habits/:id route registered
 

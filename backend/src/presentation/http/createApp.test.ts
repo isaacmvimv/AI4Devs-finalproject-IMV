@@ -229,6 +229,24 @@ describe('POST /api/habits', () => {
       details: expect.arrayContaining([expect.objectContaining({ field: 'emoji' })]),
     })
   })
+
+  it('returns 400 VALIDATION_ERROR via middleware without invoking use case', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app).post('/api/habits').send({ emoji: '🏃' })
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Datos inválidos',
+    })
+    expect(response.body.details).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: 'name' }),
+        expect.objectContaining({ field: 'pointsPerDay' }),
+      ])
+    )
+    expect(mockCreateHabit).not.toHaveBeenCalled()
+  })
 })
 
 describe('PATCH /api/habits/:id', () => {

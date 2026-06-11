@@ -7,11 +7,13 @@ import { deactivateHabit } from '../../application/deactivateHabit'
 import { getActiveHabits } from '../../application/getActiveHabits'
 import { getUserProfileById } from '../../application/getUserProfile'
 import { updateHabit } from '../../application/updateHabit'
+import { createHabitSchema, updateHabitSchema } from '../../application/validation/habit'
 import { NotFoundError } from '../../domain/errors/appErrors'
 import { createPrismaHabitRepository } from '../../infrastructure/prismaHabitRepository'
 import { createPrismaUserRepository } from '../../infrastructure/prismaUserRepository'
 import { asyncHandler } from './middleware/asyncHandler'
 import { errorHandler } from './middleware/errorHandler'
+import { validateBody } from './middleware/validateBody'
 
 function parseHabitIdParam(id: string): number {
   const habitId = Number.parseInt(id, 10)
@@ -58,6 +60,7 @@ export function createApp(prisma: PrismaClient): Express {
 
   app.post(
     '/api/habits',
+    validateBody(createHabitSchema),
     asyncHandler(async (req, res) => {
       const habit = await createHabit(habitRepository, 1, req.body)
       return res.status(201).json(habit)
@@ -66,6 +69,7 @@ export function createApp(prisma: PrismaClient): Express {
 
   app.patch(
     '/api/habits/:id',
+    validateBody(updateHabitSchema),
     asyncHandler(async (req, res) => {
       const habitId = parseHabitIdParam(req.params.id)
       const habit = await updateHabit(habitRepository, 1, habitId, req.body)

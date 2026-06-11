@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { ValidationError } from '../../domain/errors/appErrors'
 
-const createHabitSchema = z.object({
+export const createHabitSchema = z.object({
   emoji: z.string().trim().min(1, 'El emoji es obligatorio'),
   name: z.string().trim().min(1, 'El nombre es obligatorio'),
   pointsPerDay: z
@@ -25,7 +25,7 @@ export function parseCreateHabitInput(input: unknown): CreateHabitInput {
   return result.data
 }
 
-const updateHabitSchema = z
+export const updateHabitSchema = z
   .object({
     emoji: z.string().trim().min(1, 'El emoji es obligatorio').optional(),
     name: z.string().trim().min(1, 'El nombre es obligatorio').optional(),

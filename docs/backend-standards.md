@@ -578,22 +578,30 @@ app.use(errorHandler);
 
 ### Patrones de validación
 
-- Validar entradas en la capa de aplicación o en middleware dedicado antes del caso de uso
-- Centralizar reglas reutilizables (p. ej. módulo `application/validation/` cuando exista)
+- Validar entradas HTTP con middleware `validateBody(schema)` **antes** de `asyncHandler` y del caso de uso
+- Centralizar schemas Zod reutilizables en `application/validation/` (p. ej. `habit.ts`, `reward.ts`)
+- Los casos de uso pueden mantener parsers defensivos con los mismos schemas; la validación primaria ocurre en middleware
 - Validar antes de ejecutar lógica de negocio o persistencia
 
 ```typescript
 import { createHabit } from '../application/createHabit';
+import { createHabitSchema } from '../application/validation/habit';
 import { asyncHandler } from './middleware/asyncHandler';
+import { validateBody } from './middleware/validateBody';
 
 app.post(
   '/api/habits',
+  validateBody(createHabitSchema),
   asyncHandler(async (req, res) => {
     const habit = await createHabit(deps.habitRepository, 1, req.body);
     return res.status(201).json(habit);
   })
 );
 ```
+
+**Orden de middlewares:** `validateBody(schema)` → `asyncHandler(handler)` → `errorHandler` (global).
+
+**Recompensas (T-11-02):** al registrar `POST /api/rewards`, usar `validateBody(createRewardSchema)` con el schema de `application/validation/reward.ts`.
 
 Validación Zod centralizada en `application/validation/habit.ts`:
 
