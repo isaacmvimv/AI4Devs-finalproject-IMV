@@ -2036,7 +2036,7 @@ gantt
 - **Tipo:** Backend — Aplicación
 - **Complejidad:** `L` &nbsp;·&nbsp; **Story Points:** 5
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Implementar el caso de uso `lockWeekAndTransition(userId)`. Si existe una semana anterior no bloqueada, la bloquea calculando `totalPointsEarned`, `totalPenalties` y guardando snapshots en WeekHabit. Luego crea la nueva semana.
 
