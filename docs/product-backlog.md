@@ -2163,7 +2163,7 @@ gantt
 - **Tipo:** Backend — Aplicación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Implementar `redeemReward(userId, weekId, rewardId)`. Calcular el saldo disponible de la semana: `sum(completados × pointsPerDay) - sum(fallados × penalty) - sum(redemptions.pointsSpent)`. Verificar saldo >= coste y crear RewardRedemption en transacción.
 
