@@ -151,23 +151,31 @@ backend/
 │   ├── domain/
 │   │   ├── errors/                 # Clases de error (AppError, ValidationError, …)
 │   │   ├── userProfile.ts          # Entidades de dominio
-│   │   └── habit.ts                # Entidad Habit + tipos CreateHabitData / UpdateHabitData
+│   │   ├── habit.ts                # Entidad Habit + tipos CreateHabitData / UpdateHabitData
+│   │   └── reward.ts               # Entidad Reward + CreateRewardData (T-11-01)
 │   ├── application/
 │   │   ├── ports/                  # Interfaces puerto
 │   │   │   ├── UserReadRepository.ts
-│   │   │   └── HabitRepository.ts
+│   │   │   ├── HabitRepository.ts
+│   │   │   └── RewardRepository.ts
 │   │   ├── validation/
-│   │   │   └── habit.ts            # Schema Zod + parseCreateHabitInput
+│   │   │   ├── habit.ts            # Schema Zod + parseCreateHabitInput
+│   │   │   └── reward.ts           # createRewardSchema + parseCreateRewardInput (T-11-01)
 │   │   ├── getUserProfile.ts       # Casos de uso
 │   │   ├── createHabit.ts
-│   │   └── getActiveHabits.ts
+│   │   ├── getActiveHabits.ts
+│   │   ├── createReward.ts         # T-11-01
+│   │   ├── getActiveRewards.ts     # T-11-01
+│   │   ├── softDeleteReward.ts     # T-11-01
+│   │   └── rewardOwnership.ts      # assertRewardOwnedByUser (T-11-01)
 │   ├── presentation/
 │   │   └── http/
 │   │       ├── createApp.ts        # Configuración HTTP
 │   │       └── middleware/         # errorHandler, asyncHandler (T-04-02)
 │   ├── infrastructure/
 │   │   ├── prismaUserRepository.ts # Implementaciones de repositorio
-│   │   └── prismaHabitRepository.ts
+│   │   ├── prismaHabitRepository.ts
+│   │   └── prismaRewardRepository.ts  # T-11-01
 │   ├── loadEnv.ts                  # Carga de entorno
 │   └── main.ts                     # Punto de entrada (composición)
 ├── prisma/
@@ -202,6 +210,17 @@ export interface Habit {
   name: string;
   pointsPerDay: number;
   penalty: number;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface Reward {
+  id: number;
+  userId: number;
+  emoji: string;
+  name: string;
+  description: string;
+  cost: number;
   isActive: boolean;
   createdAt: Date;
 }
@@ -242,6 +261,31 @@ export async function getActiveHabits(
   userId: number
 ): Promise<Habit[]> {
   return repository.findActiveByUserId(userId);
+}
+
+export async function createReward(
+  repository: RewardRepository,
+  userId: number,
+  input: unknown
+): Promise<Reward> {
+  const validated = parseCreateRewardInput(input);
+  return repository.create({ userId, ...validated });
+}
+
+export async function getActiveRewards(
+  repository: RewardRepository,
+  userId: number
+): Promise<Reward[]> {
+  return repository.findActiveByUserId(userId);
+}
+
+export async function softDeleteReward(
+  repository: RewardRepository,
+  userId: number,
+  rewardId: number
+): Promise<Reward> {
+  await assertRewardOwnedByUser(repository, rewardId, userId);
+  return repository.softDelete(rewardId);
 }
 ```
 
@@ -603,6 +647,32 @@ app.post(
 
 **Recompensas (T-11-02):** al registrar `POST /api/rewards`, usar `validateBody(createRewardSchema)` con el schema de `application/validation/reward.ts`.
 
+Validación Zod centralizada en `application/validation/reward.ts` (T-11-01):
+
+```typescript
+import { z } from 'zod';
+import { ValidationError } from '../../domain/errors/appErrors';
+
+export const createRewardSchema = z.object({
+  emoji: z.string().trim().min(1, 'El emoji es obligatorio'),
+  name: z.string().trim().min(1, 'El nombre es obligatorio'),
+  description: z.string().trim().min(1, 'La descripción es obligatoria'),
+  cost: z.number().int().positive('El coste debe ser mayor que 0'),
+});
+
+export function parseCreateRewardInput(input: unknown) {
+  const result = createRewardSchema.safeParse(input);
+  if (!result.success) {
+    const details = result.error.issues.map((issue) => ({
+      field: issue.path.join('.') || 'input',
+      message: issue.message,
+    }));
+    throw new ValidationError('Datos inválidos', details);
+  }
+  return result.data;
+}
+```
+
 Validación Zod centralizada en `application/validation/habit.ts`:
 
 ```typescript
@@ -762,6 +832,14 @@ export interface HabitRepository {
   softDelete(id: number): Promise<Habit>;
 }
 
+// application/ports/RewardRepository.ts (T-11-01)
+export interface RewardRepository {
+  create(data: CreateRewardData): Promise<Reward>;
+  findActiveByUserId(userId: number): Promise<Reward[]>;
+  findById(id: number): Promise<Reward | null>;
+  softDelete(id: number): Promise<Reward>;
+}
+
 // infrastructure/prismaUserRepository.ts
 export function createPrismaUserRepository(prisma: PrismaClient): UserReadRepository {
   return {
@@ -784,6 +862,45 @@ export function createPrismaHabitRepository(prisma: PrismaClient): HabitReposito
     },
     // create, findById, update, softDelete …
   };
+}
+
+// infrastructure/prismaRewardRepository.ts (T-11-01)
+export function createPrismaRewardRepository(prisma: PrismaClient): RewardRepository {
+  return {
+    async findActiveByUserId(userId: number): Promise<Reward[]> {
+      const rewards = await prisma.reward.findMany({
+        where: { userId, isActive: true },
+        orderBy: { createdAt: 'asc' },
+      });
+      return rewards.map(mapToReward);
+    },
+    // create, findById, softDelete …
+  };
+}
+```
+
+### Recompensas (T-11-01)
+
+- **Dominio:** `backend/src/domain/reward.ts` — tipos `Reward` y `CreateRewardData`.
+- **Puerto:** `RewardRepository` (`create`, `findActiveByUserId`, `findById`, `softDelete`).
+- **Infraestructura:** `prismaRewardRepository.ts`; `softDelete` hace `update isActive: false` sin borrar `RewardRedemption`.
+- **Validación:** `parseCreateRewardInput` en `application/validation/reward.ts` (mensajes en español).
+- **Ownership:** `assertRewardOwnedByUser` en `rewardOwnership.ts` — recompensa ajena o inexistente → `NotFoundError` (`REWARD_NOT_FOUND`).
+- **Casos de uso:** `createReward`, `getActiveRewards`, `softDeleteReward` (firmas análogas a hábitos).
+- **HTTP:** rutas `/api/rewards` en T-11-02; este ticket no modifica `createApp.ts`.
+
+```typescript
+// application/rewardOwnership.ts
+export async function assertRewardOwnedByUser(
+  repo: RewardRepository,
+  rewardId: number,
+  userId: number,
+): Promise<Reward> {
+  const reward = await repo.findById(rewardId);
+  if (!reward || reward.userId !== userId) {
+    throw new NotFoundError('Recompensa no encontrada', 'REWARD_NOT_FOUND');
+  }
+  return reward;
 }
 ```
 

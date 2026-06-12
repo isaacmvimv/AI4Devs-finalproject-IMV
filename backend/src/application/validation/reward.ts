@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ValidationError } from '../../domain/errors/appErrors'
 
 export const createRewardSchema = z.object({
   emoji: z.string().trim().min(1, 'El emoji es obligatorio'),
@@ -8,3 +9,15 @@ export const createRewardSchema = z.object({
 })
 
 export type CreateRewardInput = z.infer<typeof createRewardSchema>
+
+export function parseCreateRewardInput(input: unknown): CreateRewardInput {
+  const result = createRewardSchema.safeParse(input)
+  if (!result.success) {
+    const details = result.error.issues.map((issue) => ({
+      field: issue.path.join('.') || 'input',
+      message: issue.message,
+    }))
+    throw new ValidationError('Datos inválidos', details)
+  }
+  return result.data
+}
