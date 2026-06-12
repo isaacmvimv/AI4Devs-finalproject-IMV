@@ -299,6 +299,90 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
 
+  /api/weeks/{weekId}/redemptions:
+    post:
+      summary: Canjear recompensa en una semana
+      description: >
+        Canjea una recompensa activa del usuario (userId=1 en MVP sin auth) descontando
+        puntos del saldo disponible de la semana indicada. Rechaza si la semana est? bloqueada
+        o si el saldo es insuficiente.
+      tags:
+        - Semanas
+      parameters:
+        - in: path
+          name: weekId
+          required: true
+          schema:
+            type: integer
+          description: Identificador num?rico de la semana
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedeemRewardRequest'
+      responses:
+        '201':
+          description: Recompensa canjeada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RewardRedemptionResponse'
+        '400':
+          description: Error de validaci?n del body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Datos inv?lidos
+                details:
+                  - field: rewardId
+                    message: Debe ser un entero positivo
+        '404':
+          description: Semana o recompensa no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                weekNotFound:
+                  value:
+                    code: WEEK_NOT_FOUND
+                    message: Semana no encontrada
+                rewardNotFound:
+                  value:
+                    code: REWARD_NOT_FOUND
+                    message: Recompensa no encontrada
+        '409':
+          description: Semana bloqueada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: WEEK_LOCKED
+                message: No se puede modificar una semana bloqueada
+        '422':
+          description: Puntos insuficientes para el canje
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: INSUFFICIENT_POINTS
+                message: Puntos insuficientes
+                details:
+                  available: 30
+                  required: 50
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
   /api/habit-entries/{id}:
     patch:
       summary: Actualizar estado de entrada diaria
@@ -487,40 +571,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
-
-  /api/rewards/{id}/redeem:
-    post:
-      summary: Canjear recompensa (PLANIFICADO)
-      description: Canjea una recompensa usando los puntos acumulados
-      tags:
-        - Recompensas
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: Identificador de la recompensa
-      responses:
-        '200':
-          description: Recompensa canjeada correctamente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Recompensa canjeada correctamente"
-                  remainingPoints:
-                    type: integer
-                    description: Puntos restantes tras el canje
-        '400':
-          description: Puntos insuficientes
-        '404':
-          description: Recompensa no encontrada
-        '500':
-          description: Error interno del servidor
 
 components:
   schemas:
@@ -844,6 +894,44 @@ components:
         - cost
         - isActive
         - createdAt
+
+    RedeemRewardRequest:
+      type: object
+      description: Body de POST /api/weeks/{weekId}/redemptions
+      properties:
+        rewardId:
+          type: integer
+          minimum: 1
+          description: Identificador de la recompensa a canjear
+      required:
+        - rewardId
+
+    RewardRedemptionResponse:
+      type: object
+      description: Respuesta de POST /api/weeks/{weekId}/redemptions
+      properties:
+        id:
+          type: integer
+          description: Identificador del canje creado
+        weekId:
+          type: integer
+          description: Semana en la que se realiz? el canje
+        rewardId:
+          type: integer
+          description: Recompensa canjeada
+        pointsSpent:
+          type: integer
+          description: Puntos descontados del saldo semanal
+        redeemedAt:
+          type: string
+          format: date-time
+          description: Fecha del canje (ISO 8601)
+      required:
+        - id
+        - weekId
+        - rewardId
+        - pointsSpent
+        - redeemedAt
 
     CreateRewardRequest:
       type: object

@@ -3,6 +3,7 @@ import request from 'supertest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createHabit } from '../../application/createHabit'
 import { createReward } from '../../application/createReward'
+import { redeemReward } from '../../application/redeemReward'
 import { deactivateHabit } from '../../application/deactivateHabit'
 import { getActiveHabits } from '../../application/getActiveHabits'
 import { getActiveRewards } from '../../application/getActiveRewards'
@@ -12,9 +13,15 @@ import { getUserProfileById } from '../../application/getUserProfile'
 import { softDeleteReward } from '../../application/softDeleteReward'
 import { updateHabit } from '../../application/updateHabit'
 import { updateHabitEntry } from '../../application/updateHabitEntry'
-import { ConflictError, NotFoundError, ValidationError } from '../../domain/errors/appErrors'
+import {
+  ConflictError,
+  NotFoundError,
+  UnprocessableError,
+  ValidationError,
+} from '../../domain/errors/appErrors'
 import type { Habit } from '../../domain/habit'
 import type { Reward } from '../../domain/reward'
+import type { RewardRedemption } from '../../domain/rewardRedemption'
 import type { HabitEntry } from '../../domain/week'
 import type { UserProfile } from '../../domain/userProfile'
 import { createApp } from './createApp'
@@ -63,6 +70,10 @@ vi.mock('../../application/softDeleteReward', () => ({
   softDeleteReward: vi.fn(),
 }))
 
+vi.mock('../../application/redeemReward', () => ({
+  redeemReward: vi.fn(),
+}))
+
 const mockGetUserProfileById = vi.mocked(getUserProfileById)
 const mockCreateHabit = vi.mocked(createHabit)
 const mockGetActiveHabits = vi.mocked(getActiveHabits)
@@ -74,6 +85,7 @@ const mockGetWeekByOffset = vi.mocked(getWeekByOffset)
 const mockCreateReward = vi.mocked(createReward)
 const mockGetActiveRewards = vi.mocked(getActiveRewards)
 const mockSoftDeleteReward = vi.mocked(softDeleteReward)
+const mockRedeemReward = vi.mocked(redeemReward)
 
 function createPrismaStub(): PrismaClient {
   return {} as PrismaClient
@@ -727,5 +739,151 @@ describe('PATCH /api/habit-entries/:id', () => {
       code: 'HABIT_ENTRY_NOT_FOUND',
     })
     expect(mockUpdateHabitEntry).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/weeks/:weekId/redemptions', () => {
+  const sampleRedemption: RewardRedemption = {
+    id: 7,
+    weekId: 1,
+    rewardId: 2,
+    pointsSpent: 80,
+    redeemedAt: new Date('2026-06-12T14:30:00.000Z'),
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 201 with redemption on happy path (US-12 S1)', async () => {
+    mockRedeemReward.mockResolvedValue(sampleRedemption)
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .post('/api/weeks/1/redemptions')
+      .send({ rewardId: 2 })
+
+    expect(response.status).toBe(201)
+    expect(response.body).toEqual({
+      id: 7,
+      weekId: 1,
+      rewardId: 2,
+      pointsSpent: 80,
+      redeemedAt: '2026-06-12T14:30:00.000Z',
+    })
+    expect(mockRedeemReward).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1, 1, 2)
+  })
+
+  it('returns 422 INSUFFICIENT_POINTS with details (US-12 S2)', async () => {
+    mockRedeemReward.mockRejectedValue(
+      new UnprocessableError('Puntos insuficientes', 'INSUFFICIENT_POINTS', {
+        available: 30,
+        required: 50,
+      })
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .post('/api/weeks/1/redemptions')
+      .send({ rewardId: 2 })
+
+    expect(response.status).toBe(422)
+    expect(response.body).toMatchObject({
+      code: 'INSUFFICIENT_POINTS',
+      message: 'Puntos insuficientes',
+      details: { available: 30, required: 50 },
+    })
+  })
+
+  it('returns 409 WEEK_LOCKED when week is locked (US-12 S3)', async () => {
+    mockRedeemReward.mockRejectedValue(
+      new ConflictError('No se puede modificar una semana bloqueada', 'WEEK_LOCKED')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .post('/api/weeks/1/redemptions')
+      .send({ rewardId: 2 })
+
+    expect(response.status).toBe(409)
+    expect(response.body).toMatchObject({
+      code: 'WEEK_LOCKED',
+      message: 'No se puede modificar una semana bloqueada',
+    })
+  })
+
+  it('returns 404 WEEK_NOT_FOUND when week not found', async () => {
+    mockRedeemReward.mockRejectedValue(
+      new NotFoundError('Semana no encontrada', 'WEEK_NOT_FOUND')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .post('/api/weeks/1/redemptions')
+      .send({ rewardId: 2 })
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'WEEK_NOT_FOUND',
+      message: 'Semana no encontrada',
+    })
+  })
+
+  it('returns 404 REWARD_NOT_FOUND when reward not found', async () => {
+    mockRedeemReward.mockRejectedValue(
+      new NotFoundError('Recompensa no encontrada', 'REWARD_NOT_FOUND')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .post('/api/weeks/1/redemptions')
+      .send({ rewardId: 2 })
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'REWARD_NOT_FOUND',
+      message: 'Recompensa no encontrada',
+    })
+  })
+
+  it('returns 400 VALIDATION_ERROR for invalid body without invoking use case', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app).post('/api/weeks/1/redemptions').send({})
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Datos inválidos',
+    })
+    expect(response.body.details).toEqual(
+      expect.arrayContaining([expect.objectContaining({ field: 'rewardId' })])
+    )
+    expect(mockRedeemReward).not.toHaveBeenCalled()
+  })
+
+  it('returns 400 VALIDATION_ERROR for non-positive rewardId without invoking use case', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .post('/api/weeks/1/redemptions')
+      .send({ rewardId: 0 })
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_ERROR',
+    })
+    expect(mockRedeemReward).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 without invoking use case when weekId is invalid', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .post('/api/weeks/abc/redemptions')
+      .send({ rewardId: 2 })
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'WEEK_NOT_FOUND',
+    })
+    expect(mockRedeemReward).not.toHaveBeenCalled()
   })
 })

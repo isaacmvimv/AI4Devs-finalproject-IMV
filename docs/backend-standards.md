@@ -917,7 +917,7 @@ export async function assertRewardOwnedByUser(
 - **Saldo:** `calculateWeekAvailableBalance(week, redemptionsSpentTotal)` — `sum(completed × snapshotPoints) - sum(failed × snapshotPenalty) - redemptionsSpentTotal`.
 - **Caso de uso:** `redeemReward(redemptionRepo, rewardRepo, userId, weekId, rewardId)` — ownership de recompensa vía `assertRewardOwnedByUser`, delegación al repo con `reward.cost`.
 - **Errores:** `INSUFFICIENT_POINTS` (`UnprocessableError`, details `{ available, required }`), `WEEK_LOCKED` (`ConflictError`, mismo mensaje que `updateHabitEntry`), `WEEK_NOT_FOUND` / `REWARD_NOT_FOUND` (`NotFoundError`).
-- **HTTP:** endpoint `POST /api/weeks/:weekId/redemptions` en T-12-02; este ticket no modifica `createApp.ts`.
+- **HTTP (T-12-02):** `POST /api/weeks/:weekId/redemptions` en `createApp.ts` — `validateBody(redeemRewardSchema)`, `parseWeekIdParam`, delegación a `redeemReward`; respuesta `201` con `{ id, weekId, rewardId, pointsSpent, redeemedAt }` (ISO).
 
 ```typescript
 // application/ports/RewardRedemptionRepository.ts (T-12-01)
@@ -954,6 +954,29 @@ export async function redeemReward(
     rewardCost: reward.cost,
   });
 }
+
+// presentation/http/createApp.ts (T-12-02)
+app.post(
+  '/api/weeks/:weekId/redemptions',
+  validateBody(redeemRewardSchema),
+  asyncHandler(async (req, res) => {
+    const weekId = parseWeekIdParam(req.params.weekId);
+    const redemption = await redeemReward(
+      rewardRedemptionRepository,
+      rewardRepository,
+      1,
+      weekId,
+      req.body.rewardId,
+    );
+    return res.status(201).json({
+      id: redemption.id,
+      weekId: redemption.weekId,
+      rewardId: redemption.rewardId,
+      pointsSpent: redemption.pointsSpent,
+      redeemedAt: redemption.redeemedAt.toISOString(),
+    });
+  }),
+);
 ```
 
 ### Semanas (T-09-01, T-09-02)
