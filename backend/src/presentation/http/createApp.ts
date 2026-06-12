@@ -3,19 +3,24 @@ import cors from 'cors'
 import express, { type Express } from 'express'
 import { config } from '../../config.js'
 import { createHabit } from '../../application/createHabit'
+import { createReward } from '../../application/createReward'
 import { deactivateHabit } from '../../application/deactivateHabit'
 import { getActiveHabits } from '../../application/getActiveHabits'
+import { getActiveRewards } from '../../application/getActiveRewards'
 import { getCurrentWeekResponse } from '../../application/getCurrentWeekResponse'
 import { getWeekByOffset } from '../../application/getWeekByOffset'
 import { getUserProfileById } from '../../application/getUserProfile'
 import { parseWeekOffsetQuery } from '../../application/parseWeekOffsetQuery'
 import { updateHabit } from '../../application/updateHabit'
+import { softDeleteReward } from '../../application/softDeleteReward'
 import { updateHabitEntry } from '../../application/updateHabitEntry'
 import { createHabitSchema, updateHabitSchema } from '../../application/validation/habit'
 import { updateHabitEntrySchema } from '../../application/validation/habitEntry'
+import { createRewardSchema } from '../../application/validation/reward'
 import { NotFoundError } from '../../domain/errors/appErrors'
 import { createPrismaHabitEntryRepository } from '../../infrastructure/prismaHabitEntryRepository'
 import { createPrismaHabitRepository } from '../../infrastructure/prismaHabitRepository'
+import { createPrismaRewardRepository } from '../../infrastructure/prismaRewardRepository'
 import { createPrismaUserRepository } from '../../infrastructure/prismaUserRepository'
 import { createPrismaWeekRepository } from '../../infrastructure/prismaWeekRepository'
 import { asyncHandler } from './middleware/asyncHandler'
@@ -38,12 +43,21 @@ function parseHabitEntryIdParam(id: string): number {
   return entryId
 }
 
+function parseRewardIdParam(id: string): number {
+  const rewardId = Number.parseInt(id, 10)
+  if (Number.isNaN(rewardId)) {
+    throw new NotFoundError('Recompensa no encontrada', 'REWARD_NOT_FOUND')
+  }
+  return rewardId
+}
+
 export function createApp(prisma: PrismaClient): Express {
   const app = express()
   const userRepository = createPrismaUserRepository(prisma)
   const habitRepository = createPrismaHabitRepository(prisma)
   const weekRepository = createPrismaWeekRepository(prisma)
   const habitEntryRepository = createPrismaHabitEntryRepository(prisma)
+  const rewardRepository = createPrismaRewardRepository(prisma)
   const origin = config.corsOrigin
 
   app.use(
@@ -99,6 +113,32 @@ export function createApp(prisma: PrismaClient): Express {
     asyncHandler(async (req, res) => {
       const habitId = parseHabitIdParam(req.params.id)
       await deactivateHabit(habitRepository, 1, habitId)
+      return res.status(204).send()
+    })
+  )
+
+  app.get(
+    '/api/rewards',
+    asyncHandler(async (_req, res) => {
+      const rewards = await getActiveRewards(rewardRepository, 1)
+      return res.status(200).json(rewards)
+    })
+  )
+
+  app.post(
+    '/api/rewards',
+    validateBody(createRewardSchema),
+    asyncHandler(async (req, res) => {
+      const reward = await createReward(rewardRepository, 1, req.body)
+      return res.status(201).json(reward)
+    })
+  )
+
+  app.delete(
+    '/api/rewards/:id',
+    asyncHandler(async (req, res) => {
+      const rewardId = parseRewardIdParam(req.params.id)
+      await softDeleteReward(rewardRepository, 1, rewardId)
       return res.status(204).send()
     })
   )

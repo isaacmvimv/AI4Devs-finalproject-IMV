@@ -2,15 +2,19 @@ import type { PrismaClient } from '@prisma/client'
 import request from 'supertest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createHabit } from '../../application/createHabit'
+import { createReward } from '../../application/createReward'
 import { deactivateHabit } from '../../application/deactivateHabit'
 import { getActiveHabits } from '../../application/getActiveHabits'
+import { getActiveRewards } from '../../application/getActiveRewards'
 import { getCurrentWeekResponse } from '../../application/getCurrentWeekResponse'
 import { getWeekByOffset } from '../../application/getWeekByOffset'
 import { getUserProfileById } from '../../application/getUserProfile'
+import { softDeleteReward } from '../../application/softDeleteReward'
 import { updateHabit } from '../../application/updateHabit'
 import { updateHabitEntry } from '../../application/updateHabitEntry'
 import { ConflictError, NotFoundError, ValidationError } from '../../domain/errors/appErrors'
 import type { Habit } from '../../domain/habit'
+import type { Reward } from '../../domain/reward'
 import type { HabitEntry } from '../../domain/week'
 import type { UserProfile } from '../../domain/userProfile'
 import { createApp } from './createApp'
@@ -47,6 +51,18 @@ vi.mock('../../application/getWeekByOffset', () => ({
   getWeekByOffset: vi.fn(),
 }))
 
+vi.mock('../../application/createReward', () => ({
+  createReward: vi.fn(),
+}))
+
+vi.mock('../../application/getActiveRewards', () => ({
+  getActiveRewards: vi.fn(),
+}))
+
+vi.mock('../../application/softDeleteReward', () => ({
+  softDeleteReward: vi.fn(),
+}))
+
 const mockGetUserProfileById = vi.mocked(getUserProfileById)
 const mockCreateHabit = vi.mocked(createHabit)
 const mockGetActiveHabits = vi.mocked(getActiveHabits)
@@ -55,6 +71,9 @@ const mockUpdateHabitEntry = vi.mocked(updateHabitEntry)
 const mockDeactivateHabit = vi.mocked(deactivateHabit)
 const mockGetCurrentWeekResponse = vi.mocked(getCurrentWeekResponse)
 const mockGetWeekByOffset = vi.mocked(getWeekByOffset)
+const mockCreateReward = vi.mocked(createReward)
+const mockGetActiveRewards = vi.mocked(getActiveRewards)
+const mockSoftDeleteReward = vi.mocked(softDeleteReward)
 
 function createPrismaStub(): PrismaClient {
   return {} as PrismaClient
@@ -67,6 +86,17 @@ const sampleHabit: Habit = {
   name: 'Correr',
   pointsPerDay: 10,
   penalty: 5,
+  isActive: true,
+  createdAt: new Date('2026-06-10T10:00:00.000Z'),
+}
+
+const sampleReward: Reward = {
+  id: 1,
+  userId: 1,
+  emoji: '🎬',
+  name: 'Ir al cine',
+  description: 'Tarde de peli',
+  cost: 50,
   isActive: true,
   createdAt: new Date('2026-06-10T10:00:00.000Z'),
 }
@@ -338,6 +368,132 @@ describe('PATCH /api/habits/:id', () => {
       code: 'HABIT_NOT_FOUND',
     })
     expect(mockUpdateHabit).not.toHaveBeenCalled()
+  })
+})
+
+describe('GET /api/rewards', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 200 with 3 active rewards on happy path', async () => {
+    const rewards: Reward[] = [
+      { ...sampleReward, id: 1 },
+      { ...sampleReward, id: 2, name: 'Cena especial' },
+      { ...sampleReward, id: 3, name: 'Tarde libre' },
+    ]
+    mockGetActiveRewards.mockResolvedValue(rewards)
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).get('/api/rewards')
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveLength(3)
+    expect(response.body.every((r: Reward) => r.isActive === true)).toBe(true)
+    expect(mockGetActiveRewards).toHaveBeenCalledWith(expect.anything(), 1)
+  })
+
+  it('returns 200 with empty array when no active rewards', async () => {
+    mockGetActiveRewards.mockResolvedValue([])
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).get('/api/rewards')
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual([])
+  })
+})
+
+describe('POST /api/rewards', () => {
+  const validBody = {
+    emoji: '🎬',
+    name: 'Ir al cine',
+    description: 'Tarde de peli',
+    cost: 50,
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 201 with created reward on happy path', async () => {
+    mockCreateReward.mockResolvedValue(sampleReward)
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).post('/api/rewards').send(validBody)
+
+    expect(response.status).toBe(201)
+    expect(response.body).toMatchObject({
+      id: 1,
+      userId: 1,
+      emoji: '🎬',
+      name: 'Ir al cine',
+      description: 'Tarde de peli',
+      cost: 50,
+      isActive: true,
+      createdAt: '2026-06-10T10:00:00.000Z',
+    })
+    expect(mockCreateReward).toHaveBeenCalledWith(expect.anything(), 1, validBody)
+  })
+
+  it('returns 400 VALIDATION_ERROR when cost is zero via middleware without invoking use case', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .post('/api/rewards')
+      .send({ emoji: '🎬', name: 'Test', description: 'Test', cost: 0 })
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Datos inválidos',
+    })
+    expect(response.body.details).toEqual(
+      expect.arrayContaining([expect.objectContaining({ field: 'cost' })])
+    )
+    expect(mockCreateReward).not.toHaveBeenCalled()
+  })
+})
+
+describe('DELETE /api/rewards/:id', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 204 with empty body on happy path', async () => {
+    mockSoftDeleteReward.mockResolvedValue({ ...sampleReward, id: 3, isActive: false })
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).delete('/api/rewards/3')
+
+    expect(response.status).toBe(204)
+    expect(response.body).toEqual({})
+    expect(mockSoftDeleteReward).toHaveBeenCalledWith(expect.anything(), 1, 3)
+  })
+
+  it('returns 404 REWARD_NOT_FOUND when reward not found', async () => {
+    mockSoftDeleteReward.mockRejectedValue(
+      new NotFoundError('Recompensa no encontrada', 'REWARD_NOT_FOUND')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).delete('/api/rewards/3')
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'REWARD_NOT_FOUND',
+      message: 'Recompensa no encontrada',
+    })
+  })
+
+  it('returns 404 without invoking use case when id is invalid', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app).delete('/api/rewards/abc')
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'REWARD_NOT_FOUND',
+    })
+    expect(mockSoftDeleteReward).not.toHaveBeenCalled()
   })
 })
 

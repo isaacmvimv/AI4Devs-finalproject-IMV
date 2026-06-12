@@ -384,7 +384,7 @@ paths:
             type: integer
             minimum: 0
             maximum: 6
-          description: ÿÿndice del d?a (0-6, domingo a s?bado)
+          description: ??ndice del d?a (0-6, domingo a s?bado)
       responses:
         '200':
           description: Estado del h?bito actualizado correctamente
@@ -399,13 +399,13 @@ paths:
 
   /api/rewards:
     get:
-      summary: Listar recompensas (PLANIFICADO)
-      description: Obtiene todas las recompensas del usuario autenticado
+      summary: Listar recompensas activas
+      description: Obtiene todas las recompensas activas del usuario (userId=1 en MVP sin auth)
       tags:
         - Recompensas
       responses:
         '200':
-          description: Lista de recompensas obtenida correctamente
+          description: Lista de recompensas activas obtenida correctamente
           content:
             application/json:
               schema:
@@ -414,10 +414,14 @@ paths:
                   $ref: '#/components/schemas/Reward'
         '500':
           description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
     
     post:
-      summary: Crear recompensa (PLANIFICADO)
-      description: Crea una nueva recompensa
+      summary: Crear recompensa
+      description: Crea una nueva recompensa activa (userId=1 en MVP sin auth)
       tags:
         - Recompensas
       requestBody:
@@ -435,13 +439,27 @@ paths:
                 $ref: '#/components/schemas/Reward'
         '400':
           description: Error de validaci?n
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Datos inv?lidos
+                details:
+                  - field: cost
+                    message: El coste debe ser mayor que 0
         '500':
           description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
 
   /api/rewards/{id}:
     delete:
-      summary: Eliminar recompensa (PLANIFICADO)
-      description: Elimina una recompensa
+      summary: Desactivar recompensa
+      description: Baja l?gica de la recompensa (isActive=false). No elimina filas RewardRedemption.
       tags:
         - Recompensas
       parameters:
@@ -449,15 +467,26 @@ paths:
           name: id
           required: true
           schema:
-            type: string
-          description: Identificador de la recompensa
+            type: integer
+          description: Identificador num?rico de la recompensa
       responses:
         '204':
-          description: Recompensa eliminada correctamente
+          description: Recompensa desactivada correctamente (sin cuerpo)
         '404':
           description: Recompensa no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: REWARD_NOT_FOUND
+                message: Recompensa no encontrada
         '500':
           description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
 
   /api/rewards/{id}/redeem:
     post:
@@ -779,10 +808,14 @@ components:
 
     Reward:
       type: object
+      description: Respuesta de persistencia para GET/POST /api/rewards
       properties:
         id:
-          type: string
+          type: integer
           description: Identificador ?nico de la recompensa
+        userId:
+          type: integer
+          description: ID del usuario propietario
         emoji:
           type: string
           description: Emoji que representa la recompensa
@@ -795,12 +828,22 @@ components:
         cost:
           type: integer
           description: Puntos necesarios para canjear
+        isActive:
+          type: boolean
+          description: Indica si la recompensa est? activa (soft delete)
+        createdAt:
+          type: string
+          format: date-time
+          description: Fecha de creaci?n de la recompensa
       required:
         - id
+        - userId
         - emoji
         - name
         - description
         - cost
+        - isActive
+        - createdAt
 
     CreateRewardRequest:
       type: object
