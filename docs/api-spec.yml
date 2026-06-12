@@ -2,14 +2,14 @@ openapi: 3.0.0
 info:
   title: API ConRutina
   description: |
-    API REST de ConRutina, aplicación de seguimiento de hábitos con sistema de recompensas.
+    API REST de ConRutina, aplicaci?n de seguimiento de h?bitos con sistema de recompensas.
     
-    Sigue principios de Clean Architecture y una arquitectura por capas para gestionar hábitos de forma escalable.
+    Sigue principios de Clean Architecture y una arquitectura por capas para gestionar h?bitos de forma escalable.
     
     ## Funcionalidades
-    - Gestión del perfil de usuario
-    - Seguimiento de hábitos con estado diario de completitud
-    - Gestión y canje de recompensas
+    - Gesti?n del perfil de usuario
+    - Seguimiento de h?bitos con estado diario de completitud
+    - Gesti?n y canje de recompensas
     - Vistas de calendario semanal
     - Sistema de puntos y penalizaciones
     
@@ -29,7 +29,7 @@ paths:
   /health:
     get:
       summary: Health check del API
-      description: Indica que el proceso del servidor Express está disponible
+      description: Indica que el proceso del servidor Express est? disponible
       tags:
         - Sistema
       responses:
@@ -54,7 +54,7 @@ paths:
   /api/profile:
     get:
       summary: Obtener perfil de usuario
-      description: Devuelve la información del perfil (actualmente fijado al usuario con id=1)
+      description: Devuelve la informaci?n del perfil (actualmente fijado al usuario con id=1)
       tags:
         - Usuario
       responses:
@@ -92,13 +92,13 @@ paths:
   
   /api/habits:
     get:
-      summary: Listar hábitos activos
-      description: Obtiene todos los hábitos activos del usuario (userId=1 en MVP sin auth)
+      summary: Listar h?bitos activos
+      description: Obtiene todos los h?bitos activos del usuario (userId=1 en MVP sin auth)
       tags:
-        - Hábitos
+        - H?bitos
       responses:
         '200':
-          description: Lista de hábitos obtenida correctamente
+          description: Lista de h?bitos obtenida correctamente
           content:
             application/json:
               schema:
@@ -109,10 +109,10 @@ paths:
           description: Error interno del servidor
     
     post:
-      summary: Crear hábito
-      description: Crea un nuevo hábito para seguimiento
+      summary: Crear h?bito
+      description: Crea un nuevo h?bito para seguimiento
       tags:
-        - Hábitos
+        - H?bitos
       requestBody:
         required: true
         content:
@@ -121,20 +121,20 @@ paths:
               $ref: '#/components/schemas/CreateHabitRequest'
       responses:
         '201':
-          description: Hábito creado correctamente
+          description: H?bito creado correctamente
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HabitApi'
         '400':
-          description: Error de validación
+          description: Error de validaci?n
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
               example:
                 code: VALIDATION_ERROR
-                message: Datos inválidos
+                message: Datos inv?lidos
                 details:
                   - field: name
                     message: El nombre es obligatorio
@@ -143,17 +143,17 @@ paths:
 
   /api/habits/{id}:
     patch:
-      summary: Actualizar hábito
-      description: Actualiza parcialmente un hábito existente (userId=1 en MVP sin auth). Solo muta la tabla Habit; los snapshots WeekHabit permanecen inmutables.
+      summary: Actualizar h?bito
+      description: Actualiza parcialmente un h?bito existente (userId=1 en MVP sin auth). Solo muta la tabla Habit; los snapshots WeekHabit permanecen inmutables.
       tags:
-        - Hábitos
+        - H?bitos
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
-          description: Identificador numérico del hábito
+          description: Identificador num?rico del h?bito
       requestBody:
         required: true
         content:
@@ -162,32 +162,32 @@ paths:
               $ref: '#/components/schemas/UpdateHabitRequest'
       responses:
         '200':
-          description: Hábito actualizado correctamente
+          description: H?bito actualizado correctamente
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HabitApi'
         '400':
-          description: Error de validación
+          description: Error de validaci?n
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
               example:
                 code: VALIDATION_ERROR
-                message: Datos inválidos
+                message: Datos inv?lidos
                 details:
                   - field: input
                     message: Debe proporcionar al menos un campo para actualizar
         '404':
-          description: Hábito no encontrado
+          description: H?bito no encontrado
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
               example:
                 code: HABIT_NOT_FOUND
-                message: Hábito no encontrado
+                message: H?bito no encontrado
         '500':
           description: Error interno del servidor
           content:
@@ -196,29 +196,29 @@ paths:
                 $ref: '#/components/schemas/ApiErrorResponse'
 
     delete:
-      summary: Desactivar hábito
-      description: Baja lógica del hábito (isActive=false). No elimina filas WeekHabit ni muta snapshots históricos.
+      summary: Desactivar h?bito
+      description: Baja l?gica del h?bito (isActive=false). No elimina filas WeekHabit ni muta snapshots hist?ricos.
       tags:
-        - Hábitos
+        - H?bitos
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: integer
-          description: Identificador numérico del hábito
+          description: Identificador num?rico del h?bito
       responses:
         '204':
-          description: Hábito desactivado correctamente (sin cuerpo)
+          description: H?bito desactivado correctamente (sin cuerpo)
         '404':
-          description: Hábito no encontrado
+          description: H?bito no encontrado
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
               example:
                 code: HABIT_NOT_FOUND
-                message: Hábito no encontrado
+                message: H?bito no encontrado
         '500':
           description: Error interno del servidor
           content:
@@ -230,7 +230,7 @@ paths:
     get:
       summary: Obtener la semana activa del usuario
       description: >
-        Devuelve la semana activa con WeekHabits, HabitEntries y estadísticas calculadas.
+        Devuelve la semana activa con WeekHabits, HabitEntries y estad?sticas calculadas.
         Si ha cambiado de semana ISO, bloquea la anterior y crea la nueva con entries pending.
       tags:
         - Semanas
@@ -253,7 +253,7 @@ paths:
       summary: Obtener semana por offset respecto a la semana ISO actual
       description: >
         offset=0 equivale a /api/weeks/current (incluye lockWeekAndTransition).
-        offset negativo devuelve semanas históricas sin mutar BD.
+        offset negativo devuelve semanas hist?ricas sin mutar BD.
       tags:
         - Semanas
       parameters:
@@ -272,17 +272,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/WeekResponse'
         '400':
-          description: Parámetro offset inválido
+          description: Par?metro offset inv?lido
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
               example:
                 code: VALIDATION_ERROR
-                message: Datos inválidos
+                message: Datos inv?lidos
                 details:
                   - field: offset
-                    message: El offset debe ser un número entero
+                    message: El offset debe ser un n?mero entero
         '404':
           description: Semana no encontrada en el offset solicitado
           content:
@@ -299,19 +299,84 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
 
+  /api/habit-entries/{id}:
+    patch:
+      summary: Actualizar estado de entrada diaria
+      description: >
+        Actualiza el estado de completitud de una HabitEntry (userId=1 en MVP sin auth).
+        Rechaza la operaci?n si la semana padre est? bloqueada (isLocked=true).
+      tags:
+        - Semanas
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Identificador num?rico de la entrada diaria
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateHabitEntryRequest'
+      responses:
+        '200':
+          description: Entrada actualizada correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HabitEntryResponse'
+        '400':
+          description: Error de validaci?n
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: VALIDATION_ERROR
+                message: Datos inv?lidos
+                details:
+                  - field: status
+                    message: Debe ser pending, completed o failed
+        '404':
+          description: Entrada de h?bito no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: HABIT_ENTRY_NOT_FOUND
+                message: Entrada de h?bito no encontrada
+        '409':
+          description: Semana bloqueada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              example:
+                code: WEEK_LOCKED
+                message: No se puede modificar una semana bloqueada
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
   /api/habits/{id}/toggle/{dayIndex}:
     post:
-      summary: Alternar completitud del hábito (PLANIFICADO)
-      description: Cambia el estado de completitud de un día concreto
+      summary: Alternar completitud del h?bito (PLANIFICADO)
+      description: Cambia el estado de completitud de un d?a concreto
       tags:
-        - Hábitos
+        - H?bitos
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
-          description: Identificador del hábito
+          description: Identificador del h?bito
         - in: path
           name: dayIndex
           required: true
@@ -319,16 +384,16 @@ paths:
             type: integer
             minimum: 0
             maximum: 6
-          description: Índice del día (0-6, domingo a sábado)
+          description: ��ndice del d?a (0-6, domingo a s?bado)
       responses:
         '200':
-          description: Estado del hábito actualizado correctamente
+          description: Estado del h?bito actualizado correctamente
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Habit'
         '404':
-          description: Hábito no encontrado
+          description: H?bito no encontrado
         '500':
           description: Error interno del servidor
 
@@ -369,7 +434,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Reward'
         '400':
-          description: Error de validación
+          description: Error de validaci?n
         '500':
           description: Error interno del servidor
 
@@ -435,7 +500,7 @@ components:
       properties:
         id:
           type: integer
-          description: Identificador único del usuario
+          description: Identificador ?nico del usuario
         name:
           type: string
           nullable: true
@@ -443,7 +508,7 @@ components:
         email:
           type: string
           format: email
-          description: Correo electrónico del usuario
+          description: Correo electr?nico del usuario
         avatarUrl:
           type: string
           nullable: true
@@ -458,28 +523,28 @@ components:
       properties:
         id:
           type: string
-          description: Identificador único del hábito
+          description: Identificador ?nico del h?bito
         emoji:
           type: string
-          description: Emoji que representa el hábito
+          description: Emoji que representa el h?bito
         name:
           type: string
-          description: Nombre del hábito
+          description: Nombre del h?bito
         pointsPerDay:
           type: integer
-          description: Puntos al completar el hábito
+          description: Puntos al completar el h?bito
         penalty:
           type: integer
-          description: Puntos descontados si falla el hábito
+          description: Puntos descontados si falla el h?bito
         streak:
           type: integer
-          description: Racha actual de días consecutivos completados
+          description: Racha actual de d?as consecutivos completados
         completionStatus:
           type: array
           items:
             type: string
             enum: [completed, failed, pending]
-          description: Array de 7 estados (uno por día de la semana)
+          description: Array de 7 estados (uno por d?a de la semana)
       required:
         - id
         - emoji
@@ -495,29 +560,29 @@ components:
       properties:
         id:
           type: integer
-          description: Identificador único del hábito
+          description: Identificador ?nico del h?bito
         userId:
           type: integer
           description: ID del usuario propietario
         emoji:
           type: string
-          description: Emoji que representa el hábito
+          description: Emoji que representa el h?bito
         name:
           type: string
-          description: Nombre del hábito
+          description: Nombre del h?bito
         pointsPerDay:
           type: integer
-          description: Puntos al completar el hábito
+          description: Puntos al completar el h?bito
         penalty:
           type: integer
-          description: Puntos descontados si falla el hábito
+          description: Puntos descontados si falla el h?bito
         isActive:
           type: boolean
-          description: Indica si el hábito está activo (soft delete)
+          description: Indica si el h?bito est? activo (soft delete)
         createdAt:
           type: string
           format: date-time
-          description: Fecha de creación del hábito
+          description: Fecha de creaci?n del h?bito
       required:
         - id
         - userId
@@ -533,18 +598,18 @@ components:
       properties:
         emoji:
           type: string
-          description: Emoji que representa el hábito
+          description: Emoji que representa el h?bito
         name:
           type: string
-          description: Nombre del hábito
+          description: Nombre del h?bito
         pointsPerDay:
           type: integer
           minimum: 1
-          description: Puntos al completar el hábito
+          description: Puntos al completar el h?bito
         penalty:
           type: integer
           minimum: 0
-          description: Puntos descontados si falla el hábito
+          description: Puntos descontados si falla el h?bito
       required:
         - emoji
         - name
@@ -556,35 +621,65 @@ components:
       properties:
         emoji:
           type: string
-          description: Emoji que representa el hábito
+          description: Emoji que representa el h?bito
         name:
           type: string
-          description: Nombre del hábito
+          description: Nombre del h?bito
         pointsPerDay:
           type: integer
           minimum: 1
-          description: Puntos al completar el hábito
+          description: Puntos al completar el h?bito
         penalty:
           type: integer
           minimum: 0
-          description: Puntos descontados si falla el hábito
+          description: Puntos descontados si falla el h?bito
+
+    UpdateHabitEntryRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, completed, failed]
+          description: Nuevo estado de completitud del d?a
+      required:
+        - status
+
+    HabitEntryResponse:
+      type: object
+      description: Respuesta de PATCH /api/habit-entries/{id}
+      properties:
+        id:
+          type: integer
+          description: Identificador de la entrada diaria
+        status:
+          type: string
+          enum: [pending, completed, failed]
+          description: Estado de completitud actualizado
+        updatedAt:
+          type: string
+          format: date-time
+          description: Fecha de ?ltima actualizaci?n (ISO 8601)
+      required:
+        - id
+        - status
+        - updatedAt
 
     WeekStats:
       type: object
-      description: Estadísticas agregadas de la semana visible
+      description: Estad?sticas agregadas de la semana visible
       properties:
         thisWeekPoints:
           type: integer
           description: Suma de snapshotPoints por entries completed
         lastWeekPoints:
           type: integer
-          description: totalPointsEarned de la última semana bloqueada anterior
+          description: totalPointsEarned de la ?ltima semana bloqueada anterior
         penalties:
           type: integer
           description: Suma de snapshotPenalty por entries failed
         maxStreak:
           type: integer
-          description: Máxima racha de completed consecutivos entre hábitos
+          description: M?xima racha de completed consecutivos entre h?bitos
       required:
         - thisWeekPoints
         - lastWeekPoints
@@ -673,7 +768,7 @@ components:
           $ref: '#/components/schemas/WeekStats'
         redemptions:
           type: array
-          description: Vacío hasta implementar canjes HTTP
+          description: Vac?o hasta implementar canjes HTTP
           items:
             type: object
       required:
@@ -687,7 +782,7 @@ components:
       properties:
         id:
           type: string
-          description: Identificador único de la recompensa
+          description: Identificador ?nico de la recompensa
         emoji:
           type: string
           description: Emoji que representa la recompensa
@@ -696,7 +791,7 @@ components:
           description: Nombre de la recompensa
         description:
           type: string
-          description: Descripción de la recompensa
+          description: Descripci?n de la recompensa
         cost:
           type: integer
           description: Puntos necesarios para canjear
@@ -718,7 +813,7 @@ components:
           description: Nombre de la recompensa
         description:
           type: string
-          description: Descripción de la recompensa
+          description: Descripci?n de la recompensa
         cost:
           type: integer
           minimum: 1
@@ -731,30 +826,30 @@ components:
 
     ApiErrorResponse:
       type: object
-      description: Respuesta de error estándar del middleware errorHandler
+      description: Respuesta de error est?ndar del middleware errorHandler
       required:
         - code
         - message
       properties:
         code:
           type: string
-          description: Código de error estable en inglés (p. ej. VALIDATION_ERROR, INTERNAL_ERROR)
+          description: C?digo de error estable en ingl?s (p. ej. VALIDATION_ERROR, INTERNAL_ERROR)
         message:
           type: string
-          description: Mensaje legible para el usuario en español
+          description: Mensaje legible para el usuario en espa?ol
         details:
-          description: Detalles opcionales (array de campos de validación u objeto)
+          description: Detalles opcionales (array de campos de validaci?n u objeto)
         stack:
           type: string
           description: Stack trace; solo presente cuando NODE_ENV !== production
 
     LegacyErrorResponse:
       type: object
-      description: Formato legacy de error (pendiente migración en T-06-01)
+      description: Formato legacy de error (pendiente migraci?n en T-06-01)
       properties:
         error:
           type: string
-          description: Mensaje de error (en español para el usuario)
+          description: Mensaje de error (en espa?ol para el usuario)
       required:
         - error
 
@@ -765,16 +860,16 @@ components:
       properties:
         error:
           type: string
-          description: Mensaje de error (en español para el usuario)
+          description: Mensaje de error (en espa?ol para el usuario)
       required:
         - error
 
 tags:
   - name: Usuario
     description: Operaciones de perfil de usuario
-  - name: Hábitos
-    description: Seguimiento y gestión de hábitos
+  - name: H?bitos
+    description: Seguimiento y gesti?n de h?bitos
   - name: Semanas
-    description: Semana activa e histórico semanal
+    description: Semana activa e hist?rico semanal
   - name: Recompensas
-    description: Gestión y canje de recompensas
+    description: Gesti?n y canje de recompensas

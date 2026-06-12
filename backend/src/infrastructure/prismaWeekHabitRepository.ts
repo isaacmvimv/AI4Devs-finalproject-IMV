@@ -28,7 +28,7 @@ function mapToWeekHabit(row: {
   }
 }
 
-function mapToHabitEntry(row: {
+export function mapToHabitEntry(row: {
   id: number
   weekHabitId: number
   dayIndex: number

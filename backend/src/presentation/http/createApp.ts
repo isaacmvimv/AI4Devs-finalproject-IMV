@@ -10,8 +10,11 @@ import { getWeekByOffset } from '../../application/getWeekByOffset'
 import { getUserProfileById } from '../../application/getUserProfile'
 import { parseWeekOffsetQuery } from '../../application/parseWeekOffsetQuery'
 import { updateHabit } from '../../application/updateHabit'
+import { updateHabitEntry } from '../../application/updateHabitEntry'
 import { createHabitSchema, updateHabitSchema } from '../../application/validation/habit'
+import { updateHabitEntrySchema } from '../../application/validation/habitEntry'
 import { NotFoundError } from '../../domain/errors/appErrors'
+import { createPrismaHabitEntryRepository } from '../../infrastructure/prismaHabitEntryRepository'
 import { createPrismaHabitRepository } from '../../infrastructure/prismaHabitRepository'
 import { createPrismaUserRepository } from '../../infrastructure/prismaUserRepository'
 import { createPrismaWeekRepository } from '../../infrastructure/prismaWeekRepository'
@@ -27,11 +30,20 @@ function parseHabitIdParam(id: string): number {
   return habitId
 }
 
+function parseHabitEntryIdParam(id: string): number {
+  const entryId = Number.parseInt(id, 10)
+  if (Number.isNaN(entryId)) {
+    throw new NotFoundError('Entrada de hábito no encontrada', 'HABIT_ENTRY_NOT_FOUND')
+  }
+  return entryId
+}
+
 export function createApp(prisma: PrismaClient): Express {
   const app = express()
   const userRepository = createPrismaUserRepository(prisma)
   const habitRepository = createPrismaHabitRepository(prisma)
   const weekRepository = createPrismaWeekRepository(prisma)
+  const habitEntryRepository = createPrismaHabitEntryRepository(prisma)
   const origin = config.corsOrigin
 
   app.use(
@@ -105,6 +117,20 @@ export function createApp(prisma: PrismaClient): Express {
       const offset = parseWeekOffsetQuery(req.query.offset)
       const payload = await getWeekByOffset(weekRepository, habitRepository, 1, offset)
       return res.status(200).json(payload)
+    })
+  )
+
+  app.patch(
+    '/api/habit-entries/:id',
+    validateBody(updateHabitEntrySchema),
+    asyncHandler(async (req, res) => {
+      const entryId = parseHabitEntryIdParam(req.params.id)
+      const entry = await updateHabitEntry(habitEntryRepository, 1, entryId, req.body)
+      return res.status(200).json({
+        id: entry.id,
+        status: entry.status,
+        updatedAt: entry.updatedAt.toISOString(),
+      })
     })
   )
 

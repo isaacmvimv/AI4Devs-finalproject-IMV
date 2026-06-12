@@ -663,6 +663,7 @@ GET    /api/habits
 POST   /api/habits
 PATCH  /api/habits/:id
 DELETE /api/habits/:id
+PATCH  /api/habit-entries/:id
 GET    /api/rewards
 POST   /api/rewards
 DELETE /api/rewards/:id

@@ -8,8 +8,10 @@ import { getCurrentWeekResponse } from '../../application/getCurrentWeekResponse
 import { getWeekByOffset } from '../../application/getWeekByOffset'
 import { getUserProfileById } from '../../application/getUserProfile'
 import { updateHabit } from '../../application/updateHabit'
-import { NotFoundError, ValidationError } from '../../domain/errors/appErrors'
+import { updateHabitEntry } from '../../application/updateHabitEntry'
+import { ConflictError, NotFoundError, ValidationError } from '../../domain/errors/appErrors'
 import type { Habit } from '../../domain/habit'
+import type { HabitEntry } from '../../domain/week'
 import type { UserProfile } from '../../domain/userProfile'
 import { createApp } from './createApp'
 
@@ -29,6 +31,10 @@ vi.mock('../../application/updateHabit', () => ({
   updateHabit: vi.fn(),
 }))
 
+vi.mock('../../application/updateHabitEntry', () => ({
+  updateHabitEntry: vi.fn(),
+}))
+
 vi.mock('../../application/deactivateHabit', () => ({
   deactivateHabit: vi.fn(),
 }))
@@ -45,6 +51,7 @@ const mockGetUserProfileById = vi.mocked(getUserProfileById)
 const mockCreateHabit = vi.mocked(createHabit)
 const mockGetActiveHabits = vi.mocked(getActiveHabits)
 const mockUpdateHabit = vi.mocked(updateHabit)
+const mockUpdateHabitEntry = vi.mocked(updateHabitEntry)
 const mockDeactivateHabit = vi.mocked(deactivateHabit)
 const mockGetCurrentWeekResponse = vi.mocked(getCurrentWeekResponse)
 const mockGetWeekByOffset = vi.mocked(getWeekByOffset)
@@ -464,5 +471,105 @@ describe('GET /api/weeks', () => {
       code: 'VALIDATION_ERROR',
     })
     expect(mockGetWeekByOffset).not.toHaveBeenCalled()
+  })
+})
+
+describe('PATCH /api/habit-entries/:id', () => {
+  const sampleEntry: HabitEntry = {
+    id: 42,
+    weekHabitId: 10,
+    dayIndex: 0,
+    status: 'completed',
+    updatedAt: new Date('2026-06-10T11:00:00.000Z'),
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns 200 with updated entry on happy path', async () => {
+    mockUpdateHabitEntry.mockResolvedValue(sampleEntry)
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .patch('/api/habit-entries/42')
+      .send({ status: 'completed' })
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({
+      id: 42,
+      status: 'completed',
+      updatedAt: '2026-06-10T11:00:00.000Z',
+    })
+    expect(mockUpdateHabitEntry).toHaveBeenCalledWith(expect.anything(), 1, 42, { status: 'completed' })
+  })
+
+  it('returns 400 VALIDATION_ERROR for invalid status without invoking use case', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .patch('/api/habit-entries/42')
+      .send({ status: 'done' })
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      code: 'VALIDATION_ERROR',
+      message: 'Datos inválidos',
+    })
+    expect(response.body.details).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'status',
+          message: 'Debe ser pending, completed o failed',
+        }),
+      ])
+    )
+    expect(mockUpdateHabitEntry).not.toHaveBeenCalled()
+  })
+
+  it('returns 404 HABIT_ENTRY_NOT_FOUND when entry not found', async () => {
+    mockUpdateHabitEntry.mockRejectedValue(
+      new NotFoundError('Entrada de hábito no encontrada', 'HABIT_ENTRY_NOT_FOUND')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .patch('/api/habit-entries/42')
+      .send({ status: 'completed' })
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'HABIT_ENTRY_NOT_FOUND',
+      message: 'Entrada de hábito no encontrada',
+    })
+  })
+
+  it('returns 409 WEEK_LOCKED when week is locked', async () => {
+    mockUpdateHabitEntry.mockRejectedValue(
+      new ConflictError('No se puede modificar una semana bloqueada', 'WEEK_LOCKED')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .patch('/api/habit-entries/42')
+      .send({ status: 'completed' })
+
+    expect(response.status).toBe(409)
+    expect(response.body).toMatchObject({
+      code: 'WEEK_LOCKED',
+      message: 'No se puede modificar una semana bloqueada',
+    })
+  })
+
+  it('returns 404 without invoking use case when id is invalid', async () => {
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .patch('/api/habit-entries/abc')
+      .send({ status: 'completed' })
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      code: 'HABIT_ENTRY_NOT_FOUND',
+    })
+    expect(mockUpdateHabitEntry).not.toHaveBeenCalled()
   })
 })
