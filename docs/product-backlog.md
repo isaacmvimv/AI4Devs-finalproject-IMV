@@ -2085,7 +2085,7 @@ gantt
 - **Tipo:** Backend — Presentación HTTP + Aplicación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Implementar `PATCH /api/habit-entries/:id`. Validar que la semana no está bloqueada antes de actualizar. Responder con la entrada actualizada.
 

@@ -93,8 +93,8 @@
 
 - [x] C.1 Confirmar `tasks.md` completo e informes PASS
 - [x] C.2 Obtener aceptación del usuario
-- [ ] C.3 Commit único en feature (viñetas) — solo en `/opsx:archive`
-- [ ] C.4 `git push -u origin feature/T-10-01-patch-habit-entry`
-- [ ] C.5 Merge a `develop`
-- [ ] C.6 `mv` change → `openspec/changes/archive/YYYY-MM-DD-t-10-01-patch-habit-entry/`
-- [ ] C.7 `npm run openspec:mark-ticket -- --change t-10-01-patch-habit-entry`
+- [x] C.3 Commit único en feature (viñetas) — solo en `/opsx:archive`
+- [x] C.4 `git push -u origin feature/T-10-01-patch-habit-entry`
+- [x] C.5 Merge a `develop`
+- [x] C.6 `mv` change → `openspec/changes/archive/2026-06-12-t-10-01-patch-habit-entry/`
+- [x] C.7 `npm run openspec:mark-ticket -- --change t-10-01-patch-habit-entry`
