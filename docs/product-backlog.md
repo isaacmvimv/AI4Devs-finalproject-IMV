@@ -2112,7 +2112,7 @@ gantt
 - **Tipo:** Backend — Dominio + Aplicación + Infraestructura
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Implementar `RewardRepository` (puerto), `PrismaRewardRepository`, casos de uso `createReward`, `getActiveRewards`, `softDeleteReward`. Mismos patrones que hábitos.
 
