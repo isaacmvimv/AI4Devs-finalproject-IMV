@@ -152,12 +152,14 @@ backend/
 │   │   ├── errors/                 # Clases de error (AppError, ValidationError, …)
 │   │   ├── userProfile.ts          # Entidades de dominio
 │   │   ├── habit.ts                # Entidad Habit + tipos CreateHabitData / UpdateHabitData
-│   │   └── reward.ts               # Entidad Reward + CreateRewardData (T-11-01)
+│   │   ├── reward.ts               # Entidad Reward + CreateRewardData (T-11-01)
+│   │   └── rewardRedemption.ts     # Entidad RewardRedemption (T-12-01)
 │   ├── application/
 │   │   ├── ports/                  # Interfaces puerto
 │   │   │   ├── UserReadRepository.ts
 │   │   │   ├── HabitRepository.ts
-│   │   │   └── RewardRepository.ts
+│   │   │   ├── RewardRepository.ts
+│   │   │   └── RewardRedemptionRepository.ts  # T-12-01
 │   │   ├── validation/
 │   │   │   ├── habit.ts            # Schema Zod + parseCreateHabitInput
 │   │   │   └── reward.ts           # createRewardSchema + parseCreateRewardInput (T-11-01)
@@ -167,7 +169,9 @@ backend/
 │   │   ├── createReward.ts         # T-11-01
 │   │   ├── getActiveRewards.ts     # T-11-01
 │   │   ├── softDeleteReward.ts     # T-11-01
-│   │   └── rewardOwnership.ts      # assertRewardOwnedByUser (T-11-01)
+│   │   ├── rewardOwnership.ts      # assertRewardOwnedByUser (T-11-01)
+│   │   ├── calculateWeekAvailableBalance.ts  # Saldo neto semanal (T-12-01)
+│   │   └── redeemReward.ts         # Canje transaccional (T-12-01)
 │   ├── presentation/
 │   │   └── http/
 │   │       ├── createApp.ts        # Configuración HTTP
@@ -175,7 +179,8 @@ backend/
 │   ├── infrastructure/
 │   │   ├── prismaUserRepository.ts # Implementaciones de repositorio
 │   │   ├── prismaHabitRepository.ts
-│   │   └── prismaRewardRepository.ts  # T-11-01
+│   │   ├── prismaRewardRepository.ts  # T-11-01
+│   │   └── prismaRewardRedemptionRepository.ts  # T-12-01
 │   ├── loadEnv.ts                  # Carga de entorno
 │   └── main.ts                     # Punto de entrada (composición)
 ├── prisma/
@@ -901,6 +906,53 @@ export async function assertRewardOwnedByUser(
     throw new NotFoundError('Recompensa no encontrada', 'REWARD_NOT_FOUND');
   }
   return reward;
+}
+```
+
+### Canje de recompensas (T-12-01)
+
+- **Dominio:** `backend/src/domain/rewardRedemption.ts` — tipo `RewardRedemption` (`id`, `weekId`, `rewardId`, `pointsSpent`, `redeemedAt`).
+- **Puerto:** `RewardRedemptionRepository` con `redeem({ userId, weekId, rewardId, rewardCost })`; la implementación MUST calcular saldo y crear el canje en la misma transacción.
+- **Infraestructura:** `prismaRewardRedemptionRepository.ts` — `prisma.$transaction` + `SELECT ... FOR UPDATE` sobre `Week`, agregado de `pointsSpent` previos, validaciones y `create`.
+- **Saldo:** `calculateWeekAvailableBalance(week, redemptionsSpentTotal)` — `sum(completed × snapshotPoints) - sum(failed × snapshotPenalty) - redemptionsSpentTotal`.
+- **Caso de uso:** `redeemReward(redemptionRepo, rewardRepo, userId, weekId, rewardId)` — ownership de recompensa vía `assertRewardOwnedByUser`, delegación al repo con `reward.cost`.
+- **Errores:** `INSUFFICIENT_POINTS` (`UnprocessableError`, details `{ available, required }`), `WEEK_LOCKED` (`ConflictError`, mismo mensaje que `updateHabitEntry`), `WEEK_NOT_FOUND` / `REWARD_NOT_FOUND` (`NotFoundError`).
+- **HTTP:** endpoint `POST /api/weeks/:weekId/redemptions` en T-12-02; este ticket no modifica `createApp.ts`.
+
+```typescript
+// application/ports/RewardRedemptionRepository.ts (T-12-01)
+export interface RewardRedemptionRepository {
+  redeem(params: {
+    userId: number;
+    weekId: number;
+    rewardId: number;
+    rewardCost: number;
+  }): Promise<RewardRedemption>;
+}
+
+// application/calculateWeekAvailableBalance.ts (T-12-01)
+export function calculateWeekAvailableBalance(
+  week: WeekWithDetails,
+  redemptionsSpentTotal: number,
+): number {
+  // earned - penalties - redemptionsSpentTotal
+}
+
+// application/redeemReward.ts (T-12-01)
+export async function redeemReward(
+  redemptionRepo: RewardRedemptionRepository,
+  rewardRepo: RewardRepository,
+  userId: number,
+  weekId: number,
+  rewardId: number,
+): Promise<RewardRedemption> {
+  const reward = await assertRewardOwnedByUser(rewardRepo, rewardId, userId);
+  return redemptionRepo.redeem({
+    userId,
+    weekId,
+    rewardId,
+    rewardCost: reward.cost,
+  });
 }
 ```
 
