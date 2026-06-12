@@ -11,6 +11,32 @@ metadata:
 
 Implement tasks from an OpenSpec change.
 
+## Política de tests en apply (TOGGLE)
+
+```
+applyTestScope: change-only
+```
+
+Valores: `change-only` | `full-suite`
+
+**Revertir a suite completa:** cambiar la línea anterior a `applyTestScope: full-suite` (solo este archivo).
+
+Anunciar al iniciar apply: `Alcance tests: <change-only|full-suite>`.
+
+### `change-only` (default)
+
+En tareas de tests unitarios / verificación:
+
+- **Ejecutar** solo comandos `npm test -- <ruta>` con rutas explícitas a archivos `*.test.ts` **creados o modificados en este change** (p. ej. subtareas §7 con rutas concretas).
+- **No ejecutar** `npm test` sin argumentos ni equivalentes (“suite backend relevante”, “suite completa”, “confirmar regresión”).
+- **Omitir** subtareas de regresión de tickets anteriores (p. ej. “Confirmar tests T-09 sin regresión”): marcar `[x]` con nota `(N/A — change-only; suite completa omitida)`.
+- **Sustituir** subtareas de suite amplia por `npm run typecheck` cuando `tasks.md` pida verificación tras tests focalizados; documentar en el informe.
+- En informes (`templates/verification.md`): incluir **Alcance tests:** `change-only`, lista de archivos ejecutados, y **Suite completa:** `N/A`.
+
+### `full-suite`
+
+Seguir `tasks.md` al pie de la letra, incluido `npm test` sin rutas y comprobaciones de regresión.
+
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
@@ -82,6 +108,7 @@ Implement tasks from an OpenSpec change.
    - Show which task is being worked on
    - Make the code changes required
    - Keep changes minimal and focused
+   - **Tests:** aplicar la **Política de tests en apply (TOGGLE)** — en `change-only`, no invocar la suite completa aunque `tasks.md` la liste
    - Mark task complete in the tasks file: `- [ ]` → `- [x]`
    - Continue to next task
 
@@ -152,6 +179,7 @@ What would you like to do?
 
 **Guardrails**
 - Keep going through tasks until done or blocked
+- **Tests (`applyTestScope`):** en `change-only`, nunca ejecutar `npm test` sin rutas de archivo; solo tests nuevos/modificados del change + `typecheck` / arranque según `tasks.md`; curl y E2E sin cambio
 - Carga incremental: empezar solo con `tasks.md`; leer `design.md` / specs / `proposal.md` cuando la tarea actual lo requiera
 - If task is ambiguous, pause and ask before implementing
 - If implementation reveals issues, pause and suggest artifact updates
