@@ -2190,7 +2190,7 @@ gantt
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Registrar `POST /api/weeks/:weekId/redemptions`. Body: `{ rewardId }`. Delega en el caso de uso de T-12-01.
 

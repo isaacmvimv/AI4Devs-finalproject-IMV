@@ -78,9 +78,9 @@
 ## Cierre → tasks-core §Cierre (OBLIGATORIO al archivar; sin commits en apply)
 
 - [x] C.1 Confirmar `tasks.md` completo e informes PASS
-- [ ] C.2 Obtener aceptación del usuario
-- [ ] C.3 Commit único en feature (viñetas) — solo en `/opsx:archive`
-- [ ] C.4 `git push -u origin feature/T-12-02-weekid-redemptions`
-- [ ] C.5 Merge a `develop`
-- [ ] C.6 `mv` change → `openspec/changes/archive/YYYY-MM-DD-t-12-02-weekid-redemptions/`
-- [ ] C.7 `npm run openspec:mark-ticket -- --change t-12-02-weekid-redemptions`
+- [x] C.2 Obtener aceptación del usuario
+- [x] C.3 Commit único en feature (viñetas) — solo en `/opsx:archive`
+- [x] C.4 `git push -u origin feature/T-12-02-weekid-redemptions`
+- [x] C.5 Merge a `develop`
+- [x] C.6 `mv` change → `openspec/changes/archive/YYYY-MM-DD-t-12-02-weekid-redemptions/`
+- [x] C.7 `npm run openspec:mark-ticket -- --change t-12-02-weekid-redemptions`
