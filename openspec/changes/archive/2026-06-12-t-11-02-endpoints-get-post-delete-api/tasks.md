@@ -76,8 +76,8 @@
 
 - [x] C.1 Confirmar `tasks.md` completo e informes PASS
 - [x] C.2 Obtener aceptación del usuario
-- [ ] C.3 Commit único en feature (viñetas) — solo en `/opsx:archive`
-- [ ] C.4 `git push -u origin feature/T-11-02-endpoints-get-post-delete-api`
-- [ ] C.5 Merge a `develop`
-- [ ] C.6 `mv` change → `openspec/changes/archive/YYYY-MM-DD-t-11-02-endpoints-get-post-delete-api/`
-- [ ] C.7 `npm run openspec:mark-ticket -- --change t-11-02-endpoints-get-post-delete-api`
+- [x] C.3 Commit único en feature (viñetas) — solo en `/opsx:archive`
+- [x] C.4 `git push -u origin feature/T-11-02-endpoints-get-post-delete-api`
+- [x] C.5 Merge a `develop`
+- [x] C.6 `mv` change → `openspec/changes/archive/YYYY-MM-DD-t-11-02-endpoints-get-post-delete-api/`
+- [x] C.7 `npm run openspec:mark-ticket -- --change t-11-02-endpoints-get-post-delete-api`

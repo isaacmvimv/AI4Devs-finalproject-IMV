@@ -2138,7 +2138,7 @@ gantt
 - **Tipo:** Backend — Presentación HTTP
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Registrar `GET /api/rewards`, `POST /api/rewards` y `DELETE /api/rewards/:id`.
 
