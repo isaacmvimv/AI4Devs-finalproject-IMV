@@ -2246,7 +2246,7 @@ gantt
 - **Tipo:** Frontend — Infraestructura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `frontend/src/infrastructure/habitApi.ts` con funciones: `fetchHabits()`, `createHabit(input)`, `deleteHabit(id)` y `frontend/src/infrastructure/habitEntryApi.ts` con `updateHabitEntry(entryId, status)`.
 
