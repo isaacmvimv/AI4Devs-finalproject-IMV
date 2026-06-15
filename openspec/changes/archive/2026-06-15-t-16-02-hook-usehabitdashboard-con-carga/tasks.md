@@ -64,4 +64,4 @@
 - [x] 11.2 Actualizar `frontend/src/application/README.md` describiendo la nueva orquestación de `useHabitDashboard` (carga API, `mapWeekResponseToDashboard.ts`, `loading`/`error`, `handleWeekNav`)
 
 ## Cierre → tasks-core §Cierre (OBLIGATORIO al archivar; sin commits en apply)
-- [ ] Commit único, push de `feature/T-16-02-hook-usehabitdashboard-con-carga` y merge a `develop` (solo en `/opsx:archive`)
+- [x] Commit único, push de `feature/T-16-02-hook-usehabitdashboard-con-carga` y merge a `develop` (solo en `/opsx:archive`)

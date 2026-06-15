@@ -2272,7 +2272,7 @@ gantt
 - **Tipo:** Frontend — Aplicación
 - **Complejidad:** `L` &nbsp;·&nbsp; **Story Points:** 5
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `frontend/src/application/useHabitDashboard.ts`. Carga la semana actual desde `GET /api/weeks/current` al montar. Gestiona el estado de hábitos, entradas, stats y semana. Expone handlers: `handleAddHabit`, `handleDeleteHabit`, `handleToggleDay`, `handleAddReward`, `handleRedeemReward`, `handleDeleteReward`, `handleWeekNav(offset)`.
 
