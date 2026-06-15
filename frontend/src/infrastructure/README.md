@@ -8,5 +8,6 @@ Clientes HTTP y adaptadores a servicios externos.
   - `profileApi.ts` — GET `/api/profile` (usa `apiGet`, legacy)
   - `habitApi.ts` — `fetchHabits` (GET `/api/habits`), `createHabit` (POST `/api/habits`), `deleteHabit` (DELETE `/api/habits/:id`) (usan `apiRequest`)
   - `habitEntryApi.ts` — `updateHabitEntry` (PATCH `/api/habit-entries/:id`) (usa `apiRequest`)
+  - `weekApi.ts` — `fetchCurrentWeek` (GET `/api/weeks/current`), `fetchWeekByOffset` (GET `/api/weeks?offset=`); tipos `WeekResponseDto`/`WeekStatsDto` alineados con `WeekResponse`/`WeekStats` de `docs/api-spec.yml` (usan `apiRequest`)
 
 Los adaptadores traducen respuestas HTTP a tipos consumibles por la capa application. El código nuevo debe usar `apiRequest`/`ApiError`; `apiGet`/`ApiGetResult` se mantienen solo por compatibilidad con `profileApi.ts`.

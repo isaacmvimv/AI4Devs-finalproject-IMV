@@ -23,13 +23,13 @@ export default function App() {
     isRewardModalOpen,
     setIsRewardModalOpen,
     weekOffset,
-    setWeekOffset,
     isWeekLocked,
     stats,
     totalPoints,
     currentDayIndex,
     todayProgress,
     weekData,
+    handleWeekNav,
     handleToggleDay,
     handleAddHabit,
     handleDeleteHabit,
@@ -78,8 +78,8 @@ export default function App() {
           <WeeklyCalendar
             weekDates={weekData.dates}
             weekRange={weekData.range}
-            onPrevWeek={() => setWeekOffset(weekOffset - 1)}
-            onNextWeek={() => setWeekOffset(weekOffset + 1)}
+            onPrevWeek={() => handleWeekNav(weekOffset - 1)}
+            onNextWeek={() => handleWeekNav(weekOffset + 1)}
             currentDayIndex={currentDayIndex}
           />
 
