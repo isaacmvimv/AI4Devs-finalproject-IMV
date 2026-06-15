@@ -2219,7 +2219,7 @@ gantt
 - **Tipo:** Frontend — Aplicación + Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `frontend/src/infrastructure/profileApi.ts` con `fetchUserProfile()`. Crear hook `frontend/src/application/useUserProfile.ts`. Crear componente `UserProfileCard.tsx` que muestra nombre, email, avatar (con fallback a iniciales).
 

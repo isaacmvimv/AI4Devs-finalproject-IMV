@@ -85,7 +85,9 @@ Este documento describe las buenas prácticas, convenciones y estándares utiliz
 - **canvas-confetti 1.9.4**: Efectos de celebración para logros
 
 ### Framework de pruebas
-- **Vitest** (planificado): Framework de pruebas moderno
+- **Vitest**: Framework de pruebas para lógica de dominio (`environment: 'node'`) y componentes React (`@vitest-environment jsdom` por archivo)
+- **@testing-library/react** + **@testing-library/jest-dom**: Render y aserciones de componentes
+- **jsdom**: Entorno DOM para tests de componentes
 - **Playwright** (vía MCP): Capacidad de pruebas E2E
 
 ### Herramientas de desarrollo
@@ -622,12 +624,12 @@ const buttonVariants = cva(
 
 ## Estándares de pruebas
 
-### Pruebas unitarias (planificadas)
-- **Vitest**: Framework de pruebas moderno (pendiente de configurar)
-- **Organización de pruebas**: Seguir estructura orientada al dominio
+### Pruebas unitarias (dominio)
+- **Vitest** con `environment: 'node'` (por defecto en `vitest.config.ts`)
+- **Organización de pruebas**: Seguir estructura orientada al dominio (`*.test.ts` junto al fichero probado)
 - **Probar funciones puras**: La lógica de dominio es fácil de testear
 
-**Ejemplo de prueba futura:**
+**Ejemplo:**
 ```typescript
 import { describe, it, expect } from 'vitest';
 import { computeStreakFromStatus, toggleHabitDayCompletion } from './habit';
@@ -650,6 +652,40 @@ describe('Habit domain logic', () => {
     expect(updated.completionStatus[0]).toBe('completed');
   });
 });
+```
+
+### Pruebas de componentes (Vitest + Testing Library + jsdom)
+- **`vitest.setup.ts`** carga `@testing-library/jest-dom/vitest` globalmente (matchers como `toBeInTheDocument`)
+- **Entorno jsdom por archivo**: añadir `// @vitest-environment jsdom` como primera línea del test (los tests de dominio/backend siguen en `environment: 'node'` por defecto)
+- **`frontend/tsconfig.json`** incluye `"types": ["@testing-library/jest-dom"]` para que TypeScript reconozca los matchers
+- **Cleanup explícito**: como `test.globals` no está activado, llamar a `cleanup()` de `@testing-library/react` en `afterEach` para desmontar entre tests
+- **Mock de `fetch`**: usar `vi.stubGlobal('fetch', vi.fn().mockResolvedValue(...))` y `vi.unstubAllGlobals()` en `afterEach`
+
+**Ejemplo (`UserProfileCard.test.tsx`):**
+```typescript
+// @vitest-environment jsdom
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import UserProfileCard from './UserProfileCard'
+
+describe('UserProfileCard', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    cleanup()
+  })
+
+  it('muestra nombre y email en éxito', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 1, name: 'Ana García', email: 'ana@ejemplo.com', avatarUrl: null }),
+    }))
+
+    render(<UserProfileCard />)
+
+    expect(await screen.findByText('Ana García')).toBeInTheDocument()
+  })
+})
 ```
 
 ### Pruebas E2E con Playwright MCP

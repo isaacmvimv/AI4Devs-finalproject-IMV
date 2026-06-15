@@ -5,6 +5,7 @@ export interface ProfileUserDto {
   id: number
   name: string | null
   email: string
+  avatarUrl: string | null
 }
 
 export type ProfileApiResult = { ok: true; user: ProfileUserDto } | { ok: false; error: string }
