@@ -2378,7 +2378,7 @@ gantt
 - **Tipo:** Frontend — Infraestructura
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `frontend/src/infrastructure/rewardApi.ts` con: `fetchRewards()`, `createReward(input)`, `deleteReward(id)`, `redeemReward(weekId, rewardId)`.
 
