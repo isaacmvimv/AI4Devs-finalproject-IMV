@@ -556,8 +556,10 @@ export function AddHabitModal({ isOpen, onClose, onAdd }: Props) {
 ### Manejo de formularios
 - Usar **react-hook-form** para formularios complejos
 - **Componentes controlados** con useState para formularios sencillos
-- **Validación en tiempo real** cuando proceda
-- **Deshabilitar botones de envío** durante el submit
+- **Validación inline con estado propio**: para modales sin react-hook-form, usar `useState<{field?: string}>({})` para errores + función `validate()` que devuelve el objeto de errores antes del submit
+- **Deshabilitar botones de envío** durante el submit (`isSubmitting`) y mostrar spinner (`<Loader2 className="animate-spin" />`)
+- **Errores inline**: renderizar `<p className="text-sm text-red-500 mt-1">{errors.field}</p>` junto a cada campo inválido
+- **Manejo de errores de API en modales**: capturar en catch, mostrar `toast.error(msg)` y mantener el modal abierto; cerrar solo en éxito
 
 **Ejemplo de formulario sencillo de ConRutina:**
 ```typescript
