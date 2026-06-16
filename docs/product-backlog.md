@@ -2300,7 +2300,7 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `HabitRow.tsx`. Muestra emoji, nombre del hábito, contador de racha, 7 botones de día (ciclo pending/completed/failed con colores), y botón de eliminar. Acepta prop `isReadOnly` para modo lectura.
 
