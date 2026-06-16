@@ -2327,7 +2327,7 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `AddHabitModal.tsx` usando el componente `Dialog` de shadcn/ui. Formulario con campos: emoji (selector o text), nombre, puntos por día (number), penalización (number). Validaciones inline antes de llamar a la API.
 
