@@ -16,6 +16,7 @@ export interface WeekApiResponse {
       habitId: number
       order: number
       snapshotName: string
+      snapshotEmoji: string
       snapshotPoints: number
       snapshotPenalty: number
     }
@@ -45,6 +46,7 @@ export function mapWeekToApiResponse(week: WeekWithDetails, stats: WeekStats): W
         habitId: wh.habitId,
         order: wh.order,
         snapshotName: wh.snapshotName,
+        snapshotEmoji: wh.snapshotEmoji,
         snapshotPoints: wh.snapshotPoints,
         snapshotPenalty: wh.snapshotPenalty,
       },

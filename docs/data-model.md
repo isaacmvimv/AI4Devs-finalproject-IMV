@@ -71,7 +71,7 @@ Representa una semana calendario del usuario, con bloqueo histórico y totales a
 1. Si `isLocked === true`, retorna sin modificar (idempotente).
 2. Por cada `WeekHabit`, cuenta entradas `completed` y `failed`.
 3. Calcula `totalPointsEarned` = Σ(completados × `Habit.pointsPerDay`) y `totalPenalties` = Σ(fallados × `Habit.penalty`) usando el hábito maestro en el momento del bloqueo.
-4. Escribe snapshots definitivos en `WeekHabit` (`snapshotName`, `snapshotPoints`, `snapshotPenalty`) desde el hábito maestro.
+4. Escribe snapshots definitivos en `WeekHabit` (`snapshotName`, `snapshotEmoji`, `snapshotPoints`, `snapshotPenalty`) desde el hábito maestro.
 5. Marca `Week.isLocked = true` con los totales calculados.
 
 Si la semana no tiene entradas completadas ni fallidas, los totales quedan en 0; los snapshots se escriben igualmente. Tras el bloqueo, editar el hábito maestro no altera el histórico de la semana cerrada.
@@ -114,6 +114,7 @@ Tabla intermedia: asocia un hábito a una semana concreta. Cada semana puede ten
 | `habitId` | `Int` (FK → Habit) | Hábito asociado |
 | `order` | `Int` | Orden en el calendario |
 | `snapshotName` | `String` | Nombre al bloquear (histórico inmutable) |
+| `snapshotEmoji` | `String` | Emoji al bloquear (histórico inmutable) |
 | `snapshotPoints` | `Int` | Puntos al bloquear |
 | `snapshotPenalty` | `Int` | Penalización al bloquear |
 
@@ -251,6 +252,7 @@ erDiagram
     Int habitId FK
     Int order
     String snapshotName
+    String snapshotEmoji
     Int snapshotPoints
     Int snapshotPenalty
   }

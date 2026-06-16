@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NotFoundError } from '../domain/errors/appErrors'
 import type { WeekWithDetails } from '../domain/week'
 import { getWeekByOffset } from './getWeekByOffset'
@@ -45,6 +45,7 @@ const lockedWeek: WeekWithDetails = {
       habitId: 1,
       order: 0,
       snapshotName: 'Yoga',
+      snapshotEmoji: '💪',
       snapshotPoints: 10,
       snapshotPenalty: 5,
       entries: Array.from({ length: 7 }, (_, dayIndex) => ({

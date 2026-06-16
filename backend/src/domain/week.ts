@@ -15,6 +15,7 @@ export interface WeekHabit {
   habitId: number
   order: number
   snapshotName: string
+  snapshotEmoji: string
   snapshotPoints: number
   snapshotPenalty: number
 }

@@ -30,6 +30,7 @@ const weekResponseDto: WeekResponseDto = {
         habitId: 1,
         order: 0,
         snapshotName: 'Ejercicio 30 min',
+        snapshotEmoji: '🏃',
         snapshotPoints: 5,
         snapshotPenalty: 2,
       },

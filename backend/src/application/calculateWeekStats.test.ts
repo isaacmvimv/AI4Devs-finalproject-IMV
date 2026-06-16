@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+﻿import { describe, expect, it } from 'vitest'
 import { calculateWeekStats, getCurrentDayIndex } from './calculateWeekStats'
 import type { WeekWithDetails } from '../domain/week'
 
@@ -21,6 +21,7 @@ function makeWeek(entries: Array<{ dayIndex: number; status: 'pending' | 'comple
         habitId: 1,
         order: 0,
         snapshotName: 'Correr',
+        snapshotEmoji: '💪',
         snapshotPoints: 10,
         snapshotPenalty: 5,
         entries: entries.map((e, i) => ({

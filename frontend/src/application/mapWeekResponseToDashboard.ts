@@ -24,7 +24,7 @@ export function mapWeekResponseToDashboard(
 
     habits.push({
       id,
-      emoji: '',
+      emoji: weekHabit.snapshotEmoji,
       name: weekHabit.snapshotName,
       pointsPerDay: weekHabit.snapshotPoints,
       penalty: weekHabit.snapshotPenalty,

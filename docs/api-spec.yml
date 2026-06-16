@@ -809,6 +809,8 @@ components:
                     type: integer
                   snapshotName:
                     type: string
+                  snapshotEmoji:
+                    type: string
                   snapshotPoints:
                     type: integer
                   snapshotPenalty:
@@ -818,6 +820,7 @@ components:
                   - habitId
                   - order
                   - snapshotName
+                  - snapshotEmoji
                   - snapshotPoints
                   - snapshotPenalty
               entries:

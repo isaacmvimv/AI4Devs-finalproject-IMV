@@ -32,6 +32,7 @@ function mapToWeekHabitWithEntries(row: {
   habitId: number
   order: number
   snapshotName: string
+  snapshotEmoji: string
   snapshotPoints: number
   snapshotPenalty: number
   habitEntries: Array<{
@@ -48,6 +49,7 @@ function mapToWeekHabitWithEntries(row: {
     habitId: row.habitId,
     order: row.order,
     snapshotName: row.snapshotName,
+    snapshotEmoji: row.snapshotEmoji,
     snapshotPoints: row.snapshotPoints,
     snapshotPenalty: row.snapshotPenalty,
     entries: row.habitEntries.map(mapToHabitEntry),
@@ -70,6 +72,7 @@ function mapToWeekWithDetails(
       habitId: number
       order: number
       snapshotName: string
+      snapshotEmoji: string
       snapshotPoints: number
       snapshotPenalty: number
       habitEntries: Array<{

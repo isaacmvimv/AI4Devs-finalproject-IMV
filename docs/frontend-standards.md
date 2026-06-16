@@ -310,29 +310,62 @@ export interface Habit {
 
 // Component props interface
 interface HabitRowProps {
-  id: string;
   emoji: string;
   name: string;
-  points: number;
-  streak: number;
-  completionStatus: CompletionStatus[];
-  onToggleDay: (habitId: string, dayIndex: number) => void;
-  onDelete: (habitId: string) => void;
+  streak?: number;
+  completionStatus: Array<'completed' | 'failed' | 'pending'>;
+  weekOffset?: number;          // 0 = semana actual, default 0
+  onToggle: (dayIndex: number) => void;  // el padre cierra sobre habitId
+  onDelete: () => void;                  // el padre cierra sobre habitId
+  isReadOnly?: boolean;
 }
 
 // Functional component with TypeScript
 export default function HabitRow({
-  id,
   emoji,
   name,
-  points,
   streak,
   completionStatus,
-  onToggleDay,
+  weekOffset = 0,
+  onToggle,
   onDelete,
+  isReadOnly = false,
 }: HabitRowProps) {
   // Component implementation
 }
+```
+
+#### Patrón de callbacks sin id (T-16-03)
+
+Los componentes de presentación pura **no deben recibir el id de su entidad como parámetro de callback**. El padre ya conoce el id al construir el handler, por lo que el componente cierra sobre él:
+
+```tsx
+// ✅ Correcto — el padre cierra sobre habit.id
+<HabitRow
+  onToggle={(dayIndex) => handleToggleDay(habit.id, dayIndex)}
+  onDelete={() => handleDeleteHabit(habit.id)}
+/>
+
+// ❌ Incorrecto — el componente no debe re-exponer su propio id
+<HabitRow
+  onToggleDay={(habitId, dayIndex) => handleToggleDay(habitId, dayIndex)}
+  onDelete={(habitId) => handleDeleteHabit(habitId)}
+/>
+```
+
+#### Indicador de contexto temporal (T-16-03)
+
+Para marcar el día actual en componentes de calendario, usar la prop `weekOffset` y calcular `todayIndex` internamente:
+
+```tsx
+// Lunes=0 … Domingo=6
+const todayIndex = (() => {
+  const day = new Date().getDay()
+  return day === 0 ? 6 : day - 1
+})()
+// Solo añadir clase diferenciadora cuando weekOffset === 0
+const isToday = weekOffset === 0 && index === todayIndex
+// Clase Tailwind: ring-2 ring-blue-400
 ```
 
 ### Gestión de estado

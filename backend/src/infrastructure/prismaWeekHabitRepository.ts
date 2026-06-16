@@ -14,6 +14,7 @@ function mapToWeekHabit(row: {
   habitId: number
   order: number
   snapshotName: string
+  snapshotEmoji: string
   snapshotPoints: number
   snapshotPenalty: number
 }): WeekHabit {
@@ -23,6 +24,7 @@ function mapToWeekHabit(row: {
     habitId: row.habitId,
     order: row.order,
     snapshotName: row.snapshotName,
+    snapshotEmoji: row.snapshotEmoji,
     snapshotPoints: row.snapshotPoints,
     snapshotPenalty: row.snapshotPenalty,
   }
@@ -59,6 +61,7 @@ export async function createWeekHabitsWithEntriesInTx(
         habitId: habit.id,
         order,
         snapshotName: habit.name,
+        snapshotEmoji: habit.emoji,
         snapshotPoints: habit.pointsPerDay,
         snapshotPenalty: habit.penalty,
       },

@@ -1,28 +1,32 @@
 import { Check, X } from 'lucide-react'
 
 interface HabitRowProps {
-  id: string
   emoji: string
   name: string
-  points: number
   streak?: number
   completionStatus: Array<'completed' | 'failed' | 'pending'>
-  onToggleDay: (habitId: string, dayIndex: number) => void
-  onDelete: (habitId: string) => void
+  weekOffset?: number
+  onToggle: (dayIndex: number) => void
+  onDelete: () => void
   isReadOnly?: boolean
 }
 
 export default function HabitRow({
-  id,
   emoji,
   name,
   streak,
   completionStatus,
-  onToggleDay,
+  weekOffset = 0,
+  onToggle,
   onDelete,
   isReadOnly = false,
 }: HabitRowProps) {
-  const cellClassName = (status: 'completed' | 'failed' | 'pending') =>
+  const todayIndex = (() => {
+    const day = new Date().getDay()
+    return day === 0 ? 6 : day - 1
+  })()
+
+  const cellClassName = (status: 'completed' | 'failed' | 'pending', isToday: boolean) =>
     `w-8 h-8 rounded-lg flex items-center justify-center ${
       status === 'completed'
         ? 'bg-green-500 text-white'
@@ -31,7 +35,7 @@ export default function HabitRow({
           : isReadOnly
             ? 'bg-gray-100'
             : 'bg-gray-100 hover:bg-gray-200'
-    }`
+    }${isToday ? ' ring-2 ring-blue-400' : ''}`
 
   return (
     <div className="grid grid-cols-[1fr_repeat(7,48px)_24px] gap-2 items-center py-3 border-b border-gray-100 last:border-0">
@@ -45,27 +49,30 @@ export default function HabitRow({
       </div>
 
       {/* Day completion buttons - 7 columns */}
-      {completionStatus.map((status, index) => (
-        <div key={index} className="flex justify-center">
-          {isReadOnly ? (
-            <div className={cellClassName(status)} aria-hidden>
-              {status === 'completed' && <Check className="w-4 h-4" />}
-              {status === 'failed' && <X className="w-4 h-4" />}
-            </div>
-          ) : (
-            <button onClick={() => onToggleDay(id, index)} className={cellClassName(status)}>
-              {status === 'completed' && <Check className="w-4 h-4" />}
-              {status === 'failed' && <X className="w-4 h-4" />}
-            </button>
-          )}
-        </div>
-      ))}
+      {completionStatus.map((status, index) => {
+        const isToday = weekOffset === 0 && index === todayIndex
+        return (
+          <div key={index} className="flex justify-center">
+            {isReadOnly ? (
+              <div className={cellClassName(status, isToday)} aria-hidden>
+                {status === 'completed' && <Check className="w-4 h-4" />}
+                {status === 'failed' && <X className="w-4 h-4" />}
+              </div>
+            ) : (
+              <button onClick={() => onToggle(index)} className={cellClassName(status, isToday)}>
+                {status === 'completed' && <Check className="w-4 h-4" />}
+                {status === 'failed' && <X className="w-4 h-4" />}
+              </button>
+            )}
+          </div>
+        )
+      })}
 
       {/* Delete button column */}
       <div className="flex justify-center">
         {!isReadOnly && (
           <button
-            onClick={() => onDelete(id)}
+            onClick={() => onDelete()}
             className="w-6 h-6 text-gray-400 hover:text-gray-600 transition-colors"
           >
             ×

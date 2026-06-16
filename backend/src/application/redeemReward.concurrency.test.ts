@@ -1,4 +1,4 @@
-import { CompletionStatus, PrismaClient } from '@prisma/client'
+﻿import { CompletionStatus, PrismaClient } from '@prisma/client'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { UnprocessableError } from '../domain/errors/appErrors'
 import { calculateWeekAvailableBalance } from './calculateWeekAvailableBalance'
@@ -70,6 +70,7 @@ describe('redeemReward concurrency (US-12 S4)', () => {
         habitId: habit.id,
         order: 0,
         snapshotName: habit.name,
+        snapshotEmoji: '💪',
         snapshotPoints: 50,
         snapshotPenalty: 0,
       },
@@ -140,6 +141,7 @@ describe('redeemReward concurrency (US-12 S4)', () => {
           habitId: wh.habitId,
           order: wh.order,
           snapshotName: wh.snapshotName,
+          snapshotEmoji: '💪',
           snapshotPoints: wh.snapshotPoints,
           snapshotPenalty: wh.snapshotPenalty,
           entries: wh.habitEntries.map((e) => ({

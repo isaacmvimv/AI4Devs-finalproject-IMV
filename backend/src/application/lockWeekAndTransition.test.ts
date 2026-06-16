@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Habit } from '../domain/habit'
 import type { Week, WeekWithDetails } from '../domain/week'
 import { lockWeekAndTransition } from './lockWeekAndTransition'
@@ -45,6 +45,7 @@ const staleWeek: WeekWithDetails = {
       habitId: 1,
       order: 0,
       snapshotName: 'Correr',
+      snapshotEmoji: '💪',
       snapshotPoints: 10,
       snapshotPenalty: 5,
       entries: makePendingEntries(50),
@@ -68,6 +69,7 @@ const currentWeek: WeekWithDetails = {
       habitId: 1,
       order: 0,
       snapshotName: 'Correr',
+      snapshotEmoji: '💪',
       snapshotPoints: 10,
       snapshotPenalty: 5,
       entries: makePendingEntries(100),
@@ -144,6 +146,7 @@ describe('lockWeekAndTransition', () => {
     it('keeps snapshotPoints from lockWeek mock after habit master changes (US-09 S5)', async () => {
       const lockedSnapshots = {
         snapshotName: 'Correr',
+        snapshotEmoji: '💪',
         snapshotPoints: 10,
         snapshotPenalty: 5,
       }

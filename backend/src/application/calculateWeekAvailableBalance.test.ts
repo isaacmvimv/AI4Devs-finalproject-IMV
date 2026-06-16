@@ -25,6 +25,7 @@ function makeWeek(
         habitId: 1,
         order: 0,
         snapshotName: 'Correr',
+        snapshotEmoji: '🏃',
         snapshotPoints,
         snapshotPenalty,
         entries: entries.map((e, i) => ({

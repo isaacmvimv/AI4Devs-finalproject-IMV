@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client'
+﻿import type { PrismaClient } from '@prisma/client'
 import request from 'supertest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createHabit } from '../../application/createHabit'
@@ -557,6 +557,7 @@ const sampleWeekPayload = {
         habitId: 1,
         order: 0,
         snapshotName: 'Correr',
+        snapshotEmoji: '💪',
         snapshotPoints: 10,
         snapshotPenalty: 5,
       },

@@ -87,14 +87,13 @@ export default function App() {
             {habits.map((habit) => (
               <HabitRow
                 key={habit.id}
-                id={habit.id}
                 emoji={habit.emoji}
                 name={habit.name}
-                points={habit.pointsPerDay}
                 streak={habit.streak}
                 completionStatus={habit.completionStatus}
-                onToggleDay={handleToggleDay}
-                onDelete={handleDeleteHabit}
+                weekOffset={weekOffset}
+                onToggle={(dayIndex) => handleToggleDay(habit.id, dayIndex)}
+                onDelete={() => handleDeleteHabit(habit.id)}
                 isReadOnly={isWeekLocked}
               />
             ))}

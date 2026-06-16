@@ -64,6 +64,7 @@ model WeekHabit {
   habit           Habit       @relation(fields: [habitId], references: [id], onDelete: Restrict)
   order           Int
   snapshotName    String
+  snapshotEmoji   String   @default("")
   snapshotPoints  Int
   snapshotPenalty Int
   habitEntries    HabitEntry[]

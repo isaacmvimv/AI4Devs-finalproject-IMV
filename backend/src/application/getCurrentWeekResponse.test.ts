@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WeekWithDetails } from '../domain/week'
 import { getCurrentWeekResponse } from './getCurrentWeekResponse'
 import type { HabitRepository } from './ports/HabitRepository'
@@ -36,6 +36,7 @@ const currentWeek: WeekWithDetails = {
       habitId: 1,
       order: 0,
       snapshotName: 'Correr',
+      snapshotEmoji: '💪',
       snapshotPoints: 10,
       snapshotPenalty: 5,
       entries: Array.from({ length: 7 }, (_, dayIndex) => ({
