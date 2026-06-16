@@ -2353,7 +2353,7 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `WeeklyCalendar.tsx` que muestra el rango de fechas de la semana, los días de la semana como columnas (Lu-Do) y los botones "‹" y "›" de navegación. Destaca el día actual cuando `weekOffset=0`.
 

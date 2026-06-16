@@ -76,11 +76,9 @@ export default function App() {
           }
         >
           <WeeklyCalendar
-            weekDates={weekData.dates}
-            weekRange={weekData.range}
-            onPrevWeek={() => handleWeekNav(weekOffset - 1)}
-            onNextWeek={() => handleWeekNav(weekOffset + 1)}
-            currentDayIndex={currentDayIndex}
+            weekOffset={weekOffset}
+            isWeekLocked={isWeekLocked}
+            onWeekNav={handleWeekNav}
           />
 
           <div className="mt-6 space-y-1">
