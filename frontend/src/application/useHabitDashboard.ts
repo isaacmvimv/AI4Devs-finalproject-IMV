@@ -164,12 +164,12 @@ export function useHabitDashboard() {
     })
   }
 
-  const handleAddReward = (newReward: {
+  const handleAddReward = async (newReward: {
     emoji: string
     name: string
     description: string
     cost: number
-  }) => {
+  }): Promise<void> => {
     const reward = createRewardFromFormInput(newReward, Date.now().toString())
     setRewards([...rewards, reward])
   }

@@ -2426,7 +2426,7 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `AddRewardModal.tsx` con campos: emoji, nombre, descripción, coste. Validaciones inline y gestión de errores de API igual que `AddHabitModal`.
 
