@@ -2400,7 +2400,7 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `RewardCard.tsx`. Muestra emoji, nombre, descripción, coste y puntos actuales del usuario. El botón "Canjear" está habilitado solo si `currentPoints >= reward.cost`; de lo contrario, muestra cuántos puntos faltan.
 

@@ -1,26 +1,71 @@
-import { Lock } from 'lucide-react'
+import { useState } from 'react'
+import { Lock, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { redeemReward } from '../../infrastructure/rewardApi'
+import { ApiError } from '../../infrastructure/httpClient'
 
 interface RewardCardProps {
+  rewardId: number
+  weekId: number
   emoji: string
   name: string
   description: string
   cost: number
   currentPoints: number
-  onRedeem: () => void
+  onRedeemSuccess?: (pointsSpent: number) => void
   onDelete: () => void
 }
 
 export default function RewardCard({
+  rewardId,
+  weekId,
   emoji,
   name,
   description,
   cost,
   currentPoints,
-  onRedeem,
+  onRedeemSuccess,
   onDelete,
 }: RewardCardProps) {
+  const [isRedeeming, setIsRedeeming] = useState(false)
+  const [redeemed, setRedeemed] = useState(false)
+
   const canAfford = currentPoints >= cost
+  const missingPoints = cost - currentPoints
   const progressPercentage = Math.min((currentPoints / cost) * 100, 100)
+
+  async function handleRedeem() {
+    if (!canAfford || isRedeeming || redeemed) return
+    setIsRedeeming(true)
+    try {
+      const result = await redeemReward(weekId, rewardId)
+      setRedeemed(true)
+      toast.success('¡Recompensa canjeada!')
+      onRedeemSuccess?.(result.pointsSpent)
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 422) {
+        toast.error('Puntos insuficientes para canjear esta recompensa')
+      } else {
+        toast.error('Error al canjear. Inténtalo de nuevo.')
+      }
+    } finally {
+      setIsRedeeming(false)
+    }
+  }
+
+  const buttonContent = () => {
+    if (!canAfford) return `Faltan ${missingPoints} pts`
+    if (isRedeeming) return <Loader2 className="w-4 h-4 animate-spin" />
+    if (redeemed) return '¡Canjeada!'
+    return 'Canjear'
+  }
+
+  const buttonClass = () => {
+    if (!canAfford) return 'px-4 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed'
+    if (redeemed) return 'px-4 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium cursor-not-allowed'
+    if (isRedeeming) return 'px-4 py-1.5 bg-yellow-400 opacity-70 text-yellow-900 rounded-lg text-sm font-medium cursor-not-allowed'
+    return 'px-4 py-1.5 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 rounded-lg text-sm font-medium transition-colors'
+  }
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm relative group">
@@ -50,18 +95,15 @@ export default function RewardCard({
       </div>
 
       <div className="flex items-center justify-between">
-        <span className="text-sm text-yellow-600 font-medium">
-          {cost} pts {!canAfford && `restantes`}
-        </span>
+        <span className="text-sm text-yellow-600 font-medium">{cost} pts</span>
 
-        {canAfford && (
-          <button
-            onClick={onRedeem}
-            className="px-4 py-1.5 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 rounded-lg text-sm font-medium transition-colors"
-          >
-            Canjear
-          </button>
-        )}
+        <button
+          onClick={handleRedeem}
+          disabled={!canAfford || isRedeeming || redeemed}
+          className={buttonClass()}
+        >
+          {buttonContent()}
+        </button>
       </div>
     </div>
   )

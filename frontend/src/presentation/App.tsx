@@ -23,6 +23,7 @@ export default function App() {
     isRewardModalOpen,
     setIsRewardModalOpen,
     weekOffset,
+    currentWeekId,
     isWeekLocked,
     stats,
     totalPoints,
@@ -34,7 +35,6 @@ export default function App() {
     handleAddHabit,
     handleDeleteHabit,
     handleAddReward,
-    handleRedeemReward,
     handleDeleteReward,
   } = useHabitDashboard()
 
@@ -112,12 +112,13 @@ export default function App() {
             {rewards.map((reward) => (
               <RewardCard
                 key={reward.id}
+                rewardId={Number(reward.id)}
+                weekId={currentWeekId}
                 emoji={reward.emoji}
                 name={reward.name}
                 description={reward.description}
                 cost={reward.cost}
                 currentPoints={totalPoints}
-                onRedeem={() => handleRedeemReward(reward.id)}
                 onDelete={() => handleDeleteReward(reward.id)}
               />
             ))}

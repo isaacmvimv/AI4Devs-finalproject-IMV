@@ -29,6 +29,7 @@ export function useHabitDashboard() {
   const [stats, setStats] = useState<HabitStats>(EMPTY_STATS)
   const [entryIdsByHabitId, setEntryIdsByHabitId] = useState<Record<string, number[]>>({})
   const [weekIsLocked, setWeekIsLocked] = useState(false)
+  const [currentWeekId, setCurrentWeekId] = useState(0)
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false)
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false)
   const [weekOffset, setWeekOffset] = useState(0)
@@ -62,6 +63,7 @@ export function useHabitDashboard() {
         setStats(mapped.stats)
         setEntryIdsByHabitId(mapped.entryIdsByHabitId)
         setWeekIsLocked(mapped.isLocked)
+        setCurrentWeekId(dto.week.id)
       } catch (err) {
         if (cancelled) return
         setHabits([])
@@ -191,6 +193,7 @@ export function useHabitDashboard() {
     isRewardModalOpen,
     setIsRewardModalOpen,
     weekOffset,
+    currentWeekId,
     isCurrentWeek: weekIsCurrent,
     isWeekLocked: weekIsLocked,
     loading,
