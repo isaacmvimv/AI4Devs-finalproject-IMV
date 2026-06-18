@@ -2503,7 +2503,7 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Completar `App.tsx` integrando todos los componentes: `UserProfileCard`, `ProgressBar`, los 4 `StatCard`, `WeeklyCalendar`, lista de `HabitRow` y sección de `RewardCard`. Gestionar correctamente los estados vacíos, de carga y de error de cada sección.
 
