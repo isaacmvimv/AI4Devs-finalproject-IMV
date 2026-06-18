@@ -249,6 +249,80 @@ describe('useHabitDashboard', () => {
     await waitFor(() => expect(habitApi.deleteHabit).toHaveBeenCalledWith(1))
   })
 
+  it('handleDeleteHabit recalcula stats al eliminar un hábito con puntos', async () => {
+    vi.mocked(weekApi.fetchCurrentWeek).mockResolvedValue(
+      buildWeekResponse({
+        habits: [
+          {
+            weekHabit: { id: 10, habitId: 1, order: 0, snapshotName: 'Ejercicio', snapshotEmoji: '🏃', snapshotPoints: 5, snapshotPenalty: 2 },
+            entries: [
+              { id: 101, dayIndex: 0, status: 'completed' },
+              { id: 102, dayIndex: 1, status: 'failed' },
+              { id: 103, dayIndex: 2, status: 'pending' },
+              { id: 104, dayIndex: 3, status: 'pending' },
+              { id: 105, dayIndex: 4, status: 'pending' },
+              { id: 106, dayIndex: 5, status: 'pending' },
+              { id: 107, dayIndex: 6, status: 'pending' },
+            ],
+          },
+        ],
+        stats: { thisWeekPoints: 5, lastWeekPoints: 10, penalties: 2, maxStreak: 1 },
+      }),
+    )
+    vi.mocked(habitApi.deleteHabit).mockResolvedValue(undefined)
+
+    const { result } = renderHook(() => useHabitDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(result.current.stats.thisWeekPoints).toBe(5)
+    expect(result.current.stats.penalties).toBe(2)
+
+    act(() => {
+      result.current.handleDeleteHabit('1')
+    })
+
+    expect(result.current.stats.thisWeekPoints).toBe(0)
+    expect(result.current.stats.penalties).toBe(0)
+    expect(result.current.stats.lastWeekPoints).toBe(10)
+  })
+
+  it('handleDeleteHabit revierte stats cuando la API falla', async () => {
+    vi.mocked(weekApi.fetchCurrentWeek).mockResolvedValue(
+      buildWeekResponse({
+        habits: [
+          {
+            weekHabit: { id: 10, habitId: 1, order: 0, snapshotName: 'Ejercicio', snapshotEmoji: '🏃', snapshotPoints: 5, snapshotPenalty: 2 },
+            entries: [
+              { id: 101, dayIndex: 0, status: 'completed' },
+              { id: 102, dayIndex: 1, status: 'pending' },
+              { id: 103, dayIndex: 2, status: 'pending' },
+              { id: 104, dayIndex: 3, status: 'pending' },
+              { id: 105, dayIndex: 4, status: 'pending' },
+              { id: 106, dayIndex: 5, status: 'pending' },
+              { id: 107, dayIndex: 6, status: 'pending' },
+            ],
+          },
+        ],
+        stats: { thisWeekPoints: 5, lastWeekPoints: 10, penalties: 0, maxStreak: 1 },
+      }),
+    )
+    vi.mocked(habitApi.deleteHabit).mockRejectedValue(
+      new ApiError(500, 'UNKNOWN_ERROR', 'Error en la petición'),
+    )
+
+    const { result } = renderHook(() => useHabitDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    act(() => {
+      result.current.handleDeleteHabit('1')
+    })
+
+    expect(result.current.stats.thisWeekPoints).toBe(0)
+
+    await waitFor(() => expect(result.current.stats.thisWeekPoints).toBe(5))
+    expect(result.current.stats.lastWeekPoints).toBe(10)
+  })
+
   it('handleDeleteHabit restaura el hábito y muestra un toast en error', async () => {
     vi.mocked(habitApi.deleteHabit).mockRejectedValue(
       new ApiError(500, 'UNKNOWN_ERROR', 'Error en la petición'),

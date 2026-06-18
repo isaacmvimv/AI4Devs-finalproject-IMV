@@ -168,7 +168,10 @@ export function useHabitDashboard() {
     const removedHabit = habits[index]
     const removedEntryIds = entryIdsByHabitId[habitId]
 
-    setHabits(habits.filter((h) => h.id !== habitId))
+    const remainingHabits = habits.filter((h) => h.id !== habitId)
+    setHabits(remainingHabits)
+    const recalculated = calculateHabitStats(remainingHabits)
+    setStats((prev) => ({ ...recalculated, lastWeekPoints: prev.lastWeekPoints }))
     setEntryIdsByHabitId((prev) => {
       const next = { ...prev }
       delete next[habitId]
@@ -180,6 +183,10 @@ export function useHabitDashboard() {
         const restored = [...current]
         restored.splice(index, 0, removedHabit)
         return restored
+      })
+      setStats((prev) => {
+        const reverted = calculateHabitStats([...habits])
+        return { ...reverted, lastWeekPoints: prev.lastWeekPoints }
       })
       if (removedEntryIds) {
         setEntryIdsByHabitId((prev) => ({ ...prev, [habitId]: removedEntryIds }))

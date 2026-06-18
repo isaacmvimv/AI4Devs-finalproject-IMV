@@ -46,7 +46,7 @@ export default function HabitRow({
         <span className="text-xl">{emoji}</span>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-gray-800 truncate">{name}</div>
-          {streak && streak > 0 && <div className="text-xs text-orange-500">🔥 {streak} días</div>}
+          {streak != null && streak > 0 && <div className="text-xs text-orange-500">🔥 {streak} días</div>}
         </div>
       </div>
 
