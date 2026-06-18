@@ -2453,7 +2453,7 @@ gantt
 - **Tipo:** Frontend — Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `StatCard.tsx` (genérico: icono, valor, etiqueta, color de fondo) y `ProgressBar.tsx` (porcentaje de hábitos completados hoy). Conectarlos a los valores reales de `useHabitDashboard`.
 
