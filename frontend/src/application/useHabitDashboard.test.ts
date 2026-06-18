@@ -110,6 +110,73 @@ describe('useHabitDashboard', () => {
     await waitFor(() => expect(habitEntryApi.updateHabitEntry).toHaveBeenCalledWith(101, 'completed'))
   })
 
+  it('handleToggleDay actualiza stats.thisWeekPoints al completar', async () => {
+    vi.mocked(habitEntryApi.updateHabitEntry).mockResolvedValue({
+      id: 101,
+      status: 'completed',
+      updatedAt: '2026-06-08T00:00:00.000Z',
+    })
+
+    const { result } = renderHook(() => useHabitDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(result.current.stats.thisWeekPoints).toBe(0)
+
+    act(() => {
+      result.current.handleToggleDay('1', 0)
+    })
+
+    expect(result.current.stats.thisWeekPoints).toBe(5)
+  })
+
+  it('handleToggleDay actualiza stats.penalties al marcar como failed', async () => {
+    vi.mocked(habitEntryApi.updateHabitEntry).mockResolvedValue({
+      id: 101,
+      status: 'completed',
+      updatedAt: '2026-06-08T00:00:00.000Z',
+    })
+
+    const { result } = renderHook(() => useHabitDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    // pending → completed
+    act(() => {
+      result.current.handleToggleDay('1', 0)
+    })
+    expect(result.current.stats.penalties).toBe(0)
+
+    vi.mocked(habitEntryApi.updateHabitEntry).mockResolvedValue({
+      id: 101,
+      status: 'failed',
+      updatedAt: '2026-06-08T00:00:00.000Z',
+    })
+
+    // completed → failed
+    act(() => {
+      result.current.handleToggleDay('1', 0)
+    })
+    expect(result.current.stats.penalties).toBe(2)
+    expect(result.current.stats.thisWeekPoints).toBe(0)
+  })
+
+  it('handleToggleDay revierte stats cuando la API falla', async () => {
+    vi.mocked(habitEntryApi.updateHabitEntry).mockRejectedValue(
+      new ApiError(500, 'UNKNOWN_ERROR', 'Error en la petición'),
+    )
+
+    const { result } = renderHook(() => useHabitDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    act(() => {
+      result.current.handleToggleDay('1', 0)
+    })
+
+    expect(result.current.stats.thisWeekPoints).toBe(5)
+
+    await waitFor(() => expect(result.current.stats.thisWeekPoints).toBe(0))
+    expect(result.current.stats.penalties).toBe(0)
+  })
+
   it('handleToggleDay revierte el estado y muestra un toast en error', async () => {
     vi.mocked(habitEntryApi.updateHabitEntry).mockRejectedValue(
       new ApiError(500, 'UNKNOWN_ERROR', 'Error en la petición'),

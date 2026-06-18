@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import type { Habit, HabitStats } from '../domain/habit'
 import type { Reward } from '../domain/reward'
 import { INITIAL_REWARDS } from '../domain/fixtures'
-import { calculateTodayProgressPercent, toggleHabitDayCompletion } from '../domain/habit'
+import { calculateHabitStats, calculateTodayProgressPercent, toggleHabitDayCompletion } from '../domain/habit'
 import { createRewardFromFormInput } from '../domain/reward'
 import { buildWeekData, getCurrentDayIndexForWeek } from '../domain/week'
 import { ApiError } from '../infrastructure/httpClient'
@@ -123,12 +123,20 @@ export function useHabitDashboard() {
     const newStatus = updatedHabit.completionStatus[dayIndex]
     const entryId = entryIdsByHabitId[habitId]?.[dayIndex]
 
-    setHabits(habits.map((h) => (h.id === habitId ? updatedHabit : h)))
+    const newHabits = habits.map((h) => (h.id === habitId ? updatedHabit : h))
+    setHabits(newHabits)
+
+    const recalculated = calculateHabitStats(newHabits)
+    setStats((prev) => ({ ...recalculated, lastWeekPoints: prev.lastWeekPoints }))
 
     if (entryId === undefined) return
 
     habitEntryApi.updateHabitEntry(entryId, newStatus).catch((err) => {
       setHabits(previousHabits)
+      setStats((prev) => {
+        const reverted = calculateHabitStats(previousHabits)
+        return { ...reverted, lastWeekPoints: prev.lastWeekPoints }
+      })
       toast.error(errorMessage(err, 'Error al actualizar el hábito'))
     })
   }
