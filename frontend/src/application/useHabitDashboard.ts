@@ -114,6 +114,7 @@ export function useHabitDashboard() {
 
   const handleToggleDay = (habitId: string, dayIndex: number) => {
     if (weekIsLocked) return
+    if (weekOffset === 0 && dayIndex > currentDayIndex) return
 
     const habit = habits.find((h) => h.id === habitId)
     if (!habit) return

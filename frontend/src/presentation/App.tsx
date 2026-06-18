@@ -115,6 +115,7 @@ export default function App() {
                   streak={habit.streak}
                   completionStatus={habit.completionStatus}
                   weekOffset={weekOffset}
+                  currentDayIndex={currentDayIndex}
                   onToggle={(dayIndex) => handleToggleDay(habit.id, dayIndex)}
                   onDelete={() => handleDeleteHabit(habit.id)}
                   isReadOnly={isWeekLocked}

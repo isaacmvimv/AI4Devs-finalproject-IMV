@@ -6,6 +6,7 @@ interface HabitRowProps {
   streak?: number
   completionStatus: Array<'completed' | 'failed' | 'pending'>
   weekOffset?: number
+  currentDayIndex?: number
   onToggle: (dayIndex: number) => void
   onDelete: () => void
   isReadOnly?: boolean
@@ -17,22 +18,23 @@ export default function HabitRow({
   streak,
   completionStatus,
   weekOffset = 0,
+  currentDayIndex,
   onToggle,
   onDelete,
   isReadOnly = false,
 }: HabitRowProps) {
-  const todayIndex = (() => {
+  const todayIndex = currentDayIndex ?? (() => {
     const day = new Date().getDay()
     return day === 0 ? 6 : day - 1
   })()
 
-  const cellClassName = (status: 'completed' | 'failed' | 'pending', isToday: boolean) =>
+  const cellClassName = (status: 'completed' | 'failed' | 'pending', isToday: boolean, dayReadOnly: boolean) =>
     `w-8 h-8 rounded-lg flex items-center justify-center ${
       status === 'completed'
         ? 'bg-green-500 text-white'
         : status === 'failed'
           ? 'bg-red-400 text-white'
-          : isReadOnly
+          : dayReadOnly
             ? 'bg-gray-100'
             : 'bg-gray-100 hover:bg-gray-200'
     }${isToday ? ' ring-2 ring-blue-400' : ''}`
@@ -51,15 +53,17 @@ export default function HabitRow({
       {/* Day completion buttons - 7 columns */}
       {completionStatus.map((status, index) => {
         const isToday = weekOffset === 0 && index === todayIndex
+        const isFutureDay = weekOffset === 0 && index > todayIndex
+        const isDayReadOnly = isReadOnly || isFutureDay
         return (
           <div key={index} className="flex justify-center">
-            {isReadOnly ? (
-              <div className={cellClassName(status, isToday)} aria-hidden>
+            {isDayReadOnly ? (
+              <div className={cellClassName(status, isToday, true)} aria-hidden>
                 {status === 'completed' && <Check className="w-4 h-4" />}
                 {status === 'failed' && <X className="w-4 h-4" />}
               </div>
             ) : (
-              <button onClick={() => onToggle(index)} className={cellClassName(status, isToday)}>
+              <button onClick={() => onToggle(index)} className={cellClassName(status, isToday, false)}>
                 {status === 'completed' && <Check className="w-4 h-4" />}
                 {status === 'failed' && <X className="w-4 h-4" />}
               </button>

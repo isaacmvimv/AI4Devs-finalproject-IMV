@@ -220,6 +220,21 @@ describe('useHabitDashboard', () => {
     expect(habitEntryApi.updateHabitEntry).not.toHaveBeenCalled()
   })
 
+  it('handleToggleDay no permite toggle en días futuros de la semana actual', async () => {
+    const { result } = renderHook(() => useHabitDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    const futureDayIndex = result.current.currentDayIndex + 1
+    if (futureDayIndex <= 6) {
+      act(() => {
+        result.current.handleToggleDay('1', futureDayIndex)
+      })
+
+      expect(result.current.habits[0].completionStatus[futureDayIndex]).toBe('pending')
+      expect(habitEntryApi.updateHabitEntry).not.toHaveBeenCalled()
+    }
+  })
+
   it('handleDeleteHabit elimina el hábito de forma optimista y llama a deleteHabit', async () => {
     vi.mocked(habitApi.deleteHabit).mockResolvedValue(undefined)
 

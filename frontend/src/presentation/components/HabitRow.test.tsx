@@ -72,6 +72,24 @@ describe('HabitRow', () => {
     expect(screen.queryAllByRole('button')).toHaveLength(0)
   })
 
+  it('días futuros en semana actual son read-only (div, no button)', () => {
+    const onToggle = vi.fn()
+    // currentDayIndex=2 (miércoles) → days 3-6 should be divs
+    render(<HabitRow {...defaultProps} weekOffset={0} currentDayIndex={2} onToggle={onToggle} />)
+    const buttons = screen.getAllByRole('button')
+    // 3 day buttons (0,1,2) + 1 delete = 4
+    expect(buttons).toHaveLength(4)
+    // clicking a future day div should not call onToggle
+    expect(onToggle).not.toHaveBeenCalled()
+  })
+
+  it('en semanas pasadas (weekOffset=-1) todos los días son editables si no es readOnly', () => {
+    render(<HabitRow {...defaultProps} weekOffset={-1} currentDayIndex={2} />)
+    const buttons = screen.getAllByRole('button')
+    // 7 day buttons + 1 delete = 8
+    expect(buttons).toHaveLength(8)
+  })
+
   it('2.8 racha: muestra 🔥 5 días cuando streak=5; sin indicador cuando streak=0', () => {
     render(<HabitRow {...defaultProps} streak={5} />)
     expect(screen.getByText('🔥 5 días')).toBeInTheDocument()
