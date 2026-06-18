@@ -186,6 +186,84 @@ describe('useHabitDashboard', () => {
     expect(toast.error).toHaveBeenCalled()
   })
 
+  it('weekLoading es true durante handleWeekNav y vuelve a false', async () => {
+    let resolveNav!: (v: WeekResponseDto) => void
+    vi.mocked(weekApi.fetchWeekByOffset).mockImplementation(
+      () => new Promise((r) => { resolveNav = r }),
+    )
+
+    const { result } = renderHook(() => useHabitDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(result.current.weekLoading).toBe(false)
+
+    act(() => {
+      void result.current.handleWeekNav(-1)
+    })
+
+    expect(result.current.weekLoading).toBe(true)
+
+    await act(async () => {
+      resolveNav(buildWeekResponse())
+    })
+
+    expect(result.current.weekLoading).toBe(false)
+  })
+
+  it('404 en fetchWeekByOffset → canGoBack=false y weekOffset revierte', async () => {
+    vi.mocked(weekApi.fetchWeekByOffset).mockResolvedValueOnce(buildWeekResponse())
+
+    const { result } = renderHook(() => useHabitDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.handleWeekNav(-1)
+    })
+
+    expect(result.current.weekOffset).toBe(-1)
+    expect(result.current.canGoBack).toBe(true)
+
+    vi.mocked(weekApi.fetchWeekByOffset).mockRejectedValueOnce(
+      new ApiError(404, 'NOT_FOUND', 'No week found'),
+    )
+
+    await act(async () => {
+      await result.current.handleWeekNav(-1)
+    })
+
+    expect(result.current.canGoBack).toBe(false)
+    expect(result.current.weekOffset).toBe(-1)
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('race condition: dos navegaciones rápidas, solo la última aplica', async () => {
+    let resolveFirst!: (v: WeekResponseDto) => void
+    const firstResponse = buildWeekResponse({ habits: [] })
+    const secondResponse = buildWeekResponse()
+
+    vi.mocked(weekApi.fetchWeekByOffset)
+      .mockImplementationOnce(() => new Promise((r) => { resolveFirst = r }))
+      .mockResolvedValueOnce(secondResponse)
+
+    const { result } = renderHook(() => useHabitDashboard())
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    act(() => {
+      void result.current.handleWeekNav(-1)
+    })
+
+    await act(async () => {
+      await result.current.handleWeekNav(-1)
+    })
+
+    await act(async () => {
+      resolveFirst(firstResponse)
+    })
+
+    expect(result.current.habits).toHaveLength(1)
+    expect(result.current.weekOffset).toBe(-2)
+  })
+
   it('handleWeekNav llama a fetchWeekByOffset y actualiza habits/isWeekLocked/isCurrentWeek', async () => {
     vi.mocked(weekApi.fetchWeekByOffset).mockResolvedValue(
       buildWeekResponse({

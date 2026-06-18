@@ -33,6 +33,8 @@ export function useHabitDashboard() {
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false)
   const [isRewardModalOpen, setIsRewardModalOpen] = useState(false)
   const [weekOffset, setWeekOffset] = useState(0)
+  const [weekLoading, setWeekLoading] = useState(false)
+  const [canGoBack, setCanGoBack] = useState(true)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const weekRequestRef = useRef(0)
@@ -79,21 +81,34 @@ export function useHabitDashboard() {
     }
   }, [])
 
-  const handleWeekNav = async (offset: number) => {
-    setWeekOffset(offset)
+  const handleWeekNav = async (delta: number) => {
+    const previousOffset = weekOffset
+    const newOffset = weekOffset + delta
+    setWeekOffset(newOffset)
+    setWeekLoading(true)
     const requestId = ++weekRequestRef.current
 
     try {
-      const dto = await weekApi.fetchWeekByOffset(offset)
+      const dto = await weekApi.fetchWeekByOffset(newOffset)
       if (weekRequestRef.current !== requestId) return
-      const mapped = mapWeekResponseToDashboard(dto, getCurrentDayIndexForWeek(offset))
+      const mapped = mapWeekResponseToDashboard(dto, getCurrentDayIndexForWeek(newOffset))
       setHabits(mapped.habits)
       setStats(mapped.stats)
       setEntryIdsByHabitId(mapped.entryIdsByHabitId)
       setWeekIsLocked(mapped.isLocked)
+      setCanGoBack(true)
     } catch (err) {
       if (weekRequestRef.current !== requestId) return
-      toast.error(errorMessage(err, 'Error al cargar la semana'))
+      if (err instanceof ApiError && err.status === 404) {
+        setCanGoBack(false)
+        setWeekOffset(previousOffset)
+      } else {
+        toast.error(errorMessage(err, 'Error al cargar la semana'))
+      }
+    } finally {
+      if (weekRequestRef.current === requestId) {
+        setWeekLoading(false)
+      }
     }
   }
 
@@ -196,6 +211,8 @@ export function useHabitDashboard() {
     currentWeekId,
     isCurrentWeek: weekIsCurrent,
     isWeekLocked: weekIsLocked,
+    weekLoading,
+    canGoBack,
     loading,
     error,
     stats,

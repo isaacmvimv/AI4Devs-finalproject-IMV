@@ -2478,7 +2478,7 @@ gantt
 - **Tipo:** Frontend — Aplicación + Presentación
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Modificar `useHabitDashboard` para que al cambiar `weekOffset` llame a `weekApi.fetchWeek(offset)` y actualice el estado con los datos históricos. Crear `frontend/src/infrastructure/weekApi.ts` con `fetchCurrentWeek()` y `fetchWeek(offset)`.
 

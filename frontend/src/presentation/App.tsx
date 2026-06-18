@@ -25,6 +25,8 @@ export default function App() {
     weekOffset,
     currentWeekId,
     isWeekLocked,
+    weekLoading,
+    canGoBack,
     stats,
     totalPoints,
     currentDayIndex,
@@ -66,6 +68,7 @@ export default function App() {
         </StatsSection>
 
         <CalendarSection
+          weekLoading={weekLoading}
           action={
             <button
               onClick={() => setIsHabitModalOpen(true)}
@@ -74,13 +77,16 @@ export default function App() {
               + Nuevo hábito
             </button>
           }
+          header={
+            <WeeklyCalendar
+              weekOffset={weekOffset}
+              isWeekLocked={isWeekLocked}
+              canGoBack={canGoBack}
+              loading={weekLoading}
+              onWeekNav={handleWeekNav}
+            />
+          }
         >
-          <WeeklyCalendar
-            weekOffset={weekOffset}
-            isWeekLocked={isWeekLocked}
-            onWeekNav={handleWeekNav}
-          />
-
           <div className="mt-6 space-y-1">
             {habits.map((habit) => (
               <HabitRow

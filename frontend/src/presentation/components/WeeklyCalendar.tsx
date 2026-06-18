@@ -4,10 +4,12 @@ import { es } from 'date-fns/locale'
 interface WeeklyCalendarProps {
   weekOffset: number
   isWeekLocked: boolean
+  canGoBack?: boolean
+  loading?: boolean
   onWeekNav: (delta: number) => void
 }
 
-export default function WeeklyCalendar({ weekOffset, isWeekLocked, onWeekNav }: WeeklyCalendarProps) {
+export default function WeeklyCalendar({ weekOffset, isWeekLocked, canGoBack = true, loading = false, onWeekNav }: WeeklyCalendarProps) {
   const todayIndex = (() => {
     const day = new Date().getDay()
     return day === 0 ? 6 : day - 1
@@ -29,7 +31,8 @@ export default function WeeklyCalendar({ weekOffset, isWeekLocked, onWeekNav }: 
       <div className="flex items-center justify-between mb-2">
         <button
           onClick={() => onWeekNav(-1)}
-          className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors"
+          disabled={!canGoBack || loading}
+          className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <span className="text-gray-600">‹</span>
         </button>
@@ -45,7 +48,7 @@ export default function WeeklyCalendar({ weekOffset, isWeekLocked, onWeekNav }: 
 
         <button
           onClick={() => onWeekNav(+1)}
-          disabled={weekOffset === 0}
+          disabled={weekOffset === 0 || loading}
           className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <span className="text-gray-600">›</span>
