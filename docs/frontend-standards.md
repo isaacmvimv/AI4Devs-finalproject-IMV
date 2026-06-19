@@ -56,8 +56,8 @@ Este documento describe las buenas prácticas, convenciones y estándares utiliz
 ### Framework de UI
 - **Tailwind CSS 4.1.12**: Framework CSS utility-first para diseño responsive
 - **@tailwindcss/vite 4.1.12**: Integración de Tailwind con el pipeline de Vite
-- **Radix UI (@radix-ui/react-*)**: Primitivas de UI accesibles (varias versiones v1.x–2.x)
-- **Patrón shadcn/ui**: Biblioteca de componentes basada en Radix + Tailwind + CVA
+- **Radix UI**: Solo `@radix-ui/react-avatar` y `@radix-ui/react-dialog` (T-22-01 eliminó los demás)
+- **Patrón shadcn/ui**: Componentes basados en Radix + Tailwind + CVA (solo 4 retenidos)
 - **lucide-react 0.487.0**: Biblioteca de iconos para elementos de UI
 - **MUI (opcional) 7.3.5**: Componentes Material-UI (instalados pero no obligatorios para la pantalla principal)
 
@@ -523,13 +523,11 @@ Tipografía: `--font-sans` (Inter) para UI; `--font-display` (Georgia) para tít
 
 Configuración CLI: `components.json` en la raíz del monorepo (alias `@/` → `frontend/src`). Para añadir primitivos futuros: `npx shadcn@latest add <component>` desde la raíz.
 
-**Componentes adicionales** (scaffold inicial, fuera del DoD T-05-03): Dialog, Sheet, Drawer, Textarea, Accordion, Tabs, Select, Checkbox, Switch, Tooltip, Popover, Dropdown Menu y más (~40 ficheros en `ui/`).
+**Nota (T-22-01):** Los ~40 componentes adicionales del scaffold inicial fueron eliminados. Solo se retienen los 4 componentes listados arriba + `utils.ts`. Para añadir nuevos: `npx shadcn@latest add <component>` desde la raíz.
 
 **Ejemplo de ConRutina:**
 ```typescript
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
 
 export function AddHabitModal({ isOpen, onClose, onAdd }: Props) {
   return (
@@ -800,6 +798,8 @@ const handleToggleDay = useCallback((habitId: string, dayIndex: number) => {
 ```
 
 ### Optimización del bundle
+- **manualChunks**: `vendor` chunk separa `react`, `react-dom`, `@radix-ui/*` (configurado en `vite.config.ts`)
+- **rollup-plugin-visualizer**: Disponible con `ANALYZE=1 npm run build` (genera `dist/stats.html`)
 - **Vite optimiza automáticamente**: Code splitting, tree shaking
 - **Carga diferida de rutas**: Usar imports dinámicos para componentes de ruta
 - **Optimizar imágenes**: Usar formatos y tamaños adecuados

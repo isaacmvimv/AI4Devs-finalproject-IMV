@@ -2,17 +2,29 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   // Raíz del proyecto Vite: SPA bajo frontend/
   root: path.resolve(__dirname, 'frontend'),
 
   plugins: [
-    // The React and Tailwind plugins are both required for Make, even if
-    // Tailwind is not being actively used – do not remove them
     react(),
     tailwindcss(),
+    ...(process.env.ANALYZE
+      ? [visualizer({ open: true, filename: 'dist/stats.html' })]
+      : []),
   ],
+
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', '@radix-ui/react-avatar', '@radix-ui/react-dialog'],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       // Alias @ to the src directory

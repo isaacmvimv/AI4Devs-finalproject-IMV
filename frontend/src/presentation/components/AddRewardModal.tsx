@@ -94,7 +94,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
                   onClick={() => setSelectedEmoji(emoji)}
                   className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all ${
                     selectedEmoji === emoji
-                      ? 'bg-purple-100 ring-2 ring-purple-400'
+                      ? 'bg-yellow-100 ring-2 ring-yellow-400'
                       : 'bg-gray-50 hover:bg-gray-100'
                   }`}
                 >
@@ -111,7 +111,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ej: Pizza del viernes"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
             />
             {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
           </div>
@@ -123,7 +123,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ej: Una pizza de pepperoni después de una semana dura"
               rows={2}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent resize-none"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent resize-none"
             />
           </div>
 
@@ -133,7 +133,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
               type="number"
               value={cost}
               onChange={(e) => setCost(Number(e.target.value))}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
             />
             {errors.cost && <p className="text-sm text-red-500 mt-1">{errors.cost}</p>}
           </div>
@@ -141,7 +141,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-3 bg-purple-500 hover:bg-purple-600 disabled:opacity-60 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+            className="w-full py-3 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 disabled:opacity-60 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
           >
             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
             Añadir recompensa
