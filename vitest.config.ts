@@ -9,5 +9,18 @@ export default defineConfig({
     ],
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reportsDirectory: 'coverage',
+      reporter: ['text', 'html', 'lcov'],
+      include: [
+        'frontend/src/domain/**/*.ts',
+        'frontend/src/domain/**/*.tsx',
+        'backend/src/domain/**/*.ts',
+      ],
+      thresholds: {
+        lines: 80,
+      },
+    },
   },
 })

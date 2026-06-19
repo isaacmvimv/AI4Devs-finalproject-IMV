@@ -2525,7 +2525,7 @@ gantt
 - **Tipo:** Tooling — Calidad
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Instalar y configurar Vitest + `@vitest/coverage-v8`. Crear `vitest.config.ts`. Scripts: `test` (vitest run), `test:watch` (vitest), `test:coverage` (vitest run --coverage).
 

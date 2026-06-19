@@ -281,20 +281,14 @@ Los ocho primitivos del DoD T-05-03 (`button`, `dialog`, `input`, `label`, `card
 
 ## Pruebas
 
-### Backend (previsto)
+Vitest + cobertura v8 configurados en `vitest.config.ts`. Cobertura mide `frontend/src/domain/**` y `backend/src/domain/**` con threshold 80 % en líneas.
+
+### Scripts
 
 ```bash
-npm test
-npm run test:watch
-npm run test:coverage
-```
-
-*(Vitest aún no configurado; ver [backend-standards.md](./backend-standards.md).)*
-
-### Frontend (previsto)
-
-```bash
-npm test
+npm test              # Ejecuta todos los tests una vez
+npm run test:watch    # Tests en modo watch (re-ejecuta al guardar)
+npm run test:coverage # Tests + informe de cobertura (text, html, lcov) en coverage/
 ```
 
 E2E con Playwright MCP cuando aplique (ver [openspec/tasks-core.md](./openspec/tasks-core.md)).
