@@ -2621,7 +2621,7 @@ gantt
 - **Tipo:** Backend — Base de datos
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 1
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Verificar los índices del schema Prisma para las queries más frecuentes. Añadir los que falten vía migración.
 

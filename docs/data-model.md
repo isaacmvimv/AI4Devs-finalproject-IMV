@@ -311,6 +311,20 @@ erDiagram
 
 ---
 
+## Índices de rendimiento
+
+| Tabla | Índice | Columnas | Tipo | Migración |
+|---|---|---|---|---|
+| `Week` | `Week_userId_startDate_idx` | `userId`, `startDate` | B-tree | `20260530120258_init` |
+| `WeekHabit` | `WeekHabit_weekId_idx` | `weekId` | B-tree | `20260530120258_init` |
+| `WeekHabit` | `WeekHabit_weekId_habitId_key` | `weekId`, `habitId` | B-tree (unique) | `20260530120258_init` |
+| `HabitEntry` | `HabitEntry_weekHabitId_idx` | `weekHabitId` | B-tree | `20260530120258_init` |
+| `RewardRedemption` | `RewardRedemption_weekId_idx` | `weekId` | B-tree | `20260530120258_init` |
+
+Definidos con `@@index` y `@@unique` en `backend/prisma/schema.prisma`. Verificados con `EXPLAIN ANALYZE` (T-22-02).
+
+---
+
 ## Roadmap de persistencia
 
 1. ~~**Completar schema Prisma**~~ — ✅ T-03-01: siete modelos del dominio + enum `CompletionStatus` en `backend/prisma/schema.prisma`.
