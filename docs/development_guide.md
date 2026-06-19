@@ -335,6 +335,21 @@ npm run docker:logs        # Logs del servicio db
 docker compose down -v     # Elimina contenedor y volumen ConRutina_postgres_data
 ```
 
+### Build Docker del backend (producción)
+
+```bash
+# Construir imagen de producción del backend (desde la raíz del monorepo)
+docker build -f backend/Dockerfile . -t conrutina-api
+
+# Verificar tamaño de la imagen
+docker images conrutina-api
+
+# Ejecutar (requiere PostgreSQL accesible vía DATABASE_URL)
+docker run --rm -e DATABASE_URL="postgresql://user:pass@host:5432/db" -p 3001:3001 conrutina-api
+```
+
+La imagen usa multi-stage build (`node:20-alpine`), compila TypeScript con `tsc`, y ejecuta `prisma migrate deploy` al arrancar.
+
 ### Desarrollo
 
 ```bash

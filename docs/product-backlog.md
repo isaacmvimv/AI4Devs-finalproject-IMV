@@ -2643,7 +2643,7 @@ gantt
 - **Tipo:** Infra — Docker
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `backend/Dockerfile` multi-stage: stage `builder` (compilación TS), stage `runner` (node:20-alpine, solo runtime deps). El entrypoint ejecuta `prisma migrate deploy` antes de arrancar.
 
