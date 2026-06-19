@@ -2543,7 +2543,7 @@ gantt
 - **Tipo:** Testing — Dominio Frontend
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `frontend/src/domain/habit.test.ts`, `reward.test.ts` y `week.test.ts` con tests unitarios de todas las funciones puras implementadas en US-13.
 

@@ -62,6 +62,17 @@ describe('toggleHabitDayCompletion', () => {
     expect(habit.completionStatus[0]).toBe('completed')
   })
 
+  it('recalculates streak when toggling a past day', () => {
+    const habit = buildHabit({
+      completionStatus: weekStatus(['completed', 'completed', 'pending', 'pending']),
+      streak: 2,
+    })
+
+    const toggled = toggleHabitDayCompletion(habit, 0)
+    expect(toggled.completionStatus[0]).toBe('failed')
+    expect(toggled.streak).toBe(0)
+  })
+
   it('does not mutate the original habit', () => {
     const habit = buildHabit()
     const originalStatus = [...habit.completionStatus]
@@ -96,6 +107,30 @@ describe('calculateHabitStats', () => {
     })
   })
 
+  it('returns thisWeekPoints=0 and penalties=total when all days failed', () => {
+    const habit = buildHabit({
+      pointsPerDay: 10,
+      penalty: 3,
+      completionStatus: ['failed', 'failed', 'failed', 'failed', 'failed', 'failed', 'failed'],
+      streak: 0,
+    })
+
+    expect(calculateHabitStats([habit])).toEqual({
+      thisWeekPoints: 0,
+      lastWeekPoints: 0,
+      penalties: 21,
+      maxStreak: 0,
+    })
+  })
+
+  it('returns maxStreak from habit with highest streak', () => {
+    const h1 = buildHabit({ id: '1', streak: 3 })
+    const h2 = buildHabit({ id: '2', streak: 5 })
+    const h3 = buildHabit({ id: '3', streak: 1 })
+
+    expect(calculateHabitStats([h1, h2, h3]).maxStreak).toBe(5)
+  })
+
   it('returns zeros for empty habits array (US-13 S5)', () => {
     expect(calculateHabitStats([])).toEqual({
       thisWeekPoints: 0,
@@ -117,6 +152,25 @@ describe('calculateTodayProgressPercent', () => {
     expect(calculateTodayProgressPercent(habits, 2)).toBe(66.67)
   })
 
+  it('returns 33.33 when 1 of 3 completed', () => {
+    const habits = [
+      buildHabit({ id: '1', completionStatus: weekStatus(['completed']) }),
+      buildHabit({ id: '2', completionStatus: weekStatus(['pending']) }),
+      buildHabit({ id: '3', completionStatus: weekStatus(['pending']) }),
+    ]
+
+    expect(calculateTodayProgressPercent(habits, 0)).toBe(33.33)
+  })
+
+  it('returns 100 when all completed', () => {
+    const habits = [
+      buildHabit({ id: '1', completionStatus: weekStatus(['completed']) }),
+      buildHabit({ id: '2', completionStatus: weekStatus(['completed']) }),
+    ]
+
+    expect(calculateTodayProgressPercent(habits, 0)).toBe(100)
+  })
+
   it('returns 0 when habits array is empty', () => {
     expect(calculateTodayProgressPercent([], 2)).toBe(0)
   })
@@ -135,6 +189,34 @@ describe('computeStreakFromStatus', () => {
     ]
 
     expect(computeStreakFromStatus(statuses, 4)).toBe(1)
+  })
+
+  it('returns 3 for three consecutive completed days', () => {
+    const statuses: CompletionStatus[] = [
+      'completed',
+      'completed',
+      'completed',
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+    ]
+
+    expect(computeStreakFromStatus(statuses, 2)).toBe(3)
+  })
+
+  it('returns 1 when failed interrupts completed streak', () => {
+    const statuses: CompletionStatus[] = [
+      'completed',
+      'failed',
+      'completed',
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+    ]
+
+    expect(computeStreakFromStatus(statuses, 2)).toBe(1)
   })
 
   it('returns 0 when all days are pending', () => {
@@ -204,6 +286,28 @@ describe('totalPointsFromStats', () => {
     }
 
     expect(totalPointsFromStats(stats)).toBe(15)
+  })
+
+  it('returns negative when penalties exceed points', () => {
+    const stats: HabitStats = {
+      thisWeekPoints: 10,
+      lastWeekPoints: 0,
+      penalties: 25,
+      maxStreak: 0,
+    }
+
+    expect(totalPointsFromStats(stats)).toBe(-15)
+  })
+
+  it('returns zero when penalties equal points', () => {
+    const stats: HabitStats = {
+      thisWeekPoints: 15,
+      lastWeekPoints: 0,
+      penalties: 15,
+      maxStreak: 2,
+    }
+
+    expect(totalPointsFromStats(stats)).toBe(0)
   })
 })
 
