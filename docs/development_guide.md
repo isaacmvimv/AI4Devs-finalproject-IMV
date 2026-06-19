@@ -291,6 +291,25 @@ npm run test:watch    # Tests en modo watch (re-ejecuta al guardar)
 npm run test:coverage # Tests + informe de cobertura (text, html, lcov) en coverage/
 ```
 
+### Tests de integración
+
+Tests de integración contra PostgreSQL real (contenedor Docker). Validan el flujo HTTP → Express → caso de uso → Prisma → BD.
+
+**Prerequisitos:**
+- Docker corriendo con PostgreSQL: `npm run docker:up`
+- BD de test `conrutina_test` creada (se crea una sola vez):
+  ```bash
+  docker exec conrutina-db psql -U conrutina -c "CREATE DATABASE conrutina_test"
+  DATABASE_URL="postgresql://conrutina:conrutina_dev_pass@localhost:5432/conrutina_test" npx prisma migrate deploy
+  ```
+
+**Ejecución:**
+```bash
+npm run test:integration   # Ejecuta tests de integración (*.integration.test.ts)
+```
+
+La configuración está en `vitest.integration.config.ts` y usa `.env.test` para la URL de la BD de test.
+
 E2E con Playwright MCP cuando aplique (ver [openspec/tasks-core.md](./openspec/tasks-core.md)).
 
 ## Comandos habituales

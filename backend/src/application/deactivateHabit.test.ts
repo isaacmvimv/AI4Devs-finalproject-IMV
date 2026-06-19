@@ -76,7 +76,7 @@ describe('deactivateHabit', () => {
       mockRepo.findById,
       mockRepo.update,
       mockRepo.softDelete,
-    ].filter((fn) => fn.mock.calls.length > 0)
+    ].filter((fn) => vi.mocked(fn).mock.calls.length > 0)
 
     expect(invokedMethods).toHaveLength(2)
     expect(mockRepo.findById).toHaveBeenCalled()

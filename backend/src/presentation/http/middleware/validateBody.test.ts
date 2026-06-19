@@ -1,5 +1,5 @@
-import type { NextFunction, Request, Response } from 'express'
-import { describe, expect, it, vi } from 'vitest'
+import type { Request, Response } from 'express'
+import { describe, expect, it, vi, type Mock } from 'vitest'
 import { z } from 'zod'
 import { createHabitSchema } from '../../../application/validation/habit'
 import { createRewardSchema } from '../../../application/validation/reward'
@@ -12,7 +12,7 @@ function invokeMiddleware(
 ) {
   const req = { body } as Request
   const res = {} as Response
-  const next = vi.fn() as NextFunction
+  const next = vi.fn()
 
   validateBody(schema)(req, res, next)
 
@@ -50,7 +50,7 @@ describe('validateBody', () => {
     const err = next.mock.calls[0][0] as ValidationError
     expect(err).toBeInstanceOf(ValidationError)
     expect(err.details).toHaveLength(3)
-    expect(err.details?.map((d) => d.field)).toEqual(
+    expect((err.details as Array<{ field: string }>).map((d) => d.field)).toEqual(
       expect.arrayContaining(['name', 'pointsPerDay', 'penalty'])
     )
   })

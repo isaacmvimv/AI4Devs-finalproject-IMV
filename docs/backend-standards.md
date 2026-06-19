@@ -1084,9 +1084,12 @@ vi.mock('../../infrastructure/prismaUserRepository', () => ({
 
 ### Pruebas de integración
 
-- Probar `createApp` con supertest o fetch contra app Express en memoria
-- Repositorio contra PostgreSQL de test o contenedor efímero (cuando se configure)
-- Flujos completos: HTTP → caso de uso → adaptador
+- Probar `createApp` con supertest contra app Express en memoria (`supertest(createApp(prisma))`)
+- Repositorio contra PostgreSQL de test (BD `conrutina_test` en el contenedor Docker local)
+- Flujos completos: HTTP → caso de uso → adaptador → Prisma → BD real
+- Ficheros: `backend/src/__tests__/integration/*.integration.test.ts`
+- Helpers reutilizables en `backend/src/__tests__/integration/helpers/` (`createTestApp`, `resetDb`, seeders)
+- Ejecutar con `npm run test:integration` (requiere Docker activo con PostgreSQL)
 
 ### Cobertura de pruebas
 
@@ -1245,8 +1248,9 @@ Ver [openspec/tasks-core.md](./openspec/tasks-core.md).
 npm install                # Instalar dependencias
 npm run dev:api           # API con recarga (tsx watch)
 npm run build             # Build frontend (monorepo)
-npm run test              # Vitest (una pasada)
+npm run test              # Vitest unitarios (una pasada)
 npm run test:watch        # Vitest en modo watch
+npm run test:integration  # Tests de integración (requiere Docker PostgreSQL)
 npm run prisma:generate   # Generar cliente Prisma
 npm run prisma:init       # Inicializar Prisma (una vez)
 npm run db:migrate        # Aplicar migraciones (prisma migrate deploy)

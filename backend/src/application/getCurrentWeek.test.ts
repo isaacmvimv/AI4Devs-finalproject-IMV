@@ -64,6 +64,8 @@ describe('getCurrentWeek', () => {
         findUnlockedWeekBefore: vi.fn(),
         lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn().mockResolvedValue(createdWeek),
+        findWeekByUserAndStartDate: vi.fn(),
+        findLastLockedWeekBefore: vi.fn(),
       }
       const mockHabitRepo: HabitRepository = {
         create: vi.fn(),
@@ -100,6 +102,8 @@ describe('getCurrentWeek', () => {
         findUnlockedWeekBefore: vi.fn(),
         lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn(),
+        findWeekByUserAndStartDate: vi.fn(),
+        findLastLockedWeekBefore: vi.fn(),
       }
       const mockHabitRepo: HabitRepository = {
         create: vi.fn(),
@@ -128,6 +132,8 @@ describe('getCurrentWeek', () => {
         findUnlockedWeekBefore: vi.fn(),
         lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn().mockResolvedValue(emptyWeek),
+        findWeekByUserAndStartDate: vi.fn(),
+        findLastLockedWeekBefore: vi.fn(),
       }
       const mockHabitRepo: HabitRepository = {
         create: vi.fn(),
@@ -157,6 +163,8 @@ describe('getCurrentWeek', () => {
         findUnlockedWeekBefore: vi.fn(),
         lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn().mockRejectedValue(txError),
+        findWeekByUserAndStartDate: vi.fn(),
+        findLastLockedWeekBefore: vi.fn(),
       }
       const mockHabitRepo: HabitRepository = {
         create: vi.fn(),

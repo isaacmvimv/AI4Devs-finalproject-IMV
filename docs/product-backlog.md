@@ -2566,7 +2566,7 @@ gantt
 - **Tipo:** Testing — Backend Integración
 - **Complejidad:** `M` &nbsp;·&nbsp; **Story Points:** 3
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Configurar `supertest` y una BD de test (PostgreSQL efímero en Docker o SQLite via Prisma). Crear tests de integración para los endpoints más críticos.
 

@@ -7,6 +7,10 @@ export default defineConfig({
       'frontend/src/**/*.test.ts',
       'frontend/src/**/*.test.tsx',
     ],
+    exclude: [
+      'backend/src/**/*.integration.test.ts',
+      'node_modules',
+    ],
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
     coverage: {

@@ -239,7 +239,8 @@ ConRutina/
 | `npm run build:dev` | Build en modo `development` de Vite (útil para depurar builds). |
 | `npm run preview` | Sirve localmente el contenido de `dist/` tras un build. |
 | `npm run lint` | Ejecuta `eslint .` — **requiere** tener ESLint instalado/configurado; hoy no figura en `devDependencies`. |
-| `npm run test` / `npm run test:watch` | Ejecutan Vitest — **requieren** `vitest` en el proyecto; hoy no está declarado en `devDependencies`. |
+| `npm run test` / `npm run test:watch` | Ejecutan Vitest (tests unitarios). |
+| `npm run test:integration` | Tests de integración contra PostgreSQL real (BD `conrutina_test`). Requiere Docker activo (`npm run docker:up`). Config en `vitest.integration.config.ts`. |
 | `npm run docker:up` / `docker:down` / `docker:logs` | Levantan / paran el stack definido en **`docker-compose.yml`** y siguen los logs del contenedor **`postgres`**. Requieren `.env` con credenciales (ver [§12](#12-base-de-datos-prisma-y-docker)). |
 | `npm run prisma:init` | Plantilla `npx prisma init` (suele usarse una sola vez al crear un proyecto; aquí el esquema ya vive en `backend/prisma/`). |
 | `npm run prisma:generate` | `npx prisma generate` — asegúrate de que Prisma resuelva el esquema (bloque `prisma.schema` en `package.json` o `--schema=backend/prisma/schema.prisma`). |
@@ -353,7 +354,7 @@ flowchart TB
 4. **Estilos:** Prefiere utilidades Tailwind y variables de `theme.css` para mantener coherencia con el kit existente.
 5. **Rutas:** `react-router` ya está en dependencias; si añades varias pantallas, configura el router en `main.tsx` o `App.tsx` y divide vistas.
 6. **Persistencia:** En la SPA los datos de hábitos/recompensas siguen en memoria y se pierden al recargar. Los datos de **usuario en BD** ya pueden leerse vía el **API** (`GET /api/profile`). Para más entidades, amplía el esquema Prisma, añade casos de uso y rutas en **`backend/src`** (presentación HTTP + infraestructura) y consume desde React con las mismas URLs `/api/...`.
-7. **Pruebas:** Antes de usar `npm run test`, añade `vitest` (y opcionalmente `@testing-library/react`) como `devDependency` y un `vitest.config.ts` si lo necesitas.
+7. **Pruebas:** `npm run test` ejecuta tests unitarios con Vitest. `npm run test:integration` ejecuta tests de integración contra PostgreSQL real (requiere Docker activo). Configuración en `vitest.config.ts` y `vitest.integration.config.ts` respectivamente.
 8. **OpenSpec:** Un ticket del backlog (`docs/product-backlog.md`) = un change en `openspec/changes/`. Crear especificaciones con `/opsx-propose-ticket T-XX-YY`; implementar con `/opsx:apply`; archivar con `/opsx:archive`. Configuración en `openspec/config.yaml`.
 
 ---
