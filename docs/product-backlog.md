@@ -2680,7 +2680,7 @@ gantt
 - **Tipo:** Infra — Docker
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `docker-compose.prod.yml` que orqueste los tres servicios: `db`, `api`, `web`. Con health checks y dependencias declaradas correctamente.
 

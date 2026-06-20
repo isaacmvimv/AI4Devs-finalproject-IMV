@@ -348,7 +348,7 @@ docker images conrutina-api
 docker run --rm -e DATABASE_URL="postgresql://user:pass@host:5432/db" -p 3001:3001 conrutina-api
 ```
 
-La imagen usa multi-stage build (`node:20-alpine`), compila TypeScript con `tsc`, y ejecuta `prisma migrate deploy` al arrancar.
+La imagen usa multi-stage build (`node:20-alpine`), compila TypeScript con `tsc` en el stage builder, y ejecuta `prisma migrate deploy` + `tsx backend/src/main.ts` al arrancar (runtime ESM en Alpine).
 
 ### Build Docker del frontend (producción)
 
@@ -366,6 +366,44 @@ docker run --rm -p 8080:80 conrutina-web
 La imagen usa multi-stage build: stage `builder` (`node:20-alpine`) ejecuta `npm ci && npm run build` y genera `frontend/dist/`; stage `runner` (`nginx:alpine`) sirve los estáticos en el puerto **80**. El fichero `frontend/nginx.conf` configura soporte SPA (`try_files`) y proxy inverso de `/api/` hacia `http://api:3001` (hostname del servicio backend en `docker-compose.prod.yml`, T-23-03). La ruta `/api/health` se reescribe a `/health` en el backend, en paridad con el proxy de desarrollo en `vite.config.ts`.
 
 > **Nota:** Docker exige nombres de imagen en minúsculas (`conrutina-web`), alineado con `conrutina-api`.
+
+### Stack de producción (Docker Compose)
+
+Levanta el stack completo (`db` + `api` + `web`) con un solo comando desde la raíz del monorepo:
+
+```bash
+# Arrancar (construye imágenes si hace falta)
+docker compose -f docker-compose.prod.yml up --build -d
+
+# Estado de servicios (db debe estar healthy)
+docker compose -f docker-compose.prod.yml ps
+
+# Detener (conserva el volumen de datos de producción)
+docker compose -f docker-compose.prod.yml down
+```
+
+**Servicios:**
+
+| Servicio | Imagen / build | Puerto host | Notas |
+|----------|----------------|-------------|-------|
+| `db` | `postgres:16-alpine` | *(interno)* | Volumen `ConRutina_postgres_prod_data` |
+| `api` | `backend/Dockerfile` → `conrutina-api` | *(interno)* | Espera a `db` healthy; migraciones Prisma al arrancar |
+| `web` | `frontend/Dockerfile` → `conrutina-web` | **80** (o `${WEB_PORT:-80}`) | Proxy `/api/` → `api:3001` |
+
+**Variables de entorno** (desde `.env` en la raíz):
+
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` — credenciales del contenedor PostgreSQL.
+- El servicio `api` recibe `DATABASE_URL` con hostname `db` (no `localhost`).
+- `CORS_ORIGIN=http://localhost` — debe coincidir con el origen del navegador al acceder por puerto 80.
+
+**Volumen de datos:** `ConRutina_postgres_prod_data` es independiente del volumen de desarrollo (`ConRutina_postgres_data`). `docker compose down` del stack de desarrollo no afecta los datos de producción local.
+
+**Acceso:** SPA en [http://localhost](http://localhost); API vía proxy en `http://localhost/api/*` (p. ej. `curl http://localhost/api/health`).
+
+**Troubleshooting:**
+
+- **Puerto 80 ocupado:** define `WEB_PORT=8080` en `.env` o exporta la variable antes de `up`.
+- **BD vacía tras primer arranque:** solo se aplican migraciones; no hay seed automático en producción. Ejecuta seed manualmente si necesitas datos de demo.
 
 ### Desarrollo
 
