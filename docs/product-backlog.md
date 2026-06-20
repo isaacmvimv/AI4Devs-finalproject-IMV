@@ -2662,7 +2662,7 @@ gantt
 - **Tipo:** Infra — Docker
 - **Complejidad:** `S` &nbsp;·&nbsp; **Story Points:** 2
 
-**Estado en código:** ❌ Pendiente
+**Estado en código:** ✅ Implementado
 
 **Descripción:** Crear `frontend/Dockerfile` multi-stage: stage `builder` (genera el bundle Vite), stage `runner` (nginx:alpine sirve los estáticos y hace proxy de `/api`).
 

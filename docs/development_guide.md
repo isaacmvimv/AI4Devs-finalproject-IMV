@@ -350,6 +350,23 @@ docker run --rm -e DATABASE_URL="postgresql://user:pass@host:5432/db" -p 3001:30
 
 La imagen usa multi-stage build (`node:20-alpine`), compila TypeScript con `tsc`, y ejecuta `prisma migrate deploy` al arrancar.
 
+### Build Docker del frontend (producción)
+
+```bash
+# Construir imagen de producción del frontend (desde la raíz del monorepo)
+docker build -f frontend/Dockerfile . -t conrutina-web
+
+# Verificar contenido estático dentro de la imagen
+docker run --rm conrutina-web ls /usr/share/nginx/html
+
+# Ejecutar en puerto 80 (el proxy /api requiere red Docker con el servicio api)
+docker run --rm -p 8080:80 conrutina-web
+```
+
+La imagen usa multi-stage build: stage `builder` (`node:20-alpine`) ejecuta `npm ci && npm run build` y genera `frontend/dist/`; stage `runner` (`nginx:alpine`) sirve los estáticos en el puerto **80**. El fichero `frontend/nginx.conf` configura soporte SPA (`try_files`) y proxy inverso de `/api/` hacia `http://api:3001` (hostname del servicio backend en `docker-compose.prod.yml`, T-23-03). La ruta `/api/health` se reescribe a `/health` en el backend, en paridad con el proxy de desarrollo en `vite.config.ts`.
+
+> **Nota:** Docker exige nombres de imagen en minúsculas (`conrutina-web`), alineado con `conrutina-api`.
+
 ### Desarrollo
 
 ```bash
