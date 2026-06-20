@@ -522,7 +522,7 @@ describe('DELETE /api/habits/:id', () => {
 
     expect(response.status).toBe(204)
     expect(response.body).toEqual({})
-    expect(mockDeactivateHabit).toHaveBeenCalledWith(expect.anything(), 1, 5)
+    expect(mockDeactivateHabit).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1, 5)
   })
 
   it('returns 404 HABIT_NOT_FOUND when habit not found', async () => {
