@@ -175,8 +175,10 @@ Los valores de ejemplo y comentarios de cada clave están en **`.env.example`**.
 | `npm run lint`            | ESLint sobre `frontend/src` y `backend/src`.                            |
 | `npm run format`          | Formatea código con Prettier (TS/TSX/CSS, JSON, MD, MJS).             |
 | `npm run format:check`    | Comprueba formato Prettier sin modificar ficheros.                      |
-| `npm run test`            | Ejecuta Vitest una vez (`vitest run`).                                  |
+| `npm run test`            | Ejecuta tests unitarios con Vitest (`vitest run`).                      |
 | `npm run test:watch`      | Vitest en modo observación.                                             |
+| `npm run test:coverage`   | Tests unitarios con informe de cobertura (text, html, lcov).            |
+| `npm run test:integration`| Tests de integración contra PostgreSQL real (requiere Docker activo).   |
 | `npm run db:up`           | `docker compose up -d db` — levanta PostgreSQL (comando canónico).      |
 | `npm run db:down`         | `docker compose stop db` — detiene PostgreSQL sin eliminar el volumen.  |
 | `npm run docker:up`       | Alias de `db:up`.                                                       |
@@ -195,7 +197,7 @@ Los valores de ejemplo y comentarios de cada clave están en **`.env.example`**.
 | `.prettierignore`    | Excluye `node_modules`, `dist`, migraciones Prisma     |
 | `.editorconfig`      | Indentación, charset UTF-8 y fin de línea LF           |
 
-> ⚠️ El script `test` requiere Vitest configurado; puede fallar hasta que se añada en un ticket futuro.
+> Los tests de integración (`npm run test:integration`) requieren Docker con PostgreSQL activo (`npm run docker:up`) y la BD de test creada (ver [docs/development_guide.md](docs/development_guide.md#tests-de-integración)).
 
 ## Tecnologías utilizadas
 
