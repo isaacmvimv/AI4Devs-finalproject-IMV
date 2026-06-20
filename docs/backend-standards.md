@@ -1087,8 +1087,9 @@ vi.mock('../../infrastructure/prismaUserRepository', () => ({
 - Probar `createApp` con supertest contra app Express en memoria (`supertest(createApp(prisma))`)
 - Repositorio contra PostgreSQL de test (BD `conrutina_test` en el contenedor Docker local)
 - Flujos completos: HTTP → caso de uso → adaptador → Prisma → BD real
-- Ficheros: `backend/src/__tests__/integration/*.integration.test.ts`
+- Ficheros: `backend/src/__tests__/integration/*.integration.test.ts` (`profile`, `habits`, `weeks`, `habitEntries`, `redemptions`)
 - Helpers reutilizables en `backend/src/__tests__/integration/helpers/` (`createTestApp`, `resetDb`, seeders)
+- `weeks.integration.test.ts` valida que crear/eliminar hábitos se refleja en `GET /api/weeks/current` (sincronización `WeekHabit` en semana desbloqueada)
 - Ejecutar con `npm run test:integration` (requiere Docker activo con PostgreSQL)
 
 ### Cobertura de pruebas

@@ -49,12 +49,14 @@ export function mapToHabitEntry(row: {
 export async function createWeekHabitsWithEntriesInTx(
   tx: Prisma.TransactionClient,
   weekId: number,
-  activeHabits: Habit[]
+  activeHabits: Habit[],
+  startOrder = 0
 ): Promise<WeekHabitWithEntries[]> {
   const result: WeekHabitWithEntries[] = []
 
-  for (let order = 0; order < activeHabits.length; order++) {
-    const habit = activeHabits[order]
+  for (let index = 0; index < activeHabits.length; index++) {
+    const habit = activeHabits[index]
+    const order = startOrder + index
     const weekHabit = await tx.weekHabit.create({
       data: {
         weekId,

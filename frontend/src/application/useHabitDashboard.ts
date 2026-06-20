@@ -161,12 +161,13 @@ export function useHabitDashboard() {
     }
   }
 
-  const handleDeleteHabit = (habitId: string) => {
+  const handleDeleteHabit = async (habitId: string) => {
     const index = habits.findIndex((h) => h.id === habitId)
     if (index === -1) return
 
-    const removedHabit = habits[index]
-    const removedEntryIds = entryIdsByHabitId[habitId]
+    const previousHabits = habits
+    const previousEntryIds = entryIdsByHabitId
+    const previousStats = stats
 
     const remainingHabits = habits.filter((h) => h.id !== habitId)
     setHabits(remainingHabits)
@@ -178,21 +179,20 @@ export function useHabitDashboard() {
       return next
     })
 
-    habitApi.deleteHabit(Number(habitId)).catch((err) => {
-      setHabits((current) => {
-        const restored = [...current]
-        restored.splice(index, 0, removedHabit)
-        return restored
-      })
-      setStats((prev) => {
-        const reverted = calculateHabitStats([...habits])
-        return { ...reverted, lastWeekPoints: prev.lastWeekPoints }
-      })
-      if (removedEntryIds) {
-        setEntryIdsByHabitId((prev) => ({ ...prev, [habitId]: removedEntryIds }))
-      }
+    try {
+      await habitApi.deleteHabit(Number(habitId))
+      const dto = await weekApi.fetchCurrentWeek()
+      const mapped = mapWeekResponseToDashboard(dto, getCurrentDayIndexForWeek(0))
+      setHabits(mapped.habits)
+      setStats(mapped.stats)
+      setEntryIdsByHabitId(mapped.entryIdsByHabitId)
+      setWeekIsLocked(mapped.isLocked)
+    } catch (err) {
+      setHabits(previousHabits)
+      setStats(previousStats)
+      setEntryIdsByHabitId(previousEntryIds)
       toast.error(errorMessage(err, 'Error al eliminar el hábito'))
-    })
+    }
   }
 
   const handleAddReward = async (newReward: {

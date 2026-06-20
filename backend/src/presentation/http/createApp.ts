@@ -124,7 +124,7 @@ export function createApp(prisma: PrismaClient): Express {
     '/api/habits/:id',
     asyncHandler(async (req, res) => {
       const habitId = parseHabitIdParam(req.params.id)
-      await deactivateHabit(habitRepository, 1, habitId)
+      await deactivateHabit(habitRepository, weekRepository, 1, habitId)
       return res.status(204).send()
     })
   )

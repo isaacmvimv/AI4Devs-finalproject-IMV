@@ -11,6 +11,8 @@ export interface WeekRepository {
     endDate: Date,
     activeHabits: Habit[]
   ): Promise<WeekWithDetails>
+  addHabitsToWeek(weekId: number, habits: Habit[], startOrder: number): Promise<WeekWithDetails>
+  removeHabitsFromWeek(weekId: number, habitIds: number[]): Promise<WeekWithDetails>
   findWeekByUserAndStartDate(userId: number, startDate: Date): Promise<WeekWithDetails | null>
   findLastLockedWeekBefore(userId: number, beforeStartDate: Date): Promise<Week | null>
 }

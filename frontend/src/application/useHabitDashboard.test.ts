@@ -235,40 +235,51 @@ describe('useHabitDashboard', () => {
     }
   })
 
-  it('handleDeleteHabit elimina el hábito de forma optimista y llama a deleteHabit', async () => {
+  it('handleDeleteHabit elimina el hábito y sincroniza la semana actual', async () => {
     vi.mocked(habitApi.deleteHabit).mockResolvedValue(undefined)
+    vi.mocked(weekApi.fetchCurrentWeek)
+      .mockResolvedValueOnce(buildWeekResponse())
+      .mockResolvedValue(buildWeekResponse({ habits: [] }))
 
     const { result } = renderHook(() => useHabitDashboard())
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    act(() => {
-      result.current.handleDeleteHabit('1')
+    await act(async () => {
+      await result.current.handleDeleteHabit('1')
     })
 
     expect(result.current.habits).toHaveLength(0)
-    await waitFor(() => expect(habitApi.deleteHabit).toHaveBeenCalledWith(1))
+    expect(habitApi.deleteHabit).toHaveBeenCalledWith(1)
+    expect(weekApi.fetchCurrentWeek).toHaveBeenCalledTimes(2)
   })
 
   it('handleDeleteHabit recalcula stats al eliminar un hábito con puntos', async () => {
-    vi.mocked(weekApi.fetchCurrentWeek).mockResolvedValue(
-      buildWeekResponse({
-        habits: [
-          {
-            weekHabit: { id: 10, habitId: 1, order: 0, snapshotName: 'Ejercicio', snapshotEmoji: '🏃', snapshotPoints: 5, snapshotPenalty: 2 },
-            entries: [
-              { id: 101, dayIndex: 0, status: 'completed' },
-              { id: 102, dayIndex: 1, status: 'failed' },
-              { id: 103, dayIndex: 2, status: 'pending' },
-              { id: 104, dayIndex: 3, status: 'pending' },
-              { id: 105, dayIndex: 4, status: 'pending' },
-              { id: 106, dayIndex: 5, status: 'pending' },
-              { id: 107, dayIndex: 6, status: 'pending' },
-            ],
-          },
-        ],
-        stats: { thisWeekPoints: 5, lastWeekPoints: 10, penalties: 2, maxStreak: 1 },
-      }),
-    )
+    vi.mocked(weekApi.fetchCurrentWeek)
+      .mockResolvedValueOnce(
+        buildWeekResponse({
+          habits: [
+            {
+              weekHabit: { id: 10, habitId: 1, order: 0, snapshotName: 'Ejercicio', snapshotEmoji: '🏃', snapshotPoints: 5, snapshotPenalty: 2 },
+              entries: [
+                { id: 101, dayIndex: 0, status: 'completed' },
+                { id: 102, dayIndex: 1, status: 'failed' },
+                { id: 103, dayIndex: 2, status: 'pending' },
+                { id: 104, dayIndex: 3, status: 'pending' },
+                { id: 105, dayIndex: 4, status: 'pending' },
+                { id: 106, dayIndex: 5, status: 'pending' },
+                { id: 107, dayIndex: 6, status: 'pending' },
+              ],
+            },
+          ],
+          stats: { thisWeekPoints: 5, lastWeekPoints: 10, penalties: 2, maxStreak: 1 },
+        }),
+      )
+      .mockResolvedValue(
+        buildWeekResponse({
+          habits: [],
+          stats: { thisWeekPoints: 0, lastWeekPoints: 10, penalties: 0, maxStreak: 0 },
+        }),
+      )
     vi.mocked(habitApi.deleteHabit).mockResolvedValue(undefined)
 
     const { result } = renderHook(() => useHabitDashboard())
@@ -277,8 +288,8 @@ describe('useHabitDashboard', () => {
     expect(result.current.stats.thisWeekPoints).toBe(5)
     expect(result.current.stats.penalties).toBe(2)
 
-    act(() => {
-      result.current.handleDeleteHabit('1')
+    await act(async () => {
+      await result.current.handleDeleteHabit('1')
     })
 
     expect(result.current.stats.thisWeekPoints).toBe(0)
@@ -313,14 +324,13 @@ describe('useHabitDashboard', () => {
     const { result } = renderHook(() => useHabitDashboard())
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    act(() => {
-      result.current.handleDeleteHabit('1')
+    await act(async () => {
+      await result.current.handleDeleteHabit('1')
     })
-
-    expect(result.current.stats.thisWeekPoints).toBe(0)
 
     await waitFor(() => expect(result.current.stats.thisWeekPoints).toBe(5))
     expect(result.current.stats.lastWeekPoints).toBe(10)
+    expect(weekApi.fetchCurrentWeek).toHaveBeenCalledTimes(1)
   })
 
   it('handleDeleteHabit restaura el hábito y muestra un toast en error', async () => {
@@ -331,13 +341,11 @@ describe('useHabitDashboard', () => {
     const { result } = renderHook(() => useHabitDashboard())
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    act(() => {
-      result.current.handleDeleteHabit('1')
+    await act(async () => {
+      await result.current.handleDeleteHabit('1')
     })
 
-    expect(result.current.habits).toHaveLength(0)
-
-    await waitFor(() => expect(result.current.habits).toHaveLength(1))
+    expect(result.current.habits).toHaveLength(1)
     expect(result.current.habits[0].id).toBe('1')
     expect(toast.error).toHaveBeenCalled()
   })

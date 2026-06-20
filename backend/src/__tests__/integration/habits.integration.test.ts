@@ -47,3 +47,32 @@ describe('POST /api/habits', () => {
     })
   })
 })
+
+describe('DELETE /api/habits/:id', () => {
+  it('returns 204 and excludes habit from GET /api/habits', async () => {
+    await seedUser(prisma)
+
+    const created = await request(app)
+      .post('/api/habits')
+      .send({ emoji: '🏃', name: 'Correr', pointsPerDay: 10, penalty: 5 })
+
+    const deleteRes = await request(app).delete(`/api/habits/${created.body.id}`)
+    expect(deleteRes.status).toBe(204)
+    expect(deleteRes.body).toEqual({})
+
+    const listRes = await request(app).get('/api/habits')
+    expect(listRes.status).toBe(200)
+    expect(listRes.body).toHaveLength(0)
+
+    const habit = await prisma.habit.findUnique({ where: { id: created.body.id } })
+    expect(habit?.isActive).toBe(false)
+  })
+
+  it('returns 404 with HABIT_NOT_FOUND when habit does not exist', async () => {
+    await seedUser(prisma)
+
+    const res = await request(app).delete('/api/habits/9999')
+    expect(res.status).toBe(404)
+    expect(res.body).toMatchObject({ code: 'HABIT_NOT_FOUND' })
+  })
+})

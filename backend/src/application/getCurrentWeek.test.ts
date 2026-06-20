@@ -64,6 +64,8 @@ describe('getCurrentWeek', () => {
         findUnlockedWeekBefore: vi.fn(),
         lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn().mockResolvedValue(createdWeek),
+        addHabitsToWeek: vi.fn(),
+        removeHabitsFromWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }
@@ -95,19 +97,21 @@ describe('getCurrentWeek', () => {
   })
 
   describe('should_return_existing_week_without_creating', () => {
-    it('returns existing week and does not invoke create (US-09 S2)', async () => {
+    it('returns existing week when all active habits are already linked (US-09 S2)', async () => {
       const existingWeek: WeekWithDetails = { ...createdWeek, id: 5 }
       const mockWeekRepo: WeekRepository = {
         findCurrentWeek: vi.fn().mockResolvedValue(existingWeek),
         findUnlockedWeekBefore: vi.fn(),
         lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn(),
+        addHabitsToWeek: vi.fn(),
+        removeHabitsFromWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }
       const mockHabitRepo: HabitRepository = {
         create: vi.fn(),
-        findActiveByUserId: vi.fn(),
+        findActiveByUserId: vi.fn().mockResolvedValue([activeHabit]),
         findById: vi.fn(),
         update: vi.fn(),
         softDelete: vi.fn(),
@@ -116,8 +120,70 @@ describe('getCurrentWeek', () => {
       const result = await getCurrentWeek(mockWeekRepo, mockHabitRepo, 1, now)
 
       expect(result).toEqual(existingWeek)
-      expect(mockHabitRepo.findActiveByUserId).not.toHaveBeenCalled()
+      expect(mockHabitRepo.findActiveByUserId).toHaveBeenCalledWith(1)
+      expect(mockWeekRepo.addHabitsToWeek).not.toHaveBeenCalled()
       expect(mockWeekRepo.createWeekWithHabitsAndEntries).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('should_link_missing_habits_when_week_exists_without_them', () => {
+    it('adds active habits missing from the current week snapshot', async () => {
+      const emptyExistingWeek: WeekWithDetails = { ...createdWeek, id: 5, weekHabits: [] }
+      const syncedWeek: WeekWithDetails = createdWeek
+      const mockWeekRepo: WeekRepository = {
+        findCurrentWeek: vi.fn().mockResolvedValue(emptyExistingWeek),
+        findUnlockedWeekBefore: vi.fn(),
+        lockWeek: vi.fn(),
+        createWeekWithHabitsAndEntries: vi.fn(),
+        addHabitsToWeek: vi.fn().mockResolvedValue(syncedWeek),
+        removeHabitsFromWeek: vi.fn(),
+        findWeekByUserAndStartDate: vi.fn(),
+        findLastLockedWeekBefore: vi.fn(),
+      }
+      const mockHabitRepo: HabitRepository = {
+        create: vi.fn(),
+        findActiveByUserId: vi.fn().mockResolvedValue([activeHabit]),
+        findById: vi.fn(),
+        update: vi.fn(),
+        softDelete: vi.fn(),
+      }
+
+      const result = await getCurrentWeek(mockWeekRepo, mockHabitRepo, 1, now)
+
+      expect(result).toEqual(syncedWeek)
+      expect(mockWeekRepo.addHabitsToWeek).toHaveBeenCalledWith(5, [activeHabit], 0)
+      expect(mockWeekRepo.removeHabitsFromWeek).not.toHaveBeenCalled()
+      expect(mockWeekRepo.createWeekWithHabitsAndEntries).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('should_remove_inactive_habits_from_current_week_snapshot', () => {
+    it('removes week habits whose master habit is no longer active', async () => {
+      const existingWeekWithInactiveHabit: WeekWithDetails = { ...createdWeek, id: 5 }
+      const cleanedWeek: WeekWithDetails = { ...createdWeek, id: 5, weekHabits: [] }
+      const mockWeekRepo: WeekRepository = {
+        findCurrentWeek: vi.fn().mockResolvedValue(existingWeekWithInactiveHabit),
+        findUnlockedWeekBefore: vi.fn(),
+        lockWeek: vi.fn(),
+        createWeekWithHabitsAndEntries: vi.fn(),
+        addHabitsToWeek: vi.fn(),
+        removeHabitsFromWeek: vi.fn().mockResolvedValue(cleanedWeek),
+        findWeekByUserAndStartDate: vi.fn(),
+        findLastLockedWeekBefore: vi.fn(),
+      }
+      const mockHabitRepo: HabitRepository = {
+        create: vi.fn(),
+        findActiveByUserId: vi.fn().mockResolvedValue([]),
+        findById: vi.fn(),
+        update: vi.fn(),
+        softDelete: vi.fn(),
+      }
+
+      const result = await getCurrentWeek(mockWeekRepo, mockHabitRepo, 1, now)
+
+      expect(result).toEqual(cleanedWeek)
+      expect(mockWeekRepo.removeHabitsFromWeek).toHaveBeenCalledWith(5, [1])
+      expect(mockWeekRepo.addHabitsToWeek).not.toHaveBeenCalled()
     })
   })
 
@@ -132,6 +198,8 @@ describe('getCurrentWeek', () => {
         findUnlockedWeekBefore: vi.fn(),
         lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn().mockResolvedValue(emptyWeek),
+        addHabitsToWeek: vi.fn(),
+        removeHabitsFromWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }
@@ -163,6 +231,8 @@ describe('getCurrentWeek', () => {
         findUnlockedWeekBefore: vi.fn(),
         lockWeek: vi.fn(),
         createWeekWithHabitsAndEntries: vi.fn().mockRejectedValue(txError),
+        addHabitsToWeek: vi.fn(),
+        removeHabitsFromWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }

@@ -225,6 +225,64 @@ export function createPrismaWeekRepository(prisma: PrismaClient): WeekRepository
       })
     },
 
+    async addHabitsToWeek(
+      weekId: number,
+      habits: Habit[],
+      startOrder: number
+    ): Promise<WeekWithDetails> {
+      return prisma.$transaction(async (tx) => {
+        if (habits.length > 0) {
+          await createWeekHabitsWithEntriesInTx(tx, weekId, habits, startOrder)
+        }
+
+        const week = await tx.week.findUniqueOrThrow({
+          where: { id: weekId },
+          include: {
+            weekHabits: {
+              include: { habitEntries: { orderBy: { dayIndex: 'asc' } } },
+              orderBy: { order: 'asc' },
+            },
+          },
+        })
+
+        return mapToWeekWithDetails(
+          week,
+          week.weekHabits.map(mapToWeekHabitWithEntries)
+        )
+      })
+    },
+
+    async removeHabitsFromWeek(
+      weekId: number,
+      habitIds: number[]
+    ): Promise<WeekWithDetails> {
+      return prisma.$transaction(async (tx) => {
+        if (habitIds.length > 0) {
+          await tx.weekHabit.deleteMany({
+            where: {
+              weekId,
+              habitId: { in: habitIds },
+            },
+          })
+        }
+
+        const week = await tx.week.findUniqueOrThrow({
+          where: { id: weekId },
+          include: {
+            weekHabits: {
+              include: { habitEntries: { orderBy: { dayIndex: 'asc' } } },
+              orderBy: { order: 'asc' },
+            },
+          },
+        })
+
+        return mapToWeekWithDetails(
+          week,
+          week.weekHabits.map(mapToWeekHabitWithEntries)
+        )
+      })
+    },
+
     async findWeekByUserAndStartDate(
       userId: number,
       startDate: Date

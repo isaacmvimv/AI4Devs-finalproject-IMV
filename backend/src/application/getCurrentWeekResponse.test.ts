@@ -56,6 +56,8 @@ function makeWeekRepo(overrides: Partial<WeekRepository> = {}): WeekRepository {
     findUnlockedWeekBefore: vi.fn(),
     lockWeek: vi.fn(),
     createWeekWithHabitsAndEntries: vi.fn(),
+    addHabitsToWeek: vi.fn(),
+    removeHabitsFromWeek: vi.fn(),
     findWeekByUserAndStartDate: vi.fn(),
     findLastLockedWeekBefore: vi.fn().mockResolvedValue({ id: 2, totalPointsEarned: 75 } as never),
     ...overrides,

@@ -1,8 +1,11 @@
 import { CompletionStatus, PrismaClient } from '@prisma/client'
+import {
+  DEMO_USER_EMAIL,
+  DEMO_USER_ID,
+  DEMO_USER_NAME,
+} from '../src/domain/demoUser.js'
 
 const prisma = new PrismaClient()
-
-const DEMO_USER_ID = 1
 
 const DEMO_HABITS = [
   { id: 1, emoji: '🏃', name: 'Correr', pointsPerDay: 10, penalty: 5 },
@@ -59,12 +62,12 @@ async function main(): Promise<void> {
       where: { id: DEMO_USER_ID },
       create: {
         id: DEMO_USER_ID,
-        email: 'demo@ConRutina.app',
-        name: 'Demo User',
+        email: DEMO_USER_EMAIL,
+        name: DEMO_USER_NAME,
       },
       update: {
-        email: 'demo@ConRutina.app',
-        name: 'Demo User',
+        email: DEMO_USER_EMAIL,
+        name: DEMO_USER_NAME,
       },
     })
 

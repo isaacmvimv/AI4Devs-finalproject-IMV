@@ -186,12 +186,21 @@ The system SHALL respond with HTTP `204` and empty body when `deactivateHabit` s
 - **AND** a client sends `GET /api/habits`
 - **THEN** habit id=5 is not present in the response array
 
-#### Scenario: DELETE preserves WeekHabit snapshots in historical weeks
+#### Scenario: DELETE preserves WeekHabit snapshots in locked weeks
 
 - **WHEN** habit id=5 has associated `WeekHabit` rows in locked weeks
 - **AND** a client sends `DELETE /api/habits/5`
 - **THEN** all `WeekHabit.snapshotName`, `snapshotPoints`, and `snapshotPenalty` values remain unchanged
-- **AND** no `WeekHabit` or `HabitEntry` rows are deleted
+- **AND** no `WeekHabit` or `HabitEntry` rows are deleted from those locked weeks
+
+#### Scenario: DELETE removes habit from current unlocked week
+
+- **WHEN** habit id=5 is linked to the current unlocked `Week` via `WeekHabit` and `HabitEntry` rows
+- **AND** a client sends `DELETE /api/habits/5`
+- **THEN** the habit row has `isActive=false`
+- **AND** the `WeekHabit` and related `HabitEntry` rows for that habit in the current unlocked week are removed
+- **AND** a subsequent `GET /api/weeks/current` does not include the habit
+- **AND** week stats (`thisWeekPoints`, `penalties`) no longer count contributions from that habit
 
 ### Requirement: Not found when habit missing or owned by another user
 
@@ -239,10 +248,16 @@ The system SHALL include Vitest tests using supertest with mocked `updateHabit` 
 
 ### Requirement: Snapshot integrity test on deactivate
 
-The system SHALL include an automated test (use-case level with mocked repository or integration against PostgreSQL) that verifies `deactivateHabit` does not alter `WeekHabit` snapshot fields when historical week data exists (ticket DoD).
+The system SHALL include an automated test (use-case level with mocked repository or integration against PostgreSQL) that verifies `deactivateHabit` does not alter `WeekHabit` snapshot fields when historical week data exists (ticket DoD), and that it removes the habit from the current unlocked week calendar.
 
-#### Scenario: WeekHabit snapshots unchanged after soft delete
+#### Scenario: WeekHabit snapshots unchanged in locked weeks after soft delete
 
-- **WHEN** a habit has `WeekHabit` rows with known `snapshotName`, `snapshotPoints`, `snapshotPenalty`
+- **WHEN** a habit has `WeekHabit` rows in a locked week with known `snapshotName`, `snapshotPoints`, `snapshotPenalty`
 - **AND** `deactivateHabit` completes successfully
-- **THEN** those `WeekHabit` snapshot fields remain identical to their pre-delete values
+- **THEN** those locked-week `WeekHabit` snapshot fields remain identical to their pre-delete values
+
+#### Scenario: Integration test covers week calendar sync on create and delete
+
+- **WHEN** `npm run test:integration` runs against PostgreSQL
+- **THEN** tests assert `POST /api/habits` followed by `GET /api/weeks/current` includes the new habit in the current week
+- **AND** tests assert `DELETE /api/habits/:id` followed by `GET /api/weeks/current` excludes the habit and reverts its points/penalties from week stats

@@ -308,6 +308,18 @@ Tests de integración contra PostgreSQL real (contenedor Docker). Validan el flu
 npm run test:integration   # Ejecuta tests de integración (*.integration.test.ts)
 ```
 
+**Ficheros principales** (`backend/src/__tests__/integration/`):
+
+| Fichero | Qué valida |
+|---------|------------|
+| `profile.integration.test.ts` | `GET /api/profile` |
+| `habits.integration.test.ts` | `POST` / `DELETE /api/habits` |
+| `weeks.integration.test.ts` | Sincronización calendario: `GET /api/weeks/current` tras crear/eliminar hábitos |
+| `habitEntries.integration.test.ts` | `PATCH /api/habit-entries/:id` |
+| `redemptions.integration.test.ts` | Canjes de recompensas |
+
+Los tests de integración cubren flujos HTTP → Prisma → BD real. Los tests unitarios de casos de uso (`deactivateHabit.test.ts`, `getCurrentWeek.test.ts`) usan repositorios mock y **no sustituyen** la validación de sincronización `Habit` ↔ `WeekHabit` en semana actual; esa regresión se detecta en `weeks.integration.test.ts`.
+
 La configuración está en `vitest.integration.config.ts` y usa `.env.test` para la URL de la BD de test.
 
 E2E con Playwright MCP cuando aplique (ver [openspec/tasks-core.md](./openspec/tasks-core.md)).
