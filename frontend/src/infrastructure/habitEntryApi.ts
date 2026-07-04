@@ -5,6 +5,7 @@ export interface HabitEntryApiDto {
   id: number
   status: 'pending' | 'completed' | 'failed'
   updatedAt: string
+  redemptionInvalidated: boolean
 }
 
 export function updateHabitEntry(

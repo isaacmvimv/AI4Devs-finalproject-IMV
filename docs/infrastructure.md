@@ -6,7 +6,7 @@ Documento orientado a desarrolladores que deben entender el proyecto y añadir f
 
 ## 1. Resumen ejecutivo
 
-**ConRutina** es una aplicación web **SPA (Single Page Application)** escrita en **TypeScript** con **React**. El código se organiza en **Clean Architecture** con dos árboles claros: **[`frontend/`](../frontend/)** (React, Vite) y **[`backend/`](../backend/)** (Express, Prisma). El estado de hábitos y recompensas sigue viviendo en **memoria del cliente** (`useState` vía el hook de aplicación `useHabitDashboard`), y la UI consume un **API HTTP** en Node: **Express** en [`backend/src/main.ts`](../backend/src/main.ts) y capas bajo `backend/src/` usan **Prisma** contra **PostgreSQL** y exponen, entre otras, **`GET /api/profile`** (usuario con `id = 1`, pensado como perfil “simulado” de sesión). El componente **`UserProfileCard`** obtiene esos datos a través de la capa de infraestructura (`fetch('/api/profile')`).
+**ConRutina** es una aplicación web **SPA (Single Page Application)** escrita en **TypeScript** con **React**. El código se organiza en **Clean Architecture** con dos árboles claros: **[`frontend/`](../frontend/)** (React, Vite) y **[`backend/`](../backend/)** (Express, Prisma). El hook `useHabitDashboard` orquesta hábitos, semanas y recompensas contra la **API REST** (`weekApi`, `habitApi`, `rewardApi`); el estado en React refleja las respuestas del servidor y se actualiza con optimistic updates donde aplica. La UI consume un **API HTTP** en Node: **Express** en [`backend/src/main.ts`](../backend/src/main.ts) y capas bajo `backend/src/` usan **Prisma** contra **PostgreSQL** y exponen, entre otras, **`GET /api/profile`** (usuario con `id = 1`, pensado como perfil “simulado” de sesión). El componente **`UserProfileCard`** obtiene esos datos a través de la capa de infraestructura (`fetch('/api/profile')`).
 
 Para **persistencia** el repositorio incluye **Prisma ORM** (cliente y CLI **5.x**, alineados con `@prisma/client`) y un esquema **PostgreSQL** en `backend/prisma/schema.prisma`. La ruta del esquema está declarada en **`package.json`** (`prisma.schema`), de modo que `npx prisma generate` y los scripts npm resuelven el esquema sin pasar `--schema` manualmente. Un servicio **PostgreSQL 16** (imagen Alpine) se levanta con **`docker-compose.yml`** en la raíz; la cadena de conexión se define con **`DATABASE_URL`** en `.env` (ver [§7](#7-principales-ficheros-de-configuración) y [§12](#12-base-de-datos-prisma-y-docker)).
 
@@ -108,7 +108,7 @@ Flujo de **producción**:
 1. `npm run build` genera `dist/`.
 2. Un servidor web estático sirve `index.html` y los assets con hash; el cliente ejecuta el mismo grafo de React sin Vite.
 
-**Dependencias de datos (UI):** el estado de hábitos y recompensas sigue siendo **local** al árbol de React bajo `App`. El perfil de usuario en cabecera usa **HTTP** (`fetch('/api/profile')`) cuando el API está en marcha.
+**Dependencias de datos (UI):** hábitos, estadísticas semanales y recompensas se cargan desde **`/api/weeks/*`** y **`/api/rewards`** vía `useHabitDashboard`. El perfil de usuario en cabecera usa **HTTP** (`fetch('/api/profile')`) cuando el API está en marcha.
 
 **Persistencia y API:** Prisma + PostgreSQL se usan desde **`backend/src`** (repositorio en infraestructura, rutas en presentación HTTP). Para ver el perfil en la UI hace falta **PostgreSQL accesible** (`DATABASE_URL` correcto), un registro **`User`** con `id = 1`, y **`npm run dev:api`** además de **`npm run dev`**.
 
@@ -348,12 +348,12 @@ flowchart TB
 
 ## 10. Guía rápida para añadir funcionalidades (junior)
 
-1. **Localiza el estado y la lógica:** La lógica de hábitos/recompensas vive en **`frontend/src/domain`** (puro) y **`frontend/src/application`** (hooks como `useHabitDashboard`). Para datos de servidor, el flujo es **infraestructura** (`profileApi`) + **aplicación** (`useUserProfile`) + **presentación** (`UserProfileCard`). Nuevas rutas API: añádelas en **`backend/src/presentation/http`** y casos de uso en **`backend/src/application`**, con persistencia en **`backend/src/infrastructure`**.
+1. **Localiza el estado y la lógica:** La lógica de hábitos/recompensas vive en **`frontend/src/domain`** (puro) y **`frontend/src/application`** (`useHabitDashboard`). Los datos de servidor fluyen por **infraestructura** (`weekApi`, `habitApi`, `rewardApi`, `profileApi`) → **aplicación** (hooks) → **presentación**. Nuevas rutas API: añádelas en **`backend/src/presentation/http`** y casos de uso en **`backend/src/application`**, con persistencia en **`backend/src/infrastructure`**.
 2. **Nuevo componente de pantalla:** Colócalo en `frontend/src/presentation/components/`, impórtalo en `App.tsx` (o en la vista que corresponda) y pasa solo las props necesarias.
 3. **Reutiliza `ui/`:** Para modales y controles complejos, mira primero `frontend/src/presentation/components/ui/` antes de instalar otra librería.
 4. **Estilos:** Prefiere utilidades Tailwind y variables de `theme.css` para mantener coherencia con el kit existente.
 5. **Rutas:** `react-router` ya está en dependencias; si añades varias pantallas, configura el router en `main.tsx` o `App.tsx` y divide vistas.
-6. **Persistencia:** En la SPA los datos de hábitos/recompensas siguen en memoria y se pierden al recargar. Los datos de **usuario en BD** ya pueden leerse vía el **API** (`GET /api/profile`). Para más entidades, amplía el esquema Prisma, añade casos de uso y rutas en **`backend/src`** (presentación HTTP + infraestructura) y consume desde React con las mismas URLs `/api/...`.
+6. **Persistencia:** Hábitos, semanas, recompensas y canjes persisten en **PostgreSQL** vía API. El hook mantiene caché en React entre interacciones; al recargar la página se vuelve a cargar desde el servidor. Para nuevas entidades, amplía el esquema Prisma, añade casos de uso y rutas en **`backend/src`**, y consume desde React con las mismas URLs `/api/...`.
 7. **Pruebas:** `npm run test` ejecuta tests unitarios con Vitest. `npm run test:integration` ejecuta tests de integración contra PostgreSQL real (requiere Docker activo). Configuración en `vitest.config.ts` y `vitest.integration.config.ts` respectivamente.
 8. **OpenSpec:** Un ticket del backlog (`docs/product-backlog.md`) = un change en `openspec/changes/`. Crear especificaciones con `/opsx-propose-ticket T-XX-YY`; implementar con `/opsx:apply`; archivar con `/opsx:archive`. Configuración en `openspec/config.yaml`.
 
@@ -380,8 +380,8 @@ flowchart TB
 | **Datasource** | `provider = "postgresql"`, URL desde `env("DATABASE_URL")` |
 | **Modelo `User`** | `id` (Int, autoincrement, PK), `email` (único), `name` opcional. Único modelo ConRutina usado por el API (`GET /api/profile`, usuario `id = 1`). El PRD prevé además `avatarUrl` y `createdAt` (pendientes en Prisma). |
 | **Modelo `Calendar` (heredado LTI)** | Resto del scaffold inicial (CV/perfil profesional: `firstName`, `lastName`, `email`, metadatos de fichero, etc.). **No forma parte del dominio ConRutina**; no lo usa la SPA ni el API actual. Pendiente de **eliminación** en una migración de limpieza. |
-| **Modelos objetivo (PRD §5)** | `Week`, `Habit`, `WeekHabit`, `HabitEntry`, `Reward`, `RewardRedemption` — **pendientes** de implementar en Prisma/PostgreSQL. Detalle de atributos y relaciones en [data-model.md](./data-model.md) y [prd.md](./prd.md). |
-| **Estado en cliente (provisional)** | Hábitos y recompensas en memoria (`frontend/src/domain/`, `fixtures.ts`); se pierden al recargar hasta completar la migración. |
+| **Modelos objetivo (PRD §5)** | `Week`, `Habit`, `WeekHabit`, `HabitEntry`, `Reward`, `RewardRedemption` — implementados en `backend/prisma/schema.prisma` (migración `20260530120258_init`). Detalle en [data-model.md](./data-model.md). |
+| **Estado en cliente** | Caché React en `useHabitDashboard`; persistencia en PostgreSQL vía API. `fixtures.ts` solo para tests unitarios. |
 
 Cualquier cambio en modelos requiere **migración** en la base real y **`npm run prisma:generate`** (o `npx prisma generate` con el esquema correcto) para actualizar el cliente TypeScript.
 

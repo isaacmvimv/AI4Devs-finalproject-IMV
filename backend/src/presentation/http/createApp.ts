@@ -115,8 +115,18 @@ export function createApp(prisma: PrismaClient): Express {
     validateBody(updateHabitSchema),
     asyncHandler(async (req, res) => {
       const habitId = parseHabitIdParam(req.params.id)
-      const habit = await updateHabit(habitRepository, 1, habitId, req.body)
-      return res.status(200).json(habit)
+      const result = await updateHabit(
+        habitRepository,
+        weekRepository,
+        rewardRedemptionRepository,
+        1,
+        habitId,
+        req.body
+      )
+      return res.status(200).json({
+        ...result.habit,
+        redemptionInvalidated: result.redemptionInvalidated,
+      })
     })
   )
 
@@ -124,15 +134,21 @@ export function createApp(prisma: PrismaClient): Express {
     '/api/habits/:id',
     asyncHandler(async (req, res) => {
       const habitId = parseHabitIdParam(req.params.id)
-      await deactivateHabit(habitRepository, weekRepository, 1, habitId)
-      return res.status(204).send()
+      const result = await deactivateHabit(
+        habitRepository,
+        weekRepository,
+        rewardRedemptionRepository,
+        1,
+        habitId
+      )
+      return res.status(200).json({ redemptionInvalidated: result.redemptionInvalidated })
     })
   )
 
   app.get(
     '/api/rewards',
     asyncHandler(async (_req, res) => {
-      const rewards = await getActiveRewards(rewardRepository, 1)
+      const rewards = await getActiveRewards(rewardRepository, rewardRedemptionRepository, 1)
       return res.status(200).json(rewards)
     })
   )
@@ -150,7 +166,7 @@ export function createApp(prisma: PrismaClient): Express {
     '/api/rewards/:id',
     asyncHandler(async (req, res) => {
       const rewardId = parseRewardIdParam(req.params.id)
-      await softDeleteReward(rewardRepository, 1, rewardId)
+      await softDeleteReward(rewardRepository, rewardRedemptionRepository, 1, rewardId)
       return res.status(204).send()
     })
   )
@@ -158,7 +174,12 @@ export function createApp(prisma: PrismaClient): Express {
   app.get(
     '/api/weeks/current',
     asyncHandler(async (_req, res) => {
-      const payload = await getCurrentWeekResponse(weekRepository, habitRepository, 1)
+      const payload = await getCurrentWeekResponse(
+        weekRepository,
+        habitRepository,
+        rewardRedemptionRepository,
+        1
+      )
       return res.status(200).json(payload)
     })
   )
@@ -167,7 +188,13 @@ export function createApp(prisma: PrismaClient): Express {
     '/api/weeks',
     asyncHandler(async (req, res) => {
       const offset = parseWeekOffsetQuery(req.query.offset)
-      const payload = await getWeekByOffset(weekRepository, habitRepository, 1, offset)
+      const payload = await getWeekByOffset(
+        weekRepository,
+        habitRepository,
+        rewardRedemptionRepository,
+        1,
+        offset
+      )
       return res.status(200).json(payload)
     })
   )
@@ -177,11 +204,19 @@ export function createApp(prisma: PrismaClient): Express {
     validateBody(updateHabitEntrySchema),
     asyncHandler(async (req, res) => {
       const entryId = parseHabitEntryIdParam(req.params.id)
-      const entry = await updateHabitEntry(habitEntryRepository, 1, entryId, req.body)
+      const result = await updateHabitEntry(
+        habitEntryRepository,
+        weekRepository,
+        rewardRedemptionRepository,
+        1,
+        entryId,
+        req.body
+      )
       return res.status(200).json({
-        id: entry.id,
-        status: entry.status,
-        updatedAt: entry.updatedAt.toISOString(),
+        id: result.entry.id,
+        status: result.entry.status,
+        updatedAt: result.entry.updatedAt.toISOString(),
+        redemptionInvalidated: result.redemptionInvalidated,
       })
     })
   )

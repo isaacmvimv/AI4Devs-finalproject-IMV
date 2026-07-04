@@ -188,7 +188,7 @@ http://localhost:5173
 Deberías ver:
 - Tarjeta de perfil en la cabecera (datos del API)
 - Calendario semanal de hábitos
-- Sección de recompensas
+- Sección de **recompensas disponibles** (`RewardsSection`)
 - Panel de estadísticas
 
 **Si el perfil no carga:**

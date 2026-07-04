@@ -7,6 +7,8 @@ export interface DashboardWeekData {
   stats: HabitStats
   entryIdsByHabitId: Record<string, number[]>
   isLocked: boolean
+  pointsRedeemed: number
+  redeemedRewardIdsThisWeek: number[]
 }
 
 export function mapWeekResponseToDashboard(
@@ -41,10 +43,15 @@ export function mapWeekResponseToDashboard(
     maxStreak: dto.stats.maxStreak,
   }
 
+  const pointsRedeemed = dto.redemptions.reduce((sum, r) => sum + r.pointsSpent, 0)
+  const redeemedRewardIdsThisWeek = dto.redemptions.map((r) => r.rewardId)
+
   return {
     habits,
     stats,
     entryIdsByHabitId,
     isLocked: dto.week.isLocked,
+    pointsRedeemed,
+    redeemedRewardIdsThisWeek,
   }
 }

@@ -118,6 +118,34 @@ export function createPrismaRewardRedemptionRepository(
   prisma: PrismaClient
 ): RewardRedemptionRepository {
   return {
+    async findByWeekId(weekId) {
+      const rows = await prisma.rewardRedemption.findMany({
+        where: { weekId },
+        orderBy: { redeemedAt: 'asc' },
+      })
+      return rows.map(mapToRewardRedemption)
+    },
+
+    async hasRedemptionsForReward(rewardId) {
+      const count = await prisma.rewardRedemption.count({ where: { rewardId } })
+      return count > 0
+    },
+
+    async findRedeemedRewardIds(rewardIds) {
+      if (rewardIds.length === 0) return []
+      const rows = await prisma.rewardRedemption.findMany({
+        where: { rewardId: { in: rewardIds } },
+        select: { rewardId: true },
+        distinct: ['rewardId'],
+      })
+      return rows.map((row) => row.rewardId)
+    },
+
+    async deleteById(id) {
+      const row = await prisma.rewardRedemption.delete({ where: { id } })
+      return mapToRewardRedemption(row)
+    },
+
     async redeem({ userId, weekId, rewardId, rewardCost }) {
       return prisma.$transaction(async (tx) => {
         const locked = await tx.$queryRaw<Array<{ id: number }>>`
@@ -144,6 +172,14 @@ export function createPrismaRewardRedemptionRepository(
 
         if (week.isLocked) {
           throw new ConflictError('No se puede modificar una semana bloqueada', 'WEEK_LOCKED')
+        }
+
+        const existingRedemptions = await tx.rewardRedemption.count({ where: { weekId } })
+        if (existingRedemptions >= 1) {
+          throw new ConflictError(
+            'Solo se puede canjear una recompensa por semana',
+            'WEEK_REDEMPTION_LIMIT'
+          )
         }
 
         const aggregate = await tx.rewardRedemption.aggregate({

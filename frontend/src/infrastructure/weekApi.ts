@@ -1,5 +1,14 @@
 import { apiRequest } from './httpClient'
 
+/** Contrato JSON de un canje dentro de WeekResponseDto. */
+export interface RedemptionDto {
+  id: number
+  weekId: number
+  rewardId: number
+  pointsSpent: number
+  redeemedAt: string
+}
+
 /** Contrato JSON de GET /api/weeks/current y GET /api/weeks (alineado con `WeekResponse` de api-spec.yml). */
 export interface WeekResponseDto {
   week: {
@@ -27,7 +36,7 @@ export interface WeekResponseDto {
     }>
   }>
   stats: WeekStatsDto
-  redemptions: unknown[]
+  redemptions: RedemptionDto[]
 }
 
 /** Contrato de `stats` dentro de `WeekResponseDto` (alineado con `WeekStats`). */

@@ -12,7 +12,10 @@ interface RewardCardProps {
   description: string
   cost: number
   currentPoints: number
-  onRedeemSuccess?: (pointsSpent: number) => void
+  isRedeemedThisWeek: boolean
+  weekRedemptionLimitReached: boolean
+  canDelete: boolean
+  onRedeemSuccess?: (rewardId: number, pointsSpent: number) => void
   onDelete: () => void
 }
 
@@ -24,27 +27,32 @@ export default function RewardCard({
   description,
   cost,
   currentPoints,
+  isRedeemedThisWeek,
+  weekRedemptionLimitReached,
+  canDelete,
   onRedeemSuccess,
   onDelete,
 }: RewardCardProps) {
   const [isRedeeming, setIsRedeeming] = useState(false)
-  const [redeemed, setRedeemed] = useState(false)
 
   const canAfford = currentPoints >= cost
   const missingPoints = cost - currentPoints
   const progressPercentage = Math.min((currentPoints / cost) * 100, 100)
+  const redeemDisabled =
+    !canAfford || isRedeeming || isRedeemedThisWeek || weekRedemptionLimitReached
 
   async function handleRedeem() {
-    if (!canAfford || isRedeeming || redeemed) return
+    if (redeemDisabled) return
     setIsRedeeming(true)
     try {
       const result = await redeemReward(weekId, rewardId)
-      setRedeemed(true)
       toast.success('¡Recompensa canjeada!')
-      onRedeemSuccess?.(result.pointsSpent)
+      onRedeemSuccess?.(rewardId, result.pointsSpent)
     } catch (err) {
       if (err instanceof ApiError && err.status === 422) {
         toast.error('Puntos insuficientes para canjear esta recompensa')
+      } else if (err instanceof ApiError && err.status === 409 && err.code === 'WEEK_REDEMPTION_LIMIT') {
+        toast.error('Solo puedes canjear una recompensa por semana')
       } else {
         toast.error('Error al canjear. Inténtalo de nuevo.')
       }
@@ -54,27 +62,37 @@ export default function RewardCard({
   }
 
   const buttonContent = () => {
+    if (isRedeemedThisWeek) return '¡Canjeada!'
+    if (weekRedemptionLimitReached) return 'Límite semanal'
     if (!canAfford) return `Faltan ${missingPoints} pts`
     if (isRedeeming) return <Loader2 className="w-4 h-4 animate-spin" />
-    if (redeemed) return '¡Canjeada!'
     return 'Canjear'
   }
 
   const buttonClass = () => {
-    if (!canAfford) return 'px-4 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed'
-    if (redeemed) return 'px-4 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium cursor-not-allowed'
-    if (isRedeeming) return 'px-4 py-1.5 bg-yellow-400 opacity-70 text-yellow-900 rounded-lg text-sm font-medium cursor-not-allowed'
+    if (isRedeemedThisWeek) {
+      return 'px-4 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium cursor-not-allowed'
+    }
+    if (weekRedemptionLimitReached || !canAfford) {
+      return 'px-4 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-sm font-medium cursor-not-allowed'
+    }
+    if (isRedeeming) {
+      return 'px-4 py-1.5 bg-yellow-400 opacity-70 text-yellow-900 rounded-lg text-sm font-medium cursor-not-allowed'
+    }
     return 'px-4 py-1.5 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 rounded-lg text-sm font-medium transition-colors'
   }
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm relative group">
-      <button
-        onClick={onDelete}
-        className="absolute top-3 right-3 w-6 h-6 text-gray-300 hover:text-gray-600 transition-colors opacity-0 group-hover:opacity-100"
-      >
-        ×
-      </button>
+      {canDelete && (
+        <button
+          onClick={onDelete}
+          aria-label="Eliminar recompensa"
+          className="absolute top-3 right-3 w-6 h-6 text-gray-300 hover:text-gray-600 transition-colors opacity-0 group-hover:opacity-100"
+        >
+          ×
+        </button>
+      )}
 
       <div className="flex items-start gap-3 mb-4">
         <div className="text-3xl">{emoji}</div>
@@ -82,7 +100,7 @@ export default function RewardCard({
           <h4 className="font-semibold text-gray-800 mb-1">{name}</h4>
           <p className="text-sm text-gray-500">{description}</p>
         </div>
-        {!canAfford && <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+        {!canAfford && !isRedeemedThisWeek && <Lock className="w-4 h-4 text-gray-400 flex-shrink-0" />}
       </div>
 
       <div className="mb-3">
@@ -99,7 +117,7 @@ export default function RewardCard({
 
         <button
           onClick={handleRedeem}
-          disabled={!canAfford || isRedeeming || redeemed}
+          disabled={redeemDisabled}
           className={buttonClass()}
         >
           {buttonContent()}

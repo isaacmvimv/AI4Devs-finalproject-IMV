@@ -40,7 +40,7 @@ Este documento complementa la sección de idioma de [base-standards.md](./base-s
 
 - Tras actualizar un fichero, revisar referencias cruzadas en el resto de `docs/`.
 - Mantener la misma terminología de dominio en todos los documentos:
-  - **Hábito**, **Recompensa**, **Perfil de usuario**, **Calendario semanal**, **Puntos**, **Penalización**, **Racha**.
+  - **Hábito**, **Recompensa**, **Perfil de usuario**, **Calendario semanal**, **Puntos**, **Penalización**, **Racha activa** (por hábito), **Mejor racha** (contador resumen).
 - No duplicar información que ya está en [infrastructure.md](./infrastructure.md); enlazar cuando baste con una referencia.
 
 ---

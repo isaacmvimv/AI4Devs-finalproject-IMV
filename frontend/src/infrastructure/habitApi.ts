@@ -28,6 +28,6 @@ export function createHabit(input: CreateHabitInput): Promise<HabitApiDto> {
   return apiRequest<HabitApiDto>('POST', '/habits', input)
 }
 
-export function deleteHabit(id: number): Promise<void> {
-  return apiRequest<void>('DELETE', `/habits/${id}`)
+export function deleteHabit(id: number): Promise<{ redemptionInvalidated: boolean }> {
+  return apiRequest<{ redemptionInvalidated: boolean }>('DELETE', `/habits/${id}`)
 }

@@ -96,6 +96,7 @@ export const INITIAL_REWARDS: Reward[] = [
     name: 'Película favorita',
     description: 'Disfruta de una película sin culpa',
     cost: 39,
+    hasBeenRedeemed: false,
   },
   {
     id: '2',
@@ -103,6 +104,7 @@ export const INITIAL_REWARDS: Reward[] = [
     name: 'Comida especial',
     description: 'Pide tu comida favorita',
     cost: 69,
+    hasBeenRedeemed: false,
   },
   {
     id: '3',
@@ -110,6 +112,7 @@ export const INITIAL_REWARDS: Reward[] = [
     name: 'Día libre',
     description: 'Un día completo de descanso',
     cost: 139,
+    hasBeenRedeemed: false,
   },
   {
     id: '4',
@@ -117,5 +120,6 @@ export const INITIAL_REWARDS: Reward[] = [
     name: 'Capricho personal',
     description: 'Compra algo que desees',
     cost: 189,
+    hasBeenRedeemed: false,
   },
 ]

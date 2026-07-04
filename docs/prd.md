@@ -75,8 +75,11 @@ El sistema combina tres palancas psicológicas fundamentales para el cambio de c
 ### 2.3 Recompensas
 
 - **Crear recompensa:** el usuario define nombre, emoji, descripción y coste en puntos.
-- **Canjear recompensa:** si el usuario dispone de suficientes puntos en la semana en curso, puede canjear la recompensa. Los puntos se deducen del marcador.
-- **Eliminar recompensa:** el usuario puede borrar una recompensa en cualquier momento.
+- **Canjear recompensa:** si el saldo disponible de la semana (`puntos ganados − penalizaciones − canjes previos`) alcanza el coste, el usuario puede canjear **una única recompensa por semana**. Los puntos se descuentan del marcador y quedan registrados en `RewardRedemption`. El resto de recompensas quedan bloqueadas hasta la semana siguiente.
+- **Eliminar recompensa:** solo si nunca ha sido canjeada (sin filas en `RewardRedemption`). Las recompensas ya utilizadas permanecen visibles pero no se pueden eliminar.
+- **Invalidación de canje:** si tras modificar hábitos los puntos netos de la semana en curso (`thisWeekPoints − penalties`) quedan por debajo de los puntos gastados en el canje activo, el canje se revierte automáticamente y la recompensa vuelve a estar disponible. La UI muestra el mensaje *"Recompensa invalidada. Puntos insuficientes."*
+
+La sección del panel principal se titula **"Recompensas disponibles"**.
 
 ### 2.4 Calendario semanal y navegación histórica
 
@@ -88,7 +91,8 @@ El sistema combina tres palancas psicológicas fundamentales para el cambio de c
 
 - **Barra de progreso del día:** porcentaje de hábitos completados sobre el total en el día actual.
 - **Contadores resumen:** puntos de la semana anterior, puntos de la semana actual, penalizaciones totales de la semana, mejor racha.
-- **Racha de hábito:** contador de días consecutivos completados para cada hábito individual.
+- **Racha activa (por hábito):** días consecutivos `completed` hacia atrás desde el día actual; visible en cada fila del calendario (🔥 X días) cuando es mayor que 0.
+- **Mejor racha (contador resumen):** mayor secuencia consecutiva de días `completed` alcanzada por cualquier hábito en la semana visible (lunes → día actual), aunque el día actual esté `failed` o `pending`.
 
 ### 2.6 Perfil de usuario
 
@@ -237,7 +241,14 @@ sequenceDiagram
   API->>DB: SELECT User WHERE id=1
   DB-->>API: User {id, name, email}
   API-->>SPA: 200 { id, name, email }
-  SPA->>SPA: Carga hábitos y recompensas desde estado local
+  SPA->>API: GET /api/weeks/current
+  API->>DB: Semana, hábitos, stats y redemptions
+  DB-->>API: WeekResponse
+  API-->>SPA: 200 { week, habits, stats, redemptions }
+  SPA->>API: GET /api/rewards
+  API->>DB: SELECT Reward WHERE userId=1 AND isActive
+  DB-->>API: Recompensas activas
+  API-->>SPA: 200 [Reward, ...]
   SPA-->>U: Renderiza dashboard completo
   note over SPA,U: Muestra: progreso de hoy, contadores,\ncalendario semanal y recompensas
 ```
@@ -341,13 +352,18 @@ sequenceDiagram
 sequenceDiagram
   actor U as Usuario
   participant SPA as Frontend (React SPA)
+  participant API as Backend API
+  participant DB as PostgreSQL
 
   U->>SPA: Clic en "+ Nueva recompensa"
   SPA-->>U: Modal "Añadir recompensa" visible
   U->>SPA: Selecciona emoji, nombre, descripción y coste
   U->>SPA: Clic en "Añadir recompensa"
-  SPA->>SPA: createRewardFromFormInput(input, uuid())
-  SPA->>SPA: Añade recompensa al estado local
+  SPA->>API: POST /api/rewards { emoji, name, description, cost }
+  API->>DB: INSERT Reward
+  DB-->>API: Reward creada
+  API-->>SPA: 201 Reward
+  SPA->>SPA: Añade recompensa al estado del hook
   SPA-->>U: Nueva recompensa visible con indicador de puntos restantes
 ```
 
@@ -361,23 +377,30 @@ sequenceDiagram
 
 **Problema:** El sistema de puntos carece de valor si no puede convertirse en algo concreto. El canje cierra el ciclo motivacional.
 
-**Solución:** Si `totalPoints >= reward.cost`, el botón de canjear se activa. Al pulsarlo, los puntos del coste se deducen del marcador de la semana en curso.
+**Solución:** Si `totalPoints >= reward.cost` (saldo = puntos ganados − penalizaciones − canjes previos de la semana) y **aún no se ha canjeado ninguna recompensa esa semana**, el botón de canjear se activa. Al pulsarlo, `RewardCard` llama a `POST /api/weeks/:weekId/redemptions` y descuenta el coste del saldo visible. Las demás tarjetas muestran *"Límite semanal"*.
 
-**Resultado esperado:** Los puntos se deducen visualmente en tiempo real. La recompensa queda registrada como canjeada. Los demás indicadores se actualizan.
+**Resultado esperado:** Los puntos se deducen visualmente en tiempo real. La recompensa queda registrada como canjeada en `RewardRedemption`. Si el usuario reduce después sus puntos netos de la semana por debajo del coste canjeado (p. ej. desmarcando días completados), el canje se invalida y la recompensa vuelve a estar disponible.
 
 ```mermaid
 sequenceDiagram
   actor U as Usuario
   participant SPA as Frontend (React SPA)
+  participant API as Backend API
+  participant DB as PostgreSQL
 
   U->>SPA: Clic en "Canjear" en la tarjeta de recompensa
   SPA->>SPA: Verifica totalPoints >= reward.cost
   alt Puntos suficientes
-    SPA->>SPA: Deduce reward.cost del marcador semanal
-    SPA->>SPA: Marca la recompensa como canjeada
-    SPA-->>U: Actualiza marcador y estado de recompensa (canjeada)
+    SPA->>API: POST /api/weeks/:weekId/redemptions { rewardId }
+    API->>DB: Transacción: valida saldo y INSERT RewardRedemption
+    DB-->>API: Canje persistido
+    API-->>SPA: 201 { id, pointsSpent, redeemedAt, ... }
+    SPA->>SPA: Actualiza pointsRedeemed y marca tarjeta como canjeada
+    SPA-->>U: Toast de éxito y saldo actualizado
   else Puntos insuficientes
-    SPA-->>U: Botón deshabilitado (nunca llega a este punto)
+    SPA-->>U: Botón deshabilitado ("Faltan X pts") o toast 422
+  else Ya hay un canje esta semana
+    SPA-->>U: Botón "Límite semanal" deshabilitado o toast 409
   end
 ```
 
@@ -650,7 +673,7 @@ erDiagram
 | `Week`      | `WeekHabit`        | 1:N         | Una semana tiene varios hábitos activos. Permite que cada semana tenga un conjunto diferente de hábitos.                      |
 | `Habit`     | `WeekHabit`        | 1:N         | Un hábito puede aparecer en múltiples semanas. La tabla intermedia guarda un snapshot inmutable de sus valores al bloquearse. |
 | `WeekHabit` | `HabitEntry`       | 1:7         | Cada asociación hábito-semana genera exactamente 7 entradas diarias (Lun-Dom).                                                |
-| `Week`      | `RewardRedemption` | 1:N         | Una semana puede registrar múltiples canjes de recompensas, pero los puntos gastados pertenecen al presupuesto de esa semana. |
+| `Week`      | `RewardRedemption` | 1:0..1         | Como máximo **un canje activo por semana**; los puntos gastados pertenecen al presupuesto de esa semana.                                                                                      |
 | `Reward`    | `RewardRedemption` | 1:N         | Una recompensa puede ser canjeada en múltiples semanas diferentes por el mismo usuario.                                       |
 
 
@@ -689,15 +712,15 @@ La tabla siguiente resume los **verbos y recursos** alineados con el modelo de d
 | **Bloqueo semanal**     | `POST`   | `/api/weeks/{weekId}/lock`          | Persiste snapshot de hábitos (`WeekHabit`), congela entradas y totales de la semana indicada y, si procede, crea la semana siguiente con hábitos heredados en `pending`. Idempotente si la semana ya estaba bloqueada.                                       |
 | **Catálogo de hábitos** | `GET`    | `/api/habits`                       | Lista hábitos del usuario (`isActive` según negocio).                                                                                                                                                                                                        |
 |                         | `POST`   | `/api/habits`                       | Crea un `Habit` asociado al usuario.                                                                                                                                                                                                                         |
-|                         | `PATCH`  | `/api/habits/{habitId}`             | Actualiza nombre, emoji, puntos, penalización o `isActive`.                                                                                                                                                                                                  |
-|                         | `DELETE` | `/api/habits/{habitId}`             | Baja lógica o exclusión según reglas de integridad con semanas bloqueadas.                                                                                                                                                                                   |
-| **Entrada diaria**      | `PATCH`  | `/api/habit-entries/{habitEntryId}` | Actualiza `status` (`pending` / `completed` / `failed`) y `updatedAt` para una celda concreta; rechaza mutaciones si la `Week` está bloqueada. *Alternativa equivalente:* `PATCH` sobre `/api/week-habits/{weekHabitId}/days/{dayIndex}`.                    |
-| **Recompensas**         | `GET`    | `/api/rewards`                      | Lista recompensas activas del usuario.                                                                                                                                                                                                                       |
+|                         | `PATCH`  | `/api/habits/{habitId}`             | Actualiza nombre, emoji, puntos o penalización; sincroniza snapshot en la semana desbloqueada actual y puede invalidar un canje (`redemptionInvalidated`).                                                                                                                                                                                                  |
+|                         | `DELETE` | `/api/habits/{habitId}`             | Baja lógica; excluye el hábito de la semana actual si aplica. Respuesta `{ redemptionInvalidated }` si el cambio de puntos invalida un canje.                                                                                                                                                                                   |
+| **Entrada diaria**      | `PATCH`  | `/api/habit-entries/{habitEntryId}` | Actualiza `status` (`pending` / `completed` / `failed`) y `updatedAt` para una celda concreta; rechaza mutaciones si la `Week` está bloqueada. Tras el cambio, reconcilia el canje semanal e incluye `redemptionInvalidated` en la respuesta. *Alternativa equivalente:* `PATCH` sobre `/api/week-habits/{weekHabitId}/days/{dayIndex}`.                    |
+| **Recompensas**         | `GET`    | `/api/rewards`                      | Lista recompensas activas del usuario con `hasBeenRedeemed` (indica si tiene canjes históricos).                                                                                                                                                                                                                       |
 |                         | `POST`   | `/api/rewards`                      | Crea `Reward`.                                                                                                                                                                                                                                               |
 |                         | `PATCH`  | `/api/rewards/{rewardId}`           | Actualiza coste, texto o `isActive`.                                                                                                                                                                                                                         |
-|                         | `DELETE` | `/api/rewards/{rewardId}`           | Baja lógica o borrado según política de canjes existentes.                                                                                                                                                                                                   |
+|                         | `DELETE` | `/api/rewards/{rewardId}`           | Baja lógica (`isActive=false`). Rechaza con `409 REWARD_ALREADY_REDEEMED` si la recompensa tiene canjes registrados.                                                                                                                                                                                                   |
 | **Canjes**              | `GET`    | `/api/weeks/{weekId}/redemptions`   | Lista `RewardRedemption` de esa semana (presupuesto de puntos de la semana).                                                                                                                                                                                 |
-|                         | `POST`   | `/api/weeks/{weekId}/redemptions`   | Registra un canje: valida saldo de puntos de la semana, descuenta y persiste `RewardRedemption`.                                                                                                                                                             |
+|                         | `POST`   | `/api/weeks/{weekId}/redemptions`   | Registra un canje: valida saldo, **máximo uno por semana**, descuenta y persiste `RewardRedemption`.                                                                                                                                                             |
 
 
 ### 6.4 Paginación, filtros y versionado
@@ -808,7 +831,7 @@ flowchart TB
 
 1. El navegador solicita `http://localhost:5173`.
 2. Vite sirve `frontend/index.html` + bundle JS.
-3. React renderiza `App.tsx` que carga hábitos desde el estado local (hook `useHabitDashboard`).
+3. React renderiza `App.tsx`, que monta `useHabitDashboard` y carga semana + recompensas desde la API.
 4. `useUserProfile` llama a `fetch('/api/profile')`.
 5. Vite hace proxy a `http://localhost:3001/api/profile`.
 6. Express consulta `User id=1` en PostgreSQL vía Prisma y devuelve JSON.
@@ -872,7 +895,7 @@ flowchart TB
 
   subgraph ConRutina["Sistema ConRutina"]
     subgraph frontend["Frontend Container"]
-      SPA["React SPA\n---\nTypeScript · React 18\nVite · Tailwind CSS v4\nRadix UI · shadcn/ui\n---\nLogica de UI y estado local\nde hábitos y recompensas"]
+      SPA["React SPA\n---\nTypeScript · React 18\nVite · Tailwind CSS v4\nRadix UI · shadcn/ui\n---\nUI conectada a API REST\n(hábitos, semanas, recompensas)"]
     end
 
     subgraph backend["Backend Container"]
@@ -929,11 +952,13 @@ flowchart LR
     HabitDomain["habit.ts\nTipos e interfaces\nFunciones puras"]
     RewardDomain["reward.ts\nTipos e interfaces"]
     WeekDomain["week.ts\nCálculo de fechas"]
-    Fixtures["fixtures.ts\nDatos iniciales (mock)"]
   end
 
   subgraph infra["Capa de Infraestructura\n(frontend/src/infrastructure)"]
     ProfileApi["profileApi.ts\nfetch /api/profile"]
+    WeekApi["weekApi.ts\nGET /api/weeks/*"]
+    HabitApi["habitApi.ts\nCRUD hábitos"]
+    RewardApi["rewardApi.ts\nCRUD recompensas y canjes"]
   end
 
   App --> Header
@@ -950,7 +975,9 @@ flowchart LR
   useHabitDashboard --> HabitDomain
   useHabitDashboard --> RewardDomain
   useHabitDashboard --> WeekDomain
-  useHabitDashboard --> Fixtures
+  useHabitDashboard --> WeekApi
+  useHabitDashboard --> HabitApi
+  useHabitDashboard --> RewardApi
   useUserProfile --> ProfileApi
   HabitRow --> UIKit
   AddHabitModal --> UIKit
@@ -1006,6 +1033,7 @@ classDiagram
     +rewards: Reward[]
     +weekOffset: number
     +stats: HabitStats
+    +pointsRedeemed: number
     +totalPoints: number
     +currentDayIndex: number
     +todayProgress: number
@@ -1014,7 +1042,7 @@ classDiagram
     +handleAddHabit(input) void
     +handleDeleteHabit(habitId) void
     +handleAddReward(input) void
-    +handleRedeemReward(rewardId) void
+    +handleRedeemSuccess(pointsSpent) void
     +handleDeleteReward(rewardId) void
   }
 
@@ -1044,12 +1072,13 @@ classDiagram
   }
 
   class HabitDomainFunctions {
-    +toggleHabitDayCompletion(habit, dayIndex) Habit
-    +calculateHabitStats(habits) HabitStats
+    +toggleHabitDayCompletion(habit, dayIndex, currentDayIndex) Habit
+    +calculateHabitStats(habits, currentDayIndex) HabitStats
     +calculateTodayProgressPercent(habits, dayIndex) number
-    +computeStreakFromStatus(status) number
+    +computeStreakFromStatus(statuses, currentDayIndex) number
+    +computeBestStreakFromStatus(statuses, upToDayIndex) number
     +createHabitFromFormInput(input, id) Habit
-    +totalPointsFromStats(stats) number
+    +totalPointsFromStats(stats, pointsRedeemed) number
   }
 
   class RewardDomainFunctions {
@@ -1086,7 +1115,7 @@ classDiagram
 - El propio usuario gestionará sus puntos, recompensas y penalizaciones. No se creará ningún otro perfil superior que lo supervise.
 - Buscamos funcionalidad. No se implementarán sistemas de Márketing, publicidad o difusión.
 - Tampoco se implementará ningún sistema de redes sociales para publicación de puntos o compartimiento de logros.
-- En fase de MVP algunas funcionalidades pueden hacer uso del localStorage para simulación, minimizando el uso de API HTTP a los UC implementados.
+- El núcleo del dominio (hábitos, semanas, recompensas y canjes) persiste en PostgreSQL vía API REST; no usa `localStorage` ni fixtures en runtime.
 
 ---
 

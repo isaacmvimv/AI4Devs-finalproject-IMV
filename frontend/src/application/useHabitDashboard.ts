@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { Habit, HabitStats } from '../domain/habit'
 import type { Reward } from '../domain/reward'
-import { INITIAL_REWARDS } from '../domain/fixtures'
-import { calculateHabitStats, calculateTodayProgressPercent, toggleHabitDayCompletion } from '../domain/habit'
-import { createRewardFromFormInput } from '../domain/reward'
+import { calculateHabitStats, calculateTodayProgressPercent, toggleHabitDayCompletion, totalPointsFromStats } from '../domain/habit'
 import { buildWeekData, getCurrentDayIndexForWeek } from '../domain/week'
 import { ApiError } from '../infrastructure/httpClient'
 import * as habitApi from '../infrastructure/habitApi'
 import * as habitEntryApi from '../infrastructure/habitEntryApi'
+import * as rewardApi from '../infrastructure/rewardApi'
+import type { RewardApiDto } from '../infrastructure/rewardApi'
 import * as weekApi from '../infrastructure/weekApi'
 import { mapWeekResponseToDashboard } from './mapWeekResponseToDashboard'
 
@@ -23,10 +23,23 @@ function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback
 }
 
+function mapRewardDto(dto: RewardApiDto): Reward {
+  return {
+    id: String(dto.id),
+    emoji: dto.emoji,
+    name: dto.name,
+    description: dto.description,
+    cost: dto.cost,
+    hasBeenRedeemed: dto.hasBeenRedeemed ?? false,
+  }
+}
+
 export function useHabitDashboard() {
   const [habits, setHabits] = useState<Habit[]>([])
-  const [rewards, setRewards] = useState<Reward[]>(INITIAL_REWARDS)
+  const [rewards, setRewards] = useState<Reward[]>([])
   const [stats, setStats] = useState<HabitStats>(EMPTY_STATS)
+  const [pointsRedeemed, setPointsRedeemed] = useState(0)
+  const [redeemedRewardIdsThisWeek, setRedeemedRewardIdsThisWeek] = useState<number[]>([])
   const [entryIdsByHabitId, setEntryIdsByHabitId] = useState<Record<string, number[]>>({})
   const [weekIsLocked, setWeekIsLocked] = useState(false)
   const [currentWeekId, setCurrentWeekId] = useState(0)
@@ -39,7 +52,7 @@ export function useHabitDashboard() {
   const [error, setError] = useState<string | null>(null)
   const weekRequestRef = useRef(0)
 
-  const totalPoints = stats.thisWeekPoints + stats.lastWeekPoints - stats.penalties
+  const totalPoints = totalPointsFromStats(stats, pointsRedeemed)
 
   const currentDayIndex = useMemo(() => getCurrentDayIndexForWeek(weekOffset), [weekOffset])
 
@@ -51,6 +64,18 @@ export function useHabitDashboard() {
   const weekData = useMemo(() => buildWeekData(weekOffset), [weekOffset])
   const weekIsCurrent = weekOffset === 0
 
+  async function handleRedemptionInvalidated() {
+    setPointsRedeemed(0)
+    setRedeemedRewardIdsThisWeek([])
+    try {
+      const rewardsDto = await rewardApi.fetchRewards()
+      setRewards(rewardsDto.map(mapRewardDto))
+    } catch {
+      setRewards((prev) => prev.map((reward) => ({ ...reward, hasBeenRedeemed: false })))
+    }
+    toast.error('Recompensa invalidada. Puntos insuficientes.')
+  }
+
   useEffect(() => {
     let cancelled = false
 
@@ -58,7 +83,10 @@ export function useHabitDashboard() {
       setLoading(true)
       setError(null)
       try {
-        const dto = await weekApi.fetchCurrentWeek()
+        const [dto, rewardsDto] = await Promise.all([
+          weekApi.fetchCurrentWeek(),
+          rewardApi.fetchRewards(),
+        ])
         if (cancelled) return
         const mapped = mapWeekResponseToDashboard(dto, getCurrentDayIndexForWeek(0))
         setHabits(mapped.habits)
@@ -66,6 +94,9 @@ export function useHabitDashboard() {
         setEntryIdsByHabitId(mapped.entryIdsByHabitId)
         setWeekIsLocked(mapped.isLocked)
         setCurrentWeekId(dto.week.id)
+        setPointsRedeemed(mapped.pointsRedeemed)
+        setRedeemedRewardIdsThisWeek(mapped.redeemedRewardIdsThisWeek)
+        setRewards(rewardsDto.map(mapRewardDto))
       } catch (err) {
         if (cancelled) return
         setHabits([])
@@ -96,6 +127,9 @@ export function useHabitDashboard() {
       setStats(mapped.stats)
       setEntryIdsByHabitId(mapped.entryIdsByHabitId)
       setWeekIsLocked(mapped.isLocked)
+      setCurrentWeekId(dto.week.id)
+      setPointsRedeemed(mapped.pointsRedeemed)
+      setRedeemedRewardIdsThisWeek(mapped.redeemedRewardIdsThisWeek)
       setCanGoBack(true)
     } catch (err) {
       if (weekRequestRef.current !== requestId) return
@@ -120,22 +154,26 @@ export function useHabitDashboard() {
     if (!habit) return
 
     const previousHabits = habits
-    const updatedHabit = toggleHabitDayCompletion(habit, dayIndex)
+    const updatedHabit = toggleHabitDayCompletion(habit, dayIndex, currentDayIndex)
     const newStatus = updatedHabit.completionStatus[dayIndex]
     const entryId = entryIdsByHabitId[habitId]?.[dayIndex]
 
     const newHabits = habits.map((h) => (h.id === habitId ? updatedHabit : h))
     setHabits(newHabits)
 
-    const recalculated = calculateHabitStats(newHabits)
+    const recalculated = calculateHabitStats(newHabits, currentDayIndex)
     setStats((prev) => ({ ...recalculated, lastWeekPoints: prev.lastWeekPoints }))
 
     if (entryId === undefined) return
 
-    habitEntryApi.updateHabitEntry(entryId, newStatus).catch((err) => {
+    habitEntryApi.updateHabitEntry(entryId, newStatus).then(async (result) => {
+      if (result.redemptionInvalidated) {
+        await handleRedemptionInvalidated()
+      }
+    }).catch((err) => {
       setHabits(previousHabits)
       setStats((prev) => {
-        const reverted = calculateHabitStats(previousHabits)
+        const reverted = calculateHabitStats(previousHabits, currentDayIndex)
         return { ...reverted, lastWeekPoints: prev.lastWeekPoints }
       })
       toast.error(errorMessage(err, 'Error al actualizar el hábito'))
@@ -156,6 +194,7 @@ export function useHabitDashboard() {
       setStats(mapped.stats)
       setEntryIdsByHabitId(mapped.entryIdsByHabitId)
       setWeekIsLocked(mapped.isLocked)
+      setPointsRedeemed(mapped.pointsRedeemed)
     } catch (err) {
       toast.error(errorMessage(err, 'Error al crear el hábito'))
     }
@@ -171,7 +210,7 @@ export function useHabitDashboard() {
 
     const remainingHabits = habits.filter((h) => h.id !== habitId)
     setHabits(remainingHabits)
-    const recalculated = calculateHabitStats(remainingHabits)
+    const recalculated = calculateHabitStats(remainingHabits, currentDayIndex)
     setStats((prev) => ({ ...recalculated, lastWeekPoints: prev.lastWeekPoints }))
     setEntryIdsByHabitId((prev) => {
       const next = { ...prev }
@@ -180,13 +219,18 @@ export function useHabitDashboard() {
     })
 
     try {
-      await habitApi.deleteHabit(Number(habitId))
+      const deleteResult = await habitApi.deleteHabit(Number(habitId))
       const dto = await weekApi.fetchCurrentWeek()
       const mapped = mapWeekResponseToDashboard(dto, getCurrentDayIndexForWeek(0))
       setHabits(mapped.habits)
       setStats(mapped.stats)
       setEntryIdsByHabitId(mapped.entryIdsByHabitId)
       setWeekIsLocked(mapped.isLocked)
+      setPointsRedeemed(mapped.pointsRedeemed)
+      setRedeemedRewardIdsThisWeek(mapped.redeemedRewardIdsThisWeek)
+      if (deleteResult.redemptionInvalidated) {
+        await handleRedemptionInvalidated()
+      }
     } catch (err) {
       setHabits(previousHabits)
       setStats(previousStats)
@@ -201,19 +245,38 @@ export function useHabitDashboard() {
     description: string
     cost: number
   }): Promise<void> => {
-    const reward = createRewardFromFormInput(newReward, Date.now().toString())
-    setRewards([...rewards, reward])
-  }
-
-  const handleRedeemReward = (rewardId: string) => {
-    const reward = rewards.find((r) => r.id === rewardId)
-    if (reward && totalPoints >= reward.cost) {
-      alert(`¡Has canjeado: ${reward.name}! 🎉`)
+    try {
+      const created = await rewardApi.createReward(newReward)
+      setRewards((prev) => [...prev, mapRewardDto(created)])
+    } catch (err) {
+      toast.error(errorMessage(err, 'Error al crear la recompensa'))
     }
   }
 
-  const handleDeleteReward = (rewardId: string) => {
+  const handleRedeemSuccess = (rewardId: number, pointsSpent: number) => {
+    setPointsRedeemed((prev) => prev + pointsSpent)
+    setRedeemedRewardIdsThisWeek((prev) => [...prev, rewardId])
+    setRewards((prev) =>
+      prev.map((reward) =>
+        reward.id === String(rewardId) ? { ...reward, hasBeenRedeemed: true } : reward
+      )
+    )
+  }
+
+  const handleDeleteReward = async (rewardId: string) => {
+    const previousRewards = rewards
     setRewards(rewards.filter((r) => r.id !== rewardId))
+
+    try {
+      await rewardApi.deleteReward(Number(rewardId))
+    } catch (err) {
+      setRewards(previousRewards)
+      if (err instanceof ApiError && err.code === 'REWARD_ALREADY_REDEEMED') {
+        toast.error('No se puede eliminar una recompensa ya canjeada')
+      } else {
+        toast.error(errorMessage(err, 'Error al eliminar la recompensa'))
+      }
+    }
   }
 
   return {
@@ -233,6 +296,7 @@ export function useHabitDashboard() {
     error,
     stats,
     totalPoints,
+    redeemedRewardIdsThisWeek,
     currentDayIndex,
     todayProgress,
     weekData,
@@ -241,7 +305,7 @@ export function useHabitDashboard() {
     handleAddHabit,
     handleDeleteHabit,
     handleAddReward,
-    handleRedeemReward,
+    handleRedeemSuccess,
     handleDeleteReward,
   }
 }

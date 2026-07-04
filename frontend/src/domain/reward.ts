@@ -4,6 +4,7 @@ export interface Reward {
   name: string
   description: string
   cost: number
+  hasBeenRedeemed: boolean
 }
 
 export interface RewardFormInput {
@@ -14,5 +15,5 @@ export interface RewardFormInput {
 }
 
 export function createRewardFromFormInput(input: RewardFormInput, id: string): Reward {
-  return { id, ...input }
+  return { id, ...input, hasBeenRedeemed: false }
 }

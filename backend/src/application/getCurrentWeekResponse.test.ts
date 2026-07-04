@@ -2,6 +2,7 @@
 import type { WeekWithDetails } from '../domain/week'
 import { getCurrentWeekResponse } from './getCurrentWeekResponse'
 import type { HabitRepository } from './ports/HabitRepository'
+import type { RewardRedemptionRepository } from './ports/RewardRedemptionRepository'
 import type { WeekRepository } from './ports/WeekRepository'
 
 vi.mock('./lockWeekAndTransition', () => ({
@@ -58,6 +59,8 @@ function makeWeekRepo(overrides: Partial<WeekRepository> = {}): WeekRepository {
     createWeekWithHabitsAndEntries: vi.fn(),
     addHabitsToWeek: vi.fn(),
     removeHabitsFromWeek: vi.fn(),
+    findById: vi.fn(),
+    updateHabitSnapshotInWeek: vi.fn(),
     findWeekByUserAndStartDate: vi.fn(),
     findLastLockedWeekBefore: vi.fn().mockResolvedValue({ id: 2, totalPointsEarned: 75 } as never),
     ...overrides,
@@ -74,6 +77,19 @@ function makeHabitRepo(): HabitRepository {
   }
 }
 
+function makeRedemptionRepo(
+  overrides: Partial<RewardRedemptionRepository> = {}
+): RewardRedemptionRepository {
+  return {
+    findByWeekId: vi.fn().mockResolvedValue([]),
+    hasRedemptionsForReward: vi.fn(),
+    findRedeemedRewardIds: vi.fn(),
+    deleteById: vi.fn(),
+    redeem: vi.fn(),
+    ...overrides,
+  }
+}
+
 describe('getCurrentWeekResponse', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -82,7 +98,7 @@ describe('getCurrentWeekResponse', () => {
   it('orchestrates lockWeekAndTransition and returns full DTO (US-09 S3)', async () => {
     mockLockWeekAndTransition.mockResolvedValue(currentWeek)
 
-    const result = await getCurrentWeekResponse(makeWeekRepo(), makeHabitRepo(), 1, now)
+    const result = await getCurrentWeekResponse(makeWeekRepo(), makeHabitRepo(), makeRedemptionRepo(), 1, now)
 
     expect(mockLockWeekAndTransition).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1, now)
     expect(result.week.id).toBe(3)
@@ -96,7 +112,7 @@ describe('getCurrentWeekResponse', () => {
     mockLockWeekAndTransition.mockRejectedValue(new Error('partial lock failure'))
     mockGetCurrentWeek.mockResolvedValue(currentWeek)
 
-    const result = await getCurrentWeekResponse(makeWeekRepo(), makeHabitRepo(), 1, now)
+    const result = await getCurrentWeekResponse(makeWeekRepo(), makeHabitRepo(), makeRedemptionRepo(), 1, now)
 
     expect(mockGetCurrentWeek).toHaveBeenCalledTimes(1)
     expect(result.week.id).toBe(3)
@@ -106,8 +122,8 @@ describe('getCurrentWeekResponse', () => {
     mockLockWeekAndTransition.mockResolvedValue(currentWeek)
     const weekRepo = makeWeekRepo()
 
-    const first = await getCurrentWeekResponse(weekRepo, makeHabitRepo(), 1, now)
-    const second = await getCurrentWeekResponse(weekRepo, makeHabitRepo(), 1, now)
+    const first = await getCurrentWeekResponse(weekRepo, makeHabitRepo(), makeRedemptionRepo(), 1, now)
+    const second = await getCurrentWeekResponse(weekRepo, makeHabitRepo(), makeRedemptionRepo(), 1, now)
 
     expect(first.week.id).toBe(second.week.id)
   })

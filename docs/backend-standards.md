@@ -891,8 +891,8 @@ export function createPrismaRewardRepository(prisma: PrismaClient): RewardReposi
 - **Infraestructura:** `prismaRewardRepository.ts`; `softDelete` hace `update isActive: false` sin borrar `RewardRedemption`.
 - **Validación:** `parseCreateRewardInput` en `application/validation/reward.ts` (mensajes en español).
 - **Ownership:** `assertRewardOwnedByUser` en `rewardOwnership.ts` — recompensa ajena o inexistente → `NotFoundError` (`REWARD_NOT_FOUND`).
-- **Casos de uso:** `createReward`, `getActiveRewards`, `softDeleteReward` (firmas análogas a hábitos).
-- **HTTP:** rutas `/api/rewards` en T-11-02; este ticket no modifica `createApp.ts`.
+- **Casos de uso:** `createReward`, `getActiveRewards` (incluye `hasBeenRedeemed` por recompensa), `softDeleteReward` (requiere `RewardRedemptionRepository`; rechaza si `hasRedemptionsForReward`).
+- **HTTP:** rutas `/api/rewards` en T-11-02; `DELETE` devuelve `409 REWARD_ALREADY_REDEEMED` si la recompensa tiene canjes.
 
 ```typescript
 // application/rewardOwnership.ts
@@ -912,16 +912,26 @@ export async function assertRewardOwnedByUser(
 ### Canje de recompensas (T-12-01)
 
 - **Dominio:** `backend/src/domain/rewardRedemption.ts` — tipo `RewardRedemption` (`id`, `weekId`, `rewardId`, `pointsSpent`, `redeemedAt`).
-- **Puerto:** `RewardRedemptionRepository` con `redeem({ userId, weekId, rewardId, rewardCost })`; la implementación MUST calcular saldo y crear el canje en la misma transacción.
+- **Puerto:** `RewardRedemptionRepository` con `findByWeekId`, `hasRedemptionsForReward`, `findRedeemedRewardIds`, `deleteById` y `redeem({ userId, weekId, rewardId, rewardCost })`; la implementación MUST calcular saldo, validar límite de un canje por semana y crear el canje en la misma transacción.
 - **Infraestructura:** `prismaRewardRedemptionRepository.ts` — `prisma.$transaction` + `SELECT ... FOR UPDATE` sobre `Week`, agregado de `pointsSpent` previos, validaciones y `create`.
 - **Saldo:** `calculateWeekAvailableBalance(week, redemptionsSpentTotal)` — `sum(completed × snapshotPoints) - sum(failed × snapshotPenalty) - redemptionsSpentTotal`.
 - **Caso de uso:** `redeemReward(redemptionRepo, rewardRepo, userId, weekId, rewardId)` — ownership de recompensa vía `assertRewardOwnedByUser`, delegación al repo con `reward.cost`.
-- **Errores:** `INSUFFICIENT_POINTS` (`UnprocessableError`, details `{ available, required }`), `WEEK_LOCKED` (`ConflictError`, mismo mensaje que `updateHabitEntry`), `WEEK_NOT_FOUND` / `REWARD_NOT_FOUND` (`NotFoundError`).
+- **Errores:** `INSUFFICIENT_POINTS` (`UnprocessableError`, details `{ available, required }`), `WEEK_LOCKED` (`ConflictError`, mismo mensaje que `updateHabitEntry`), `WEEK_REDEMPTION_LIMIT` (`ConflictError`, máximo un canje por semana), `WEEK_NOT_FOUND` / `REWARD_NOT_FOUND` (`NotFoundError`).
 - **HTTP (T-12-02):** `POST /api/weeks/:weekId/redemptions` en `createApp.ts` — `validateBody(redeemRewardSchema)`, `parseWeekIdParam`, delegación a `redeemReward`; respuesta `201` con `{ id, weekId, rewardId, pointsSpent, redeemedAt }` (ISO).
+- **Respuesta de semana:** `getCurrentWeekResponse` / `getWeekByOffset` incluyen `redemptions[]` reales vía `redemptionRepo.findByWeekId(week.id)` y `mapWeekToApiResponse` (antes devolvía `[]` hardcodeado).
+
+### Invalidación de canje al modificar puntuación
+
+- **Cálculo:** `computeCurrentWeekNetPoints(week)` — puntos netos de la semana en curso (`completed × snapshotPoints − failed × snapshotPenalty`).
+- **Reconciliación:** `reconcileWeekRedemption(week, redemptionRepo)` — si hay un canje y `netPoints < pointsSpent`, elimina el `RewardRedemption` vía `deleteById`.
+- **Disparadores:** tras `updateHabitEntry`, `updateHabit` (sincroniza snapshot en semana desbloqueada) y `deactivateHabit` (elimina hábito de la semana actual).
+- **Respuesta HTTP:** `redemptionInvalidated: boolean` en `PATCH /api/habit-entries/:id`, `PATCH /api/habits/:id` y `DELETE /api/habits/:id`.
+- **Frontend:** toast *"Recompensa invalidada. Puntos insuficientes."* cuando `redemptionInvalidated === true`.
 
 ```typescript
 // application/ports/RewardRedemptionRepository.ts (T-12-01)
 export interface RewardRedemptionRepository {
+  findByWeekId(weekId: number): Promise<RewardRedemption[]>;
   redeem(params: {
     userId: number;
     weekId: number;

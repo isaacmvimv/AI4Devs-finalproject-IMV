@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { NotFoundError } from '../domain/errors/appErrors'
+import { ConflictError, NotFoundError } from '../domain/errors/appErrors'
 import type { Reward } from '../domain/reward'
+import type { RewardRedemptionRepository } from './ports/RewardRedemptionRepository'
 import type { RewardRepository } from './ports/RewardRepository'
 import { softDeleteReward } from './softDeleteReward'
 
@@ -21,53 +22,69 @@ describe('softDeleteReward', () => {
     isActive: false,
   }
 
+  let mockRewardRepo: RewardRepository
+  let mockRedemptionRepo: RewardRedemptionRepository
+
   beforeEach(() => {
     vi.clearAllMocks()
-  })
-
-  it('soft-deletes reward when owned by user', async () => {
-    const mockRepo: RewardRepository = {
+    mockRewardRepo = {
       create: vi.fn(),
       findActiveByUserId: vi.fn(),
       findById: vi.fn().mockResolvedValue(existingReward),
       softDelete: vi.fn().mockResolvedValue(deactivatedReward),
     }
+    mockRedemptionRepo = {
+      findByWeekId: vi.fn(),
+      hasRedemptionsForReward: vi.fn().mockResolvedValue(false),
+      findRedeemedRewardIds: vi.fn(),
+      deleteById: vi.fn(),
+      redeem: vi.fn(),
+    }
+  })
 
-    const result = await softDeleteReward(mockRepo, 1, 5)
+  it('soft-deletes reward when owned by user and never redeemed', async () => {
+    const result = await softDeleteReward(mockRewardRepo, mockRedemptionRepo, 1, 5)
 
     expect(result).toEqual(deactivatedReward)
     expect(result.isActive).toBe(false)
-    expect(mockRepo.findById).toHaveBeenCalledWith(5)
-    expect(mockRepo.softDelete).toHaveBeenCalledWith(5)
+    expect(mockRewardRepo.findById).toHaveBeenCalledWith(5)
+    expect(mockRedemptionRepo.hasRedemptionsForReward).toHaveBeenCalledWith(5)
+    expect(mockRewardRepo.softDelete).toHaveBeenCalledWith(5)
+  })
+
+  it('throws ConflictError when reward has been redeemed', async () => {
+    mockRedemptionRepo.hasRedemptionsForReward = vi.fn().mockResolvedValue(true)
+
+    await expect(softDeleteReward(mockRewardRepo, mockRedemptionRepo, 1, 5)).rejects.toThrow(
+      ConflictError
+    )
+    await expect(softDeleteReward(mockRewardRepo, mockRedemptionRepo, 1, 5)).rejects.toMatchObject({
+      code: 'REWARD_ALREADY_REDEEMED',
+    })
+    expect(mockRewardRepo.softDelete).not.toHaveBeenCalled()
   })
 
   it('throws NotFoundError when reward belongs to another user', async () => {
-    const mockRepo: RewardRepository = {
-      create: vi.fn(),
-      findActiveByUserId: vi.fn(),
-      findById: vi.fn().mockResolvedValue({ ...existingReward, userId: 2 }),
-      softDelete: vi.fn(),
-    }
+    mockRewardRepo.findById = vi.fn().mockResolvedValue({ ...existingReward, userId: 2 })
 
-    await expect(softDeleteReward(mockRepo, 1, 5)).rejects.toThrow(NotFoundError)
-    await expect(softDeleteReward(mockRepo, 1, 5)).rejects.toMatchObject({
+    await expect(softDeleteReward(mockRewardRepo, mockRedemptionRepo, 1, 5)).rejects.toThrow(
+      NotFoundError
+    )
+    await expect(softDeleteReward(mockRewardRepo, mockRedemptionRepo, 1, 5)).rejects.toMatchObject({
       code: 'REWARD_NOT_FOUND',
     })
-    expect(mockRepo.softDelete).not.toHaveBeenCalled()
+    expect(mockRewardRepo.softDelete).not.toHaveBeenCalled()
   })
 
   it('throws NotFoundError when reward does not exist', async () => {
-    const mockRepo: RewardRepository = {
-      create: vi.fn(),
-      findActiveByUserId: vi.fn(),
-      findById: vi.fn().mockResolvedValue(null),
-      softDelete: vi.fn(),
-    }
+    mockRewardRepo.findById = vi.fn().mockResolvedValue(null)
 
-    await expect(softDeleteReward(mockRepo, 1, 999)).rejects.toThrow(NotFoundError)
-    await expect(softDeleteReward(mockRepo, 1, 999)).rejects.toMatchObject({
+    await expect(softDeleteReward(mockRewardRepo, mockRedemptionRepo, 1, 999)).rejects.toThrow(
+      NotFoundError
+    )
+    await expect(softDeleteReward(mockRewardRepo, mockRedemptionRepo, 1, 999)).rejects.toMatchObject({
       code: 'REWARD_NOT_FOUND',
     })
-    expect(mockRepo.softDelete).not.toHaveBeenCalled()
+    expect(mockRewardRepo.softDelete).not.toHaveBeenCalled()
   })
 })

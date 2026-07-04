@@ -32,6 +32,25 @@ describe('POST /api/weeks/:weekId/redemptions', () => {
     })
   })
 
+  it('returns 409 WEEK_REDEMPTION_LIMIT on second redemption in same week', async () => {
+    await seedUser(prisma)
+    const { week } = await seedHabitWithWeek(prisma, { totalPointsEarned: 100, entryStatus: 'completed' })
+    const rewardA = await seedReward(prisma, { cost: 10 })
+    const rewardB = await seedReward(prisma, { cost: 15 })
+
+    const first = await request(app)
+      .post(`/api/weeks/${week.id}/redemptions`)
+      .send({ rewardId: rewardA.id })
+    expect(first.status).toBe(201)
+
+    const second = await request(app)
+      .post(`/api/weeks/${week.id}/redemptions`)
+      .send({ rewardId: rewardB.id })
+
+    expect(second.status).toBe(409)
+    expect(second.body).toMatchObject({ code: 'WEEK_REDEMPTION_LIMIT' })
+  })
+
   it('returns 422 with INSUFFICIENT_POINTS when not enough points', async () => {
     await seedUser(prisma)
     const { week } = await seedHabitWithWeek(prisma, { totalPointsEarned: 0 })

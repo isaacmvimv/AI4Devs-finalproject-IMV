@@ -22,12 +22,22 @@ describe('habitEntryApi', () => {
     it('actualiza el estado de una entrada (200)', async () => {
       mockFetchOnce({
         ok: true,
-        json: { id: 10, status: 'completed', updatedAt: '2026-06-15T00:00:00.000Z' },
+        json: {
+          id: 10,
+          status: 'completed',
+          updatedAt: '2026-06-15T00:00:00.000Z',
+          redemptionInvalidated: false,
+        },
       })
 
       const result = await updateHabitEntry(10, 'completed')
 
-      expect(result).toEqual({ id: 10, status: 'completed', updatedAt: '2026-06-15T00:00:00.000Z' })
+      expect(result).toEqual({
+        id: 10,
+        status: 'completed',
+        updatedAt: '2026-06-15T00:00:00.000Z',
+        redemptionInvalidated: false,
+      })
     })
 
     it('lanza ApiError WEEK_LOCKED cuando la semana está cerrada (409)', async () => {

@@ -26,6 +26,9 @@ const defaultProps = {
   description: 'A test reward',
   cost: 80,
   currentPoints: 30,
+  isRedeemedThisWeek: false,
+  weekRedemptionLimitReached: false,
+  canDelete: true,
   onRedeemSuccess: vi.fn(),
   onDelete: vi.fn(),
 }
@@ -51,7 +54,7 @@ describe('RewardCard', () => {
     expect((btn as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it('SC3 — canje exitoso → onRedeemSuccess llamado con pointsSpent', async () => {
+  it('SC3 — canje exitoso → onRedeemSuccess llamado con rewardId y pointsSpent', async () => {
     vi.mocked(redeemReward).mockResolvedValueOnce({
       id: 1,
       weekId: 10,
@@ -65,7 +68,7 @@ describe('RewardCard', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /canjear/i }))
     await waitFor(() => {
-      expect(onRedeemSuccess).toHaveBeenCalledWith(80)
+      expect(onRedeemSuccess).toHaveBeenCalledWith(1, 80)
     })
     expect(toast.success).toHaveBeenCalled()
   })
@@ -85,11 +88,30 @@ describe('RewardCard', () => {
     expect(onRedeemSuccess).not.toHaveBeenCalled()
   })
 
-  it('SC5 — clic en eliminar → onDelete llamado', () => {
+  it('SC5 — clic en eliminar → onDelete llamado cuando canDelete es true', () => {
     const onDelete = vi.fn()
-    render(<RewardCard {...defaultProps} onDelete={onDelete} />)
-    const deleteBtn = screen.getByRole('button', { name: /×/i })
+    render(<RewardCard {...defaultProps} onDelete={onDelete} canDelete={true} />)
+    const deleteBtn = screen.getByRole('button', { name: /eliminar recompensa/i })
     fireEvent.click(deleteBtn)
     expect(onDelete).toHaveBeenCalled()
+  })
+
+  it('SC6 — no muestra botón eliminar cuando canDelete es false', () => {
+    render(<RewardCard {...defaultProps} canDelete={false} />)
+    expect(screen.queryByRole('button', { name: /eliminar recompensa/i })).toBeNull()
+  })
+
+  it('SC7 — límite semanal alcanzado → botón "Límite semanal" disabled', () => {
+    render(<RewardCard {...defaultProps} currentPoints={100} weekRedemptionLimitReached={true} />)
+    const btn = screen.getByRole('button', { name: /límite semanal/i })
+    expect(btn).toBeTruthy()
+    expect((btn as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('SC8 — recompensa canjeada esta semana → botón "¡Canjeada!" disabled', () => {
+    render(<RewardCard {...defaultProps} currentPoints={100} isRedeemedThisWeek={true} />)
+    const btn = screen.getByRole('button', { name: /canjeada/i })
+    expect(btn).toBeTruthy()
+    expect((btn as HTMLButtonElement).disabled).toBe(true)
   })
 })

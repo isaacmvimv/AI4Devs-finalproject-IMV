@@ -32,6 +32,7 @@ export default function App() {
     canGoBack,
     stats,
     totalPoints,
+    redeemedRewardIdsThisWeek,
     currentDayIndex,
     todayProgress,
     weekData,
@@ -41,6 +42,7 @@ export default function App() {
     handleDeleteHabit,
     handleAddReward,
     handleDeleteReward,
+    handleRedeemSuccess,
   } = useHabitDashboard()
 
   const header = (
@@ -162,6 +164,13 @@ export default function App() {
                   description={reward.description}
                   cost={reward.cost}
                   currentPoints={totalPoints}
+                  isRedeemedThisWeek={redeemedRewardIdsThisWeek.includes(Number(reward.id))}
+                  weekRedemptionLimitReached={
+                    redeemedRewardIdsThisWeek.length > 0 &&
+                    !redeemedRewardIdsThisWeek.includes(Number(reward.id))
+                  }
+                  canDelete={!reward.hasBeenRedeemed}
+                  onRedeemSuccess={handleRedeemSuccess}
                   onDelete={() => handleDeleteReward(reward.id)}
                 />
               ))}

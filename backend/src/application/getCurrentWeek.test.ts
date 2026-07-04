@@ -66,6 +66,8 @@ describe('getCurrentWeek', () => {
         createWeekWithHabitsAndEntries: vi.fn().mockResolvedValue(createdWeek),
         addHabitsToWeek: vi.fn(),
         removeHabitsFromWeek: vi.fn(),
+        findById: vi.fn(),
+        updateHabitSnapshotInWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }
@@ -106,6 +108,8 @@ describe('getCurrentWeek', () => {
         createWeekWithHabitsAndEntries: vi.fn(),
         addHabitsToWeek: vi.fn(),
         removeHabitsFromWeek: vi.fn(),
+        findById: vi.fn(),
+        updateHabitSnapshotInWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }
@@ -137,6 +141,8 @@ describe('getCurrentWeek', () => {
         createWeekWithHabitsAndEntries: vi.fn(),
         addHabitsToWeek: vi.fn().mockResolvedValue(syncedWeek),
         removeHabitsFromWeek: vi.fn(),
+        findById: vi.fn(),
+        updateHabitSnapshotInWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }
@@ -168,6 +174,8 @@ describe('getCurrentWeek', () => {
         createWeekWithHabitsAndEntries: vi.fn(),
         addHabitsToWeek: vi.fn(),
         removeHabitsFromWeek: vi.fn().mockResolvedValue(cleanedWeek),
+        findById: vi.fn(),
+        updateHabitSnapshotInWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }
@@ -200,6 +208,8 @@ describe('getCurrentWeek', () => {
         createWeekWithHabitsAndEntries: vi.fn().mockResolvedValue(emptyWeek),
         addHabitsToWeek: vi.fn(),
         removeHabitsFromWeek: vi.fn(),
+        findById: vi.fn(),
+        updateHabitSnapshotInWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }
@@ -233,6 +243,8 @@ describe('getCurrentWeek', () => {
         createWeekWithHabitsAndEntries: vi.fn().mockRejectedValue(txError),
         addHabitsToWeek: vi.fn(),
         removeHabitsFromWeek: vi.fn(),
+        findById: vi.fn(),
+        updateHabitSnapshotInWeek: vi.fn(),
         findWeekByUserAndStartDate: vi.fn(),
         findLastLockedWeekBefore: vi.fn(),
       }

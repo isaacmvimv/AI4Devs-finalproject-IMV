@@ -57,8 +57,8 @@ describe('DELETE /api/habits/:id', () => {
       .send({ emoji: '🏃', name: 'Correr', pointsPerDay: 10, penalty: 5 })
 
     const deleteRes = await request(app).delete(`/api/habits/${created.body.id}`)
-    expect(deleteRes.status).toBe(204)
-    expect(deleteRes.body).toEqual({})
+    expect(deleteRes.status).toBe(200)
+    expect(deleteRes.body).toEqual({ redemptionInvalidated: false })
 
     const listRes = await request(app).get('/api/habits')
     expect(listRes.status).toBe(200)

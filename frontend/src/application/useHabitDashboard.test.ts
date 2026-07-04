@@ -5,6 +5,7 @@ import { ApiError } from '../infrastructure/httpClient'
 import * as weekApi from '../infrastructure/weekApi'
 import * as habitApi from '../infrastructure/habitApi'
 import * as habitEntryApi from '../infrastructure/habitEntryApi'
+import * as rewardApi from '../infrastructure/rewardApi'
 import { toast } from 'sonner'
 import type { WeekResponseDto } from '../infrastructure/weekApi'
 import { useHabitDashboard } from './useHabitDashboard'
@@ -12,6 +13,7 @@ import { useHabitDashboard } from './useHabitDashboard'
 vi.mock('../infrastructure/weekApi')
 vi.mock('../infrastructure/habitApi')
 vi.mock('../infrastructure/habitEntryApi')
+vi.mock('../infrastructure/rewardApi')
 vi.mock('sonner', () => ({
   toast: { error: vi.fn() },
 }))
@@ -62,6 +64,7 @@ function buildWeekResponse(overrides: Partial<WeekResponseDto> = {}): WeekRespon
 describe('useHabitDashboard', () => {
   beforeEach(() => {
     vi.mocked(weekApi.fetchCurrentWeek).mockResolvedValue(buildWeekResponse())
+    vi.mocked(rewardApi.fetchRewards).mockResolvedValue([])
   })
 
   afterEach(() => {
@@ -97,6 +100,7 @@ describe('useHabitDashboard', () => {
       id: 101,
       status: 'completed',
       updatedAt: '2026-06-08T00:00:00.000Z',
+      redemptionInvalidated: false,
     })
 
     const { result } = renderHook(() => useHabitDashboard())
@@ -115,6 +119,7 @@ describe('useHabitDashboard', () => {
       id: 101,
       status: 'completed',
       updatedAt: '2026-06-08T00:00:00.000Z',
+      redemptionInvalidated: false,
     })
 
     const { result } = renderHook(() => useHabitDashboard())
@@ -134,6 +139,7 @@ describe('useHabitDashboard', () => {
       id: 101,
       status: 'completed',
       updatedAt: '2026-06-08T00:00:00.000Z',
+      redemptionInvalidated: false,
     })
 
     const { result } = renderHook(() => useHabitDashboard())
@@ -149,9 +155,8 @@ describe('useHabitDashboard', () => {
       id: 101,
       status: 'failed',
       updatedAt: '2026-06-08T00:00:00.000Z',
+      redemptionInvalidated: false,
     })
-
-    // completed → failed
     act(() => {
       result.current.handleToggleDay('1', 0)
     })
@@ -236,7 +241,7 @@ describe('useHabitDashboard', () => {
   })
 
   it('handleDeleteHabit elimina el hábito y sincroniza la semana actual', async () => {
-    vi.mocked(habitApi.deleteHabit).mockResolvedValue(undefined)
+    vi.mocked(habitApi.deleteHabit).mockResolvedValue({ redemptionInvalidated: false })
     vi.mocked(weekApi.fetchCurrentWeek)
       .mockResolvedValueOnce(buildWeekResponse())
       .mockResolvedValue(buildWeekResponse({ habits: [] }))
@@ -280,7 +285,7 @@ describe('useHabitDashboard', () => {
           stats: { thisWeekPoints: 0, lastWeekPoints: 10, penalties: 0, maxStreak: 0 },
         }),
       )
-    vi.mocked(habitApi.deleteHabit).mockResolvedValue(undefined)
+    vi.mocked(habitApi.deleteHabit).mockResolvedValue({ redemptionInvalidated: false })
 
     const { result } = renderHook(() => useHabitDashboard())
     await waitFor(() => expect(result.current.loading).toBe(false))

@@ -30,7 +30,31 @@ export function computeStreakFromStatus(
   return streak
 }
 
-export function toggleHabitDayCompletion(habit: Habit, dayIndex: number): Habit {
+/** Longest consecutive completed run from day 0 through upToDayIndex (inclusive). */
+export function computeBestStreakFromStatus(
+  statuses: CompletionStatus[],
+  upToDayIndex: number
+): number {
+  if (upToDayIndex < 0 || upToDayIndex > 6) return 0
+
+  let maxStreak = 0
+  let currentRun = 0
+  for (let i = 0; i <= upToDayIndex; i++) {
+    if (statuses[i] === 'completed') {
+      currentRun++
+      if (currentRun > maxStreak) maxStreak = currentRun
+    } else {
+      currentRun = 0
+    }
+  }
+  return maxStreak
+}
+
+export function toggleHabitDayCompletion(
+  habit: Habit,
+  dayIndex: number,
+  currentDayIndex: number
+): Habit {
   if (dayIndex < 0 || dayIndex > 6) {
     return { ...habit }
   }
@@ -49,7 +73,7 @@ export function toggleHabitDayCompletion(habit: Habit, dayIndex: number): Habit 
   return {
     ...habit,
     completionStatus: newStatus,
-    streak: computeStreakFromStatus(newStatus, dayIndex),
+    streak: computeStreakFromStatus(newStatus, currentDayIndex),
   }
 }
 
@@ -60,7 +84,7 @@ export interface HabitStats {
   maxStreak: number
 }
 
-export function calculateHabitStats(habits: Habit[]): HabitStats {
+export function calculateHabitStats(habits: Habit[], currentDayIndex: number): HabitStats {
   let thisWeekPoints = 0
   const lastWeekPoints = 0
   let penalties = 0
@@ -71,14 +95,15 @@ export function calculateHabitStats(habits: Habit[]): HabitStats {
       if (status === 'completed') thisWeekPoints += habit.pointsPerDay
       if (status === 'failed') penalties += habit.penalty
     })
-    if (habit.streak > maxStreak) maxStreak = habit.streak
+    const bestStreak = computeBestStreakFromStatus(habit.completionStatus, currentDayIndex)
+    if (bestStreak > maxStreak) maxStreak = bestStreak
   })
 
   return { thisWeekPoints, lastWeekPoints, penalties, maxStreak }
 }
 
-export function totalPointsFromStats(stats: HabitStats): number {
-  return stats.thisWeekPoints + stats.lastWeekPoints - stats.penalties
+export function totalPointsFromStats(stats: HabitStats, pointsRedeemed = 0): number {
+  return stats.thisWeekPoints + stats.lastWeekPoints - stats.penalties - pointsRedeemed
 }
 
 export function calculateTodayProgressPercent(habits: Habit[], currentDayIndex: number): number {

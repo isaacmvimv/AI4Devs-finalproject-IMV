@@ -38,6 +38,10 @@ describe('redeemReward', () => {
       softDelete: vi.fn(),
     }
     mockRedemptionRepo = {
+      findByWeekId: vi.fn().mockResolvedValue([]),
+      hasRedemptionsForReward: vi.fn(),
+      findRedeemedRewardIds: vi.fn(),
+      deleteById: vi.fn(),
       redeem: vi.fn().mockResolvedValue(redemption),
     }
   })
@@ -96,6 +100,19 @@ describe('redeemReward', () => {
     await expect(redeemReward(mockRedemptionRepo, mockRewardRepo, 1, 1, 2)).rejects.toMatchObject({
       code: 'WEEK_LOCKED',
       message: 'No se puede modificar una semana bloqueada',
+    })
+  })
+
+  it('propagates WEEK_REDEMPTION_LIMIT from repo', async () => {
+    mockRedemptionRepo.redeem = vi.fn().mockRejectedValue(
+      new ConflictError('Solo se puede canjear una recompensa por semana', 'WEEK_REDEMPTION_LIMIT')
+    )
+
+    await expect(redeemReward(mockRedemptionRepo, mockRewardRepo, 1, 1, 2)).rejects.toThrow(
+      ConflictError
+    )
+    await expect(redeemReward(mockRedemptionRepo, mockRewardRepo, 1, 1, 2)).rejects.toMatchObject({
+      code: 'WEEK_REDEMPTION_LIMIT',
     })
   })
 

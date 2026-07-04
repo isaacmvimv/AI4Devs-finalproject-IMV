@@ -13,6 +13,12 @@ export interface WeekRepository {
   ): Promise<WeekWithDetails>
   addHabitsToWeek(weekId: number, habits: Habit[], startOrder: number): Promise<WeekWithDetails>
   removeHabitsFromWeek(weekId: number, habitIds: number[]): Promise<WeekWithDetails>
+  findById(weekId: number): Promise<WeekWithDetails | null>
+  updateHabitSnapshotInWeek(
+    weekId: number,
+    habitId: number,
+    data: { snapshotPoints?: number; snapshotPenalty?: number; snapshotName?: string; snapshotEmoji?: string }
+  ): Promise<void>
   findWeekByUserAndStartDate(userId: number, startDate: Date): Promise<WeekWithDetails | null>
   findLastLockedWeekBefore(userId: number, beforeStartDate: Date): Promise<Week | null>
 }

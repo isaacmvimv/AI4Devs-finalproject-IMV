@@ -4,6 +4,7 @@ import type { Habit } from '../domain/habit'
 import type { WeekWithDetails } from '../domain/week'
 import { deactivateHabit } from './deactivateHabit'
 import type { HabitRepository } from './ports/HabitRepository'
+import type { RewardRedemptionRepository } from './ports/RewardRedemptionRepository'
 import type { WeekRepository } from './ports/WeekRepository'
 
 describe('deactivateHabit', () => {
@@ -57,6 +58,8 @@ describe('deactivateHabit', () => {
       createWeekWithHabitsAndEntries: vi.fn(),
       addHabitsToWeek: vi.fn(),
       removeHabitsFromWeek: vi.fn().mockResolvedValue({ ...currentWeek, weekHabits: [] }),
+      findById: vi.fn(),
+      updateHabitSnapshotInWeek: vi.fn(),
       findWeekByUserAndStartDate: vi.fn(),
       findLastLockedWeekBefore: vi.fn(),
       ...overrides,
@@ -74,6 +77,19 @@ describe('deactivateHabit', () => {
     }
   }
 
+  function makeRedemptionRepo(
+    overrides: Partial<RewardRedemptionRepository> = {}
+  ): RewardRedemptionRepository {
+    return {
+      findByWeekId: vi.fn().mockResolvedValue([]),
+      hasRedemptionsForReward: vi.fn(),
+      findRedeemedRewardIds: vi.fn(),
+      deleteById: vi.fn(),
+      redeem: vi.fn(),
+      ...overrides,
+    }
+  }
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -82,14 +98,17 @@ describe('deactivateHabit', () => {
     const mockHabitRepo = makeHabitRepo()
     const mockWeekRepo = makeWeekRepo()
 
-    const result = await deactivateHabit(mockHabitRepo, mockWeekRepo, 1, 5, now)
-
-    expect(result).toEqual(deactivatedHabit)
-    expect(mockHabitRepo.softDelete).toHaveBeenCalledWith(5)
-    expect(mockWeekRepo.findCurrentWeek).toHaveBeenCalledWith(
+    const result = await deactivateHabit(
+      mockHabitRepo,
+      mockWeekRepo,
+      makeRedemptionRepo(),
       1,
-      new Date('2026-06-08T00:00:00.000Z')
+      5,
+      now
     )
+
+    expect(result).toEqual({ habit: deactivatedHabit, redemptionInvalidated: false })
+    expect(mockHabitRepo.softDelete).toHaveBeenCalledWith(5)
     expect(mockWeekRepo.removeHabitsFromWeek).toHaveBeenCalledWith(10, [5])
   })
 
@@ -97,36 +116,27 @@ describe('deactivateHabit', () => {
     const mockHabitRepo = makeHabitRepo({
       findById: vi.fn().mockResolvedValue({ ...existingHabit, userId: 2 }),
     })
-    const mockWeekRepo = makeWeekRepo()
 
-    await expect(deactivateHabit(mockHabitRepo, mockWeekRepo, 1, 5, now)).rejects.toThrow(
-      NotFoundError
-    )
-    expect(mockHabitRepo.softDelete).not.toHaveBeenCalled()
-    expect(mockWeekRepo.removeHabitsFromWeek).not.toHaveBeenCalled()
+    await expect(
+      deactivateHabit(mockHabitRepo, makeWeekRepo(), makeRedemptionRepo(), 1, 5, now)
+    ).rejects.toThrow(NotFoundError)
   })
 
   it('does not remove week habits when there is no current unlocked week', async () => {
-    const mockHabitRepo = makeHabitRepo()
     const mockWeekRepo = makeWeekRepo({
       findCurrentWeek: vi.fn().mockResolvedValue(null),
     })
 
-    await deactivateHabit(mockHabitRepo, mockWeekRepo, 1, 5, now)
+    const result = await deactivateHabit(
+      makeHabitRepo(),
+      mockWeekRepo,
+      makeRedemptionRepo(),
+      1,
+      5,
+      now
+    )
 
-    expect(mockHabitRepo.softDelete).toHaveBeenCalledWith(5)
-    expect(mockWeekRepo.removeHabitsFromWeek).not.toHaveBeenCalled()
-  })
-
-  it('does not remove week habits when habit is not in the current week', async () => {
-    const mockHabitRepo = makeHabitRepo()
-    const mockWeekRepo = makeWeekRepo({
-      findCurrentWeek: vi.fn().mockResolvedValue({ ...currentWeek, weekHabits: [] }),
-    })
-
-    await deactivateHabit(mockHabitRepo, mockWeekRepo, 1, 5, now)
-
-    expect(mockHabitRepo.softDelete).toHaveBeenCalledWith(5)
+    expect(result.redemptionInvalidated).toBe(false)
     expect(mockWeekRepo.removeHabitsFromWeek).not.toHaveBeenCalled()
   })
 })

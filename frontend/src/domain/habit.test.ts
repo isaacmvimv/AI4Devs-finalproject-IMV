@@ -3,6 +3,7 @@ import type { CompletionStatus, Habit, HabitStats } from './habit'
 import {
   calculateHabitStats,
   calculateTodayProgressPercent,
+  computeBestStreakFromStatus,
   computeStreakFromStatus,
   createHabitFromFormInput,
   toggleHabitDayCompletion,
@@ -34,13 +35,13 @@ describe('toggleHabitDayCompletion', () => {
   it('cycles pending → completed → failed → pending (US-13 S1)', () => {
     const habit = buildHabit()
 
-    const afterFirst = toggleHabitDayCompletion(habit, 2)
+    const afterFirst = toggleHabitDayCompletion(habit, 2, 2)
     expect(afterFirst.completionStatus[2]).toBe('completed')
 
-    const afterSecond = toggleHabitDayCompletion(afterFirst, 2)
+    const afterSecond = toggleHabitDayCompletion(afterFirst, 2, 2)
     expect(afterSecond.completionStatus[2]).toBe('failed')
 
-    const afterThird = toggleHabitDayCompletion(afterSecond, 2)
+    const afterThird = toggleHabitDayCompletion(afterSecond, 2, 2)
     expect(afterThird.completionStatus[2]).toBe('pending')
   })
 
@@ -57,27 +58,35 @@ describe('toggleHabitDayCompletion', () => {
       ],
     })
 
-    expect(toggleHabitDayCompletion(habit, -1)).toEqual(habit)
-    expect(toggleHabitDayCompletion(habit, 7)).toEqual(habit)
+    expect(toggleHabitDayCompletion(habit, -1, 0)).toEqual(habit)
+    expect(toggleHabitDayCompletion(habit, 7, 0)).toEqual(habit)
     expect(habit.completionStatus[0]).toBe('completed')
   })
 
-  it('recalculates streak when toggling a past day', () => {
+  it('recalculates streak from current day when toggling a past day', () => {
     const habit = buildHabit({
-      completionStatus: weekStatus(['completed', 'completed', 'pending', 'pending']),
-      streak: 2,
+      completionStatus: weekStatus([
+        'completed',
+        'completed',
+        'completed',
+        'completed',
+        'completed',
+        'pending',
+        'pending',
+      ]),
+      streak: 5,
     })
 
-    const toggled = toggleHabitDayCompletion(habit, 0)
+    const toggled = toggleHabitDayCompletion(habit, 0, 4)
     expect(toggled.completionStatus[0]).toBe('failed')
-    expect(toggled.streak).toBe(0)
+    expect(toggled.streak).toBe(4)
   })
 
   it('does not mutate the original habit', () => {
     const habit = buildHabit()
     const originalStatus = [...habit.completionStatus]
 
-    toggleHabitDayCompletion(habit, 2)
+    toggleHabitDayCompletion(habit, 2, 2)
 
     expect(habit.completionStatus).toEqual(originalStatus)
   })
@@ -99,11 +108,11 @@ describe('calculateHabitStats', () => {
       ],
     })
 
-    expect(calculateHabitStats([habit])).toEqual({
+    expect(calculateHabitStats([habit], 2)).toEqual({
       thisWeekPoints: 20,
       lastWeekPoints: 0,
       penalties: 5,
-      maxStreak: 0,
+      maxStreak: 2,
     })
   })
 
@@ -115,7 +124,7 @@ describe('calculateHabitStats', () => {
       streak: 0,
     })
 
-    expect(calculateHabitStats([habit])).toEqual({
+    expect(calculateHabitStats([habit], 6)).toEqual({
       thisWeekPoints: 0,
       lastWeekPoints: 0,
       penalties: 21,
@@ -123,16 +132,60 @@ describe('calculateHabitStats', () => {
     })
   })
 
-  it('returns maxStreak from habit with highest streak', () => {
-    const h1 = buildHabit({ id: '1', streak: 3 })
-    const h2 = buildHabit({ id: '2', streak: 5 })
-    const h3 = buildHabit({ id: '3', streak: 1 })
+  it('returns maxStreak from habit with longest consecutive streak in the week', () => {
+    const h1 = buildHabit({
+      id: '1',
+      completionStatus: weekStatus(['completed', 'completed', 'completed']),
+      streak: 3,
+    })
+    const h2 = buildHabit({
+      id: '2',
+      completionStatus: weekStatus([
+        'completed',
+        'completed',
+        'completed',
+        'completed',
+        'completed',
+      ]),
+      streak: 3,
+    })
+    const h3 = buildHabit({
+      id: '3',
+      completionStatus: weekStatus(['completed']),
+      streak: 1,
+    })
 
-    expect(calculateHabitStats([h1, h2, h3]).maxStreak).toBe(5)
+    expect(calculateHabitStats([h1, h2, h3], 4).maxStreak).toBe(5)
+  })
+
+  it('counts best streak even when today is failed', () => {
+    const comerSano = buildHabit({
+      completionStatus: weekStatus([
+        'completed',
+        'completed',
+        'completed',
+        'completed',
+        'failed',
+      ]),
+      streak: 0,
+    })
+    const hacerDeporte = buildHabit({
+      id: '2',
+      completionStatus: weekStatus([
+        'pending',
+        'pending',
+        'completed',
+        'completed',
+        'completed',
+      ]),
+      streak: 3,
+    })
+
+    expect(calculateHabitStats([comerSano, hacerDeporte], 4).maxStreak).toBe(4)
   })
 
   it('returns zeros for empty habits array (US-13 S5)', () => {
-    expect(calculateHabitStats([])).toEqual({
+    expect(calculateHabitStats([], 4)).toEqual({
       thisWeekPoints: 0,
       lastWeekPoints: 0,
       penalties: 0,
@@ -173,6 +226,43 @@ describe('calculateTodayProgressPercent', () => {
 
   it('returns 0 when habits array is empty', () => {
     expect(calculateTodayProgressPercent([], 2)).toBe(0)
+  })
+})
+
+describe('computeBestStreakFromStatus', () => {
+  it('returns longest consecutive run up to current day', () => {
+    const statuses: CompletionStatus[] = [
+      'completed',
+      'completed',
+      'completed',
+      'completed',
+      'failed',
+      'pending',
+      'pending',
+    ]
+
+    expect(computeBestStreakFromStatus(statuses, 4)).toBe(4)
+  })
+
+  it('returns 0 when all days are pending', () => {
+    const statuses: CompletionStatus[] = [
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+      'pending',
+    ]
+
+    expect(computeBestStreakFromStatus(statuses, 3)).toBe(0)
+  })
+
+  it('returns 0 for invalid upToDayIndex', () => {
+    const statuses: CompletionStatus[] = ['completed', 'completed']
+
+    expect(computeBestStreakFromStatus(statuses, -1)).toBe(0)
+    expect(computeBestStreakFromStatus(statuses, 7)).toBe(0)
   })
 })
 
@@ -308,6 +398,17 @@ describe('totalPointsFromStats', () => {
     }
 
     expect(totalPointsFromStats(stats)).toBe(0)
+  })
+
+  it('subtracts prior redemptions from available balance', () => {
+    const stats: HabitStats = {
+      thisWeekPoints: 60,
+      lastWeekPoints: 0,
+      penalties: 3,
+      maxStreak: 4,
+    }
+
+    expect(totalPointsFromStats(stats, 39)).toBe(18)
   })
 })
 

@@ -21,6 +21,7 @@ export function createPrismaHabitEntryRepository(prisma: PrismaClient): HabitEnt
 
       return {
         entry: mapToHabitEntry(row),
+        weekId: row.weekHabit.weekId,
         weekUserId: row.weekHabit.week.userId,
         weekIsLocked: row.weekHabit.week.isLocked,
       }

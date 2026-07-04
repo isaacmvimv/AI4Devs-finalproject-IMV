@@ -283,6 +283,29 @@ export function createPrismaWeekRepository(prisma: PrismaClient): WeekRepository
       })
     },
 
+    async findById(weekId: number): Promise<WeekWithDetails | null> {
+      const week = await prisma.week.findUnique({
+        where: { id: weekId },
+        include: {
+          weekHabits: {
+            include: { habitEntries: { orderBy: { dayIndex: 'asc' } } },
+            orderBy: { order: 'asc' },
+          },
+        },
+      })
+
+      if (!week) return null
+
+      return mapToWeekWithDetails(week, week.weekHabits.map(mapToWeekHabitWithEntries))
+    },
+
+    async updateHabitSnapshotInWeek(weekId, habitId, data) {
+      await prisma.weekHabit.updateMany({
+        where: { weekId, habitId },
+        data,
+      })
+    },
+
     async findWeekByUserAndStartDate(
       userId: number,
       startDate: Date

@@ -2,6 +2,7 @@ import type { CompletionStatus, HabitEntry } from '../../domain/week'
 
 export interface HabitEntryWithWeekContext {
   entry: HabitEntry
+  weekId: number
   weekUserId: number
   weekIsLocked: boolean
 }

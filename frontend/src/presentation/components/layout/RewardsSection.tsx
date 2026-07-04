@@ -12,7 +12,7 @@ export default function RewardsSection({ action, children }: RewardsSectionProps
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Gift className="w-5 h-5 text-yellow-600" />
-          <h2 className="text-xl font-semibold text-gray-800">Recompensas</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Recompensas disponibles</h2>
         </div>
         {action}
       </div>

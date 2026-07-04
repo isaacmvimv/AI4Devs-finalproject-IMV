@@ -17,6 +17,7 @@ describe('createRewardFromFormInput', () => {
       name: 'Pizza',
       description: 'Pizza grande',
       cost: 50,
+      hasBeenRedeemed: false,
     })
   })
 

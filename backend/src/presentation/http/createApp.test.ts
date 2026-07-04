@@ -322,7 +322,7 @@ describe('PATCH /api/habits/:id', () => {
   })
 
   it('returns 200 with updated habit on happy path', async () => {
-    mockUpdateHabit.mockResolvedValue(updatedHabit)
+    mockUpdateHabit.mockResolvedValue({ habit: updatedHabit, redemptionInvalidated: false })
 
     const app = createApp(createPrismaStub())
     const response = await request(app)
@@ -333,8 +333,16 @@ describe('PATCH /api/habits/:id', () => {
     expect(response.body).toMatchObject({
       id: 5,
       pointsPerDay: 15,
+      redemptionInvalidated: false,
     })
-    expect(mockUpdateHabit).toHaveBeenCalledWith(expect.anything(), 1, 5, { pointsPerDay: 15 })
+    expect(mockUpdateHabit).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      1,
+      5,
+      { pointsPerDay: 15 }
+    )
   })
 
   it('returns 400 VALIDATION_ERROR when validation fails', async () => {
@@ -389,10 +397,10 @@ describe('GET /api/rewards', () => {
   })
 
   it('returns 200 with 3 active rewards on happy path', async () => {
-    const rewards: Reward[] = [
-      { ...sampleReward, id: 1 },
-      { ...sampleReward, id: 2, name: 'Cena especial' },
-      { ...sampleReward, id: 3, name: 'Tarde libre' },
+    const rewards = [
+      { ...sampleReward, id: 1, hasBeenRedeemed: false },
+      { ...sampleReward, id: 2, name: 'Cena especial', hasBeenRedeemed: true },
+      { ...sampleReward, id: 3, name: 'Tarde libre', hasBeenRedeemed: false },
     ]
     mockGetActiveRewards.mockResolvedValue(rewards)
 
@@ -401,8 +409,9 @@ describe('GET /api/rewards', () => {
 
     expect(response.status).toBe(200)
     expect(response.body).toHaveLength(3)
-    expect(response.body.every((r: Reward) => r.isActive === true)).toBe(true)
-    expect(mockGetActiveRewards).toHaveBeenCalledWith(expect.anything(), 1)
+    expect(response.body[0]).toMatchObject({ hasBeenRedeemed: false })
+    expect(response.body[1]).toMatchObject({ hasBeenRedeemed: true })
+    expect(mockGetActiveRewards).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1)
   })
 
   it('returns 200 with empty array when no active rewards', async () => {
@@ -479,7 +488,22 @@ describe('DELETE /api/rewards/:id', () => {
 
     expect(response.status).toBe(204)
     expect(response.body).toEqual({})
-    expect(mockSoftDeleteReward).toHaveBeenCalledWith(expect.anything(), 1, 3)
+    expect(mockSoftDeleteReward).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1, 3)
+  })
+
+  it('returns 409 REWARD_ALREADY_REDEEMED when reward has been redeemed', async () => {
+    mockSoftDeleteReward.mockRejectedValue(
+      new ConflictError('No se puede eliminar una recompensa ya canjeada', 'REWARD_ALREADY_REDEEMED')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app).delete('/api/rewards/3')
+
+    expect(response.status).toBe(409)
+    expect(response.body).toMatchObject({
+      code: 'REWARD_ALREADY_REDEEMED',
+      message: 'No se puede eliminar una recompensa ya canjeada',
+    })
   })
 
   it('returns 404 REWARD_NOT_FOUND when reward not found', async () => {
@@ -514,15 +538,24 @@ describe('DELETE /api/habits/:id', () => {
     vi.clearAllMocks()
   })
 
-  it('returns 204 with empty body on happy path', async () => {
-    mockDeactivateHabit.mockResolvedValue({ ...sampleHabit, isActive: false })
+  it('returns 200 with redemptionInvalidated flag on happy path', async () => {
+    mockDeactivateHabit.mockResolvedValue({
+      habit: { ...sampleHabit, isActive: false },
+      redemptionInvalidated: false,
+    })
 
     const app = createApp(createPrismaStub())
     const response = await request(app).delete('/api/habits/5')
 
-    expect(response.status).toBe(204)
-    expect(response.body).toEqual({})
-    expect(mockDeactivateHabit).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1, 5)
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual({ redemptionInvalidated: false })
+    expect(mockDeactivateHabit).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      1,
+      5
+    )
   })
 
   it('returns 404 HABIT_NOT_FOUND when habit not found', async () => {
@@ -581,7 +614,12 @@ describe('GET /api/weeks/current', () => {
 
     expect(response.status).toBe(200)
     expect(response.body).toEqual(sampleWeekPayload)
-    expect(mockGetCurrentWeekResponse).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1)
+    expect(mockGetCurrentWeekResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      1
+    )
   })
 
   it('returns same week on two consecutive calls (US-09 S4)', async () => {
@@ -615,7 +653,13 @@ describe('GET /api/weeks', () => {
 
     expect(response.status).toBe(200)
     expect(response.body.week.isLocked).toBe(true)
-    expect(mockGetWeekByOffset).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1, -1)
+    expect(mockGetWeekByOffset).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      1,
+      -1
+    )
   })
 
   it('returns 404 WEEK_NOT_FOUND for offset=-5 (US-09 S6)', async () => {
@@ -657,7 +701,7 @@ describe('PATCH /api/habit-entries/:id', () => {
   })
 
   it('returns 200 with updated entry on happy path', async () => {
-    mockUpdateHabitEntry.mockResolvedValue(sampleEntry)
+    mockUpdateHabitEntry.mockResolvedValue({ entry: sampleEntry, redemptionInvalidated: false })
 
     const app = createApp(createPrismaStub())
     const response = await request(app)
@@ -669,8 +713,16 @@ describe('PATCH /api/habit-entries/:id', () => {
       id: 42,
       status: 'completed',
       updatedAt: '2026-06-10T11:00:00.000Z',
+      redemptionInvalidated: false,
     })
-    expect(mockUpdateHabitEntry).toHaveBeenCalledWith(expect.anything(), 1, 42, { status: 'completed' })
+    expect(mockUpdateHabitEntry).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      1,
+      42,
+      { status: 'completed' }
+    )
   })
 
   it('returns 400 VALIDATION_ERROR for invalid status without invoking use case', async () => {
@@ -810,6 +862,23 @@ describe('POST /api/weeks/:weekId/redemptions', () => {
     expect(response.body).toMatchObject({
       code: 'WEEK_LOCKED',
       message: 'No se puede modificar una semana bloqueada',
+    })
+  })
+
+  it('returns 409 WEEK_REDEMPTION_LIMIT when week already has a redemption', async () => {
+    mockRedeemReward.mockRejectedValue(
+      new ConflictError('Solo se puede canjear una recompensa por semana', 'WEEK_REDEMPTION_LIMIT')
+    )
+
+    const app = createApp(createPrismaStub())
+    const response = await request(app)
+      .post('/api/weeks/1/redemptions')
+      .send({ rewardId: 2 })
+
+    expect(response.status).toBe(409)
+    expect(response.body).toMatchObject({
+      code: 'WEEK_REDEMPTION_LIMIT',
+      message: 'Solo se puede canjear una recompensa por semana',
     })
   })
 

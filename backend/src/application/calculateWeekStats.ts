@@ -21,20 +21,25 @@ export function getCurrentDayIndex(weekStartDate: Date, now: Date): number {
   return diffDays
 }
 
-function computeStreakFromEntries(entries: HabitEntry[], currentDayIndex: number): number {
-  if (currentDayIndex < 0 || currentDayIndex > 6) return 0
+function computeBestStreakFromEntries(entries: HabitEntry[], upToDayIndex: number): number {
+  if (upToDayIndex < 0 || upToDayIndex > 6) return 0
 
   const statusByDay = new Array<CompletionStatus>(7).fill('pending')
   for (const entry of entries) {
     statusByDay[entry.dayIndex] = entry.status
   }
 
-  let streak = 0
-  for (let i = currentDayIndex; i >= 0; i--) {
-    if (statusByDay[i] === 'completed') streak++
-    else break
+  let maxStreak = 0
+  let currentRun = 0
+  for (let i = 0; i <= upToDayIndex; i++) {
+    if (statusByDay[i] === 'completed') {
+      currentRun++
+      if (currentRun > maxStreak) maxStreak = currentRun
+    } else {
+      currentRun = 0
+    }
   }
-  return streak
+  return maxStreak
 }
 
 export function calculateWeekStats(
@@ -55,8 +60,8 @@ export function calculateWeekStats(
       }
     }
 
-    const streak = computeStreakFromEntries(weekHabit.entries, currentDayIndex)
-    if (streak > maxStreak) maxStreak = streak
+    const bestStreak = computeBestStreakFromEntries(weekHabit.entries, currentDayIndex)
+    if (bestStreak > maxStreak) maxStreak = bestStreak
   }
 
   return { thisWeekPoints, penalties, lastWeekPoints, maxStreak }

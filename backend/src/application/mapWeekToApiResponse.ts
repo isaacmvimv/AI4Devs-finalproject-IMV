@@ -1,5 +1,14 @@
+import type { RewardRedemption } from '../domain/rewardRedemption'
 import type { WeekStats } from './calculateWeekStats'
 import type { WeekWithDetails } from '../domain/week'
+
+export interface RedemptionApiItem {
+  id: number
+  weekId: number
+  rewardId: number
+  pointsSpent: number
+  redeemedAt: string
+}
 
 export interface WeekApiResponse {
   week: {
@@ -27,10 +36,24 @@ export interface WeekApiResponse {
     }>
   }>
   stats: WeekStats
-  redemptions: []
+  redemptions: RedemptionApiItem[]
 }
 
-export function mapWeekToApiResponse(week: WeekWithDetails, stats: WeekStats): WeekApiResponse {
+function mapRedemptionToApiItem(redemption: RewardRedemption): RedemptionApiItem {
+  return {
+    id: redemption.id,
+    weekId: redemption.weekId,
+    rewardId: redemption.rewardId,
+    pointsSpent: redemption.pointsSpent,
+    redeemedAt: redemption.redeemedAt.toISOString(),
+  }
+}
+
+export function mapWeekToApiResponse(
+  week: WeekWithDetails,
+  stats: WeekStats,
+  redemptions: RewardRedemption[] = []
+): WeekApiResponse {
   return {
     week: {
       id: week.id,
@@ -57,6 +80,6 @@ export function mapWeekToApiResponse(week: WeekWithDetails, stats: WeekStats): W
       })),
     })),
     stats,
-    redemptions: [],
+    redemptions: redemptions.map(mapRedemptionToApiItem),
   }
 }

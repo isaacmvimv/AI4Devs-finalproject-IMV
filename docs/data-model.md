@@ -138,7 +138,8 @@ Estado de un hábito en un día concreto de la semana (7 filas por `WeekHabit`).
 
 **Lógica de negocio:**
 - Solo `completed` suma `pointsPerDay`; solo `failed` aplica `penalty`
-- La racha se deriva de entradas `completed` consecutivas desde el inicio de la semana visible
+- **Racha activa** (`Habit.streak`): días `completed` consecutivos hacia atrás desde el día actual de la semana (0 = lunes … 6 = domingo). Se detiene al encontrar `failed` o `pending`. Se muestra en cada fila del calendario (🔥 X días) solo si es > 0.
+- **Mejor racha** (`HabitStats.maxStreak`): mayor secuencia consecutiva de días `completed` alcanzada por cualquier hábito entre el lunes y el día actual inclusive, independientemente de si hoy está `completed`, `failed` o `pending`. Se recalcula siempre desde el día actual, no desde el día editado.
 
 ---
 
@@ -163,7 +164,7 @@ Recompensa canjeable definida por el usuario.
 
 ### 7. RewardRedemption (Canje de recompensa)
 
-Registro de cada canje en una semana determinada.
+Registro de cada canje en una semana determinada. **Regla de negocio:** como máximo **un canje activo por semana** (`weekId`). Si los puntos netos de la semana (`completed × snapshotPoints − failed × snapshotPenalty`) caen por debajo de `pointsSpent`, el canje se elimina (invalidación) y la recompensa vuelve a estar disponible.
 
 | Atributo | Tipo | Descripción |
 | -------- | ---- | ----------- |
@@ -186,9 +187,11 @@ Estos tipos existen en el frontend para la UI y los cálculos; **no son tablas**
 Objeto de valor calculado en backend (`backend/src/application/calculateWeekStats.ts`) y expuesto en `GET /api/weeks/current` / `GET /api/weeks` dentro de `stats`:
 
 - `thisWeekPoints`, `lastWeekPoints`, `penalties`, `maxStreak`
-- `totalPoints = thisWeekPoints + lastWeekPoints - penalties`
+- `maxStreak`: máximo entre los hábitos de la semana visible de la mejor racha consecutiva (`completed`) desde el lunes hasta el día actual; calculado en backend (`computeBestStreakFromEntries`) y en frontend (`computeBestStreakFromStatus`) con la misma regla
+- Saldo disponible para canjear (frontend): `totalPointsFromStats(stats, pointsRedeemed)` → `thisWeekPoints + lastWeekPoints - penalties - pointsRedeemed`
+- `pointsRedeemed`: suma de `pointsSpent` de los canjes de la semana en curso; proviene del array `redemptions` en `GET /api/weeks/current` y `GET /api/weeks?offset=n`
 
-En el frontend (provisional), el mismo shape se calcula en memoria (`frontend/src/domain/habit.ts`) hasta que `useHabitDashboard` consuma la API. Los totales de semana bloqueada persisten en `Week.totalPointsEarned` y `Week.totalPenalties`; `lastWeekPoints` proviene de la última semana bloqueada anterior.
+En el frontend, `stats` y `pointsRedeemed` se obtienen de la API vía `useHabitDashboard` (`mapWeekResponseToDashboard`). Los totales de semana bloqueada persisten en `Week.totalPointsEarned` y `Week.totalPenalties`; `lastWeekPoints` proviene de la última semana bloqueada anterior. El backend valida el canje con `calculateWeekAvailableBalance` (solo puntos de la semana activa, sin `lastWeekPoints`). Tras mutaciones que reduzcan puntos (`PATCH /api/habit-entries`, `PATCH /api/habits`, `DELETE /api/habits`), `reconcileWeekRedemption` comprueba si el canje semanal sigue siendo válido.
 
 ### WeekData (vista de calendario)
 
@@ -196,19 +199,21 @@ Objeto de presentación (`dates`, `range`) generado por `buildWeekData()` para e
 
 ---
 
-## Mapeo provisional (frontend → modelo objetivo)
+## Mapeo frontend ↔ modelo persistido
 
-Hasta completar la migración a PostgreSQL, el cliente usa un modelo simplificado en memoria:
-
-| Frontend (actual) | Modelo objetivo (PRD) |
-| ----------------- | --------------------- |
-| `Habit.id` (`string`, UUID) | `Habit.id` (`Int`) + filas en `WeekHabit` / `HabitEntry` |
+| Frontend | Modelo / API |
+| -------- | ------------- |
+| `Habit.id` (`string`) | `Habit.id` (`Int`) + filas en `WeekHabit` / `HabitEntry` (vía `GET /api/weeks/current`) |
 | `Habit.completionStatus[7]` | 7 × `HabitEntry` por cada `WeekHabit` |
-| `Habit.streak` (calculado) | Derivado de `HabitEntry.status` |
-| `Reward` en `fixtures.ts` / React | `Reward` + `RewardRedemption` |
-| `weekOffset` + fechas calculadas | `Week` (`startDate`, `endDate`, `isLocked`) vía `GET /api/weeks?offset=n` (T-09-03 ✅) |
+| `Habit.streak` (calculado) | Racha activa: `computeStreakFromStatus(completionStatus, currentDayIndex)` sobre `HabitEntry.status` |
+| `HabitStats.maxStreak` (calculado) | Mejor racha semanal: máximo de `computeBestStreakFromStatus` por hábito; expuesto en `stats` de la API |
+| `Reward` (lista en UI) | `GET /api/rewards` → tabla `Reward` con `hasBeenRedeemed`; canjes en `RewardRedemption` |
+| `Reward.hasBeenRedeemed` | `true` si existe al menos un `RewardRedemption` para esa recompensa; controla visibilidad del botón eliminar |
+| `pointsRedeemed` / `totalPoints` | Suma de `redemptions[].pointsSpent` incluida en la respuesta de semana |
+| `redeemedRewardIdsThisWeek` | IDs de recompensas canjeadas en la semana visible (máx. 1); derivado de `redemptions[]` |
+| `weekOffset` + fechas calculadas | `Week` (`startDate`, `endDate`, `isLocked`) vía `GET /api/weeks?offset=n` |
 
-Datos de demo: `frontend/src/domain/fixtures.ts`. Estado: `useHabitDashboard` (`useState`); se pierde al recargar la página.
+`frontend/src/domain/fixtures.ts` conserva datos de ejemplo para tests; **no** alimenta la UI en runtime.
 
 ---
 
@@ -306,7 +311,7 @@ erDiagram
 | `Week` | `WeekHabit` | 1:N | Hábitos activos en esa semana |
 | `Habit` | `WeekHabit` | 1:N | Mismo hábito en varias semanas; snapshot al bloquear |
 | `WeekHabit` | `HabitEntry` | 1:7 | Siete entradas (Lun–Dom) |
-| `Week` | `RewardRedemption` | 1:N | Canjes dentro del presupuesto de la semana |
+| `Week` | `RewardRedemption` | 1:0..1 | Máximo un canje activo por semana |
 | `Reward` | `RewardRedemption` | 1:N | Misma recompensa en distintas semanas |
 
 ---
@@ -330,7 +335,7 @@ Definidos con `@@index` y `@@unique` en `backend/prisma/schema.prisma`. Verifica
 1. ~~**Completar schema Prisma**~~ — ✅ T-03-01: siete modelos del dominio + enum `CompletionStatus` en `backend/prisma/schema.prisma`.
 2. ~~**Migración inicial a PostgreSQL (T-03-02)**~~ — ✅ `20260530120258_init` en `backend/prisma/migrations/`; tablas del dominio en BD.
 3. ~~**Seed de datos demo (T-03-03)**~~ — ✅ `backend/prisma/seed.ts`; `npm run db:seed`; usuario demo, hábitos, semana activa y recompensas.
-4. **API y frontend** — CRUD, calendario semanal con bloqueo, canje e historial.
+4. **API y frontend** — CRUD, calendario semanal con bloqueo, canje e historial. ✅ Recompensas y canjes integrados (`rewardApi`, `RewardCard`, `POST /api/weeks/:weekId/redemptions`; `redemptions` en respuesta de semana). ✅ Reglas: 1 canje/semana, eliminación condicionada, invalidación automática de canje.
 5. **Autenticación multiusuario** — dejar de fijar `userId = 1` en API.
 
 ---

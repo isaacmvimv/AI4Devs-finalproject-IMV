@@ -81,4 +81,18 @@ describe('calculateWeekStats', () => {
     expect(stats.lastWeekPoints).toBe(75)
     expect(stats.maxStreak).toBe(3)
   })
+
+  it('counts best streak even when today is failed', () => {
+    const week = makeWeek([
+      { dayIndex: 0, status: 'completed' },
+      { dayIndex: 1, status: 'completed' },
+      { dayIndex: 2, status: 'completed' },
+      { dayIndex: 3, status: 'completed' },
+      { dayIndex: 4, status: 'failed' },
+    ])
+
+    const stats = calculateWeekStats(week, 0, 4)
+
+    expect(stats.maxStreak).toBe(4)
+  })
 })

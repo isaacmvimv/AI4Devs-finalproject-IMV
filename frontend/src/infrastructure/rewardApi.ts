@@ -9,6 +9,7 @@ export interface RewardApiDto {
   description: string
   cost: number
   createdAt: string
+  hasBeenRedeemed: boolean
 }
 
 /** Contrato de entrada de POST /api/rewards. */

@@ -105,7 +105,7 @@ frontend/
 │   │   ├── habit.ts          # Entidad Habit y lógica asociada
 │   │   ├── reward.ts         # Entidad Reward
 │   │   ├── week.ts           # Cálculos semanales
-│   │   └── fixtures.ts       # Datos de ejemplo
+│   │   └── fixtures.ts       # Datos de ejemplo (solo tests)
 │   ├── application/          # Casos de uso y hooks
 │   │   ├── useHabitDashboard.ts  # Lógica principal del dashboard
 │   │   └── useUserProfile.ts     # Lógica del perfil de usuario
@@ -175,8 +175,18 @@ export interface Habit {
   completionStatus: CompletionStatus[];
 }
 
-export function computeStreakFromStatus(status: CompletionStatus[]): number {
-  // Pure business logic, no React or external dependencies
+export function computeStreakFromStatus(
+  statuses: CompletionStatus[],
+  currentDayIndex: number
+): number {
+  // Racha activa: días completed consecutivos hacia atrás desde currentDayIndex
+}
+
+export function computeBestStreakFromStatus(
+  statuses: CompletionStatus[],
+  upToDayIndex: number
+): number {
+  // Mejor racha: mayor secuencia completed consecutiva desde lunes hasta upToDayIndex
 }
 ```
 
@@ -189,19 +199,31 @@ export function computeStreakFromStatus(status: CompletionStatus[]): number {
 ```typescript
 // application/useHabitDashboard.ts
 export function useHabitDashboard() {
-  const [habits, setHabits] = useState<Habit[]>(initialHabits);
-  const [rewards, setRewards] = useState<Reward[]>(initialRewards);
-  
-  const handleToggleDay = (habitId: string, dayIndex: number) => {
-    // Orchestrates domain logic
-    setHabits(habits.map(habit =>
-      habit.id === habitId ? toggleHabitDayCompletion(habit, dayIndex) : habit
-    ));
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [pointsRedeemed, setPointsRedeemed] = useState(0);
+
+  useEffect(() => {
+    void Promise.all([weekApi.fetchCurrentWeek(), rewardApi.fetchRewards()])
+      .then(([weekDto, rewardsDto]) => {
+        // mapWeekResponseToDashboard + mapRewardDto …
+      });
+  }, []);
+
+  const handleAddReward = async (input: CreateRewardInput) => {
+    const created = await rewardApi.createReward(input);
+    setRewards((prev) => [...prev, mapRewardDto(created)]);
   };
-  
-  return { habits, rewards, handleToggleDay, ... };
+
+  return { habits, rewards, pointsRedeemed, redeemedRewardIdsThisWeek, handleAddReward, /* … */ };
 }
 ```
+
+**Recompensas (`RewardCard` / `RewardsSection`):**
+- Título del panel: **"Recompensas disponibles"**.
+- Máximo **un canje por semana**; las demás tarjetas muestran *"Límite semanal"*.
+- Botón eliminar (×) solo si `hasBeenRedeemed === false`.
+- Si `PATCH /api/habit-entries/:id` devuelve `redemptionInvalidated: true`, toast *"Recompensa invalidada. Puntos insuficientes."* y se refresca el estado de canjes.
 
 ### Capa de infraestructura (`src/infrastructure/`)
 - **Adaptadores externos**: Clientes HTTP, almacenamiento local, servicios externos
@@ -209,13 +231,15 @@ export function useHabitDashboard() {
 
 **Ejemplo:**
 ```typescript
-// infrastructure/httpClient.ts + profileApi.ts
-import { apiGet } from './httpClient';
+// infrastructure/rewardApi.ts
+import { apiRequest } from './httpClient';
 
-export async function fetchUserProfile(): Promise<ProfileApiResult> {
-  const result = await apiGet<ProfileUserDto>('/profile');
-  if (result.ok) return { ok: true, user: result.data };
-  return { ok: false, error: result.message };
+export function fetchRewards(): Promise<RewardApiDto[]> {
+  return apiRequest<RewardApiDto[]>('GET', '/rewards');
+}
+
+export function redeemReward(weekId: number, rewardId: number): Promise<RedemptionApiDto> {
+  return apiRequest<RedemptionApiDto>('POST', `/weeks/${weekId}/redemptions`, { rewardId });
 }
 ```
 
@@ -379,27 +403,24 @@ const isToday = weekOffset === 0 && index === todayIndex
 ```typescript
 // Application layer hook (useHabitDashboard.ts)
 export function useHabitDashboard() {
-  const [habits, setHabits] = useState<Habit[]>(initialHabits);
-  const [rewards, setRewards] = useState<Reward[]>(initialRewards);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [stats, setStats] = useState<HabitStats>(EMPTY_STATS);
+  const [pointsRedeemed, setPointsRedeemed] = useState(0);
   const [weekOffset, setWeekOffset] = useState(0);
 
-  // Delegate to domain logic
-  const handleToggleDay = (habitId: string, dayIndex: number) => {
-    setHabits(habits.map(habit =>
-      habit.id === habitId ? toggleHabitDayCompletion(habit, dayIndex) : habit
-    ));
-  };
+  const totalPoints = totalPointsFromStats(stats, pointsRedeemed);
 
-  // Compute derived state using domain functions
-  const stats = calculateHabitStats(habits);
-  const totalPoints = totalPointsFromStats(stats);
+  const handleRedeemSuccess = (pointsSpent: number) => {
+    setPointsRedeemed((prev) => prev + pointsSpent);
+  };
 
   return {
     habits,
     rewards,
     stats,
     totalPoints,
-    handleToggleDay,
+    handleRedeemSuccess,
     // ... other state and handlers
   };
 }
@@ -438,14 +459,17 @@ export function useUserProfile() {
 
 **Ejemplo de ConRutina:**
 ```typescript
-// infrastructure/profileApi.ts
+// infrastructure/rewardApi.ts — recompensas y canjes
+export async function createReward(input: CreateRewardInput): Promise<RewardApiDto> {
+  return apiRequest<RewardApiDto>('POST', '/rewards', input);
+}
+
+// infrastructure/profileApi.ts — perfil de usuario
 export async function getUserProfile(): Promise<UserProfile> {
   const response = await fetch('/api/profile');
-  
   if (!response.ok) {
     throw new Error(`Failed to fetch profile: ${response.statusText}`);
   }
-  
   return response.json();
 }
 ```
@@ -665,12 +689,17 @@ const buttonVariants = cva(
 **Ejemplo:**
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { computeStreakFromStatus, toggleHabitDayCompletion } from './habit';
+import { computeStreakFromStatus, computeBestStreakFromStatus, toggleHabitDayCompletion } from './habit';
 
 describe('Habit domain logic', () => {
-  it('should compute streak correctly', () => {
-    const status = ['completed', 'completed', 'completed', 'pending'];
-    expect(computeStreakFromStatus(status)).toBe(3);
+  it('should compute active streak from current day backwards', () => {
+    const status = ['completed', 'completed', 'completed', 'failed', 'completed'];
+    expect(computeStreakFromStatus(status, 4)).toBe(1);
+  });
+
+  it('should compute best streak in the week regardless of today', () => {
+    const status = ['completed', 'completed', 'completed', 'completed', 'failed'];
+    expect(computeBestStreakFromStatus(status, 4)).toBe(4);
   });
 
   it('should toggle day completion status', () => {
@@ -681,7 +710,7 @@ describe('Habit domain logic', () => {
       // ... other fields
     };
     
-    const updated = toggleHabitDayCompletion(habit, 0);
+    const updated = toggleHabitDayCompletion(habit, 0, 0);
     expect(updated.completionStatus[0]).toBe('completed');
   });
 });

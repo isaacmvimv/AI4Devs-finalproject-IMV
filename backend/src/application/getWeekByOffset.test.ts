@@ -3,6 +3,7 @@ import { NotFoundError } from '../domain/errors/appErrors'
 import type { WeekWithDetails } from '../domain/week'
 import { getWeekByOffset } from './getWeekByOffset'
 import type { HabitRepository } from './ports/HabitRepository'
+import type { RewardRedemptionRepository } from './ports/RewardRedemptionRepository'
 import type { WeekRepository } from './ports/WeekRepository'
 
 vi.mock('./getCurrentWeekResponse', () => ({
@@ -67,6 +68,8 @@ function makeWeekRepo(overrides: Partial<WeekRepository> = {}): WeekRepository {
     createWeekWithHabitsAndEntries: vi.fn(),
     addHabitsToWeek: vi.fn(),
     removeHabitsFromWeek: vi.fn(),
+    findById: vi.fn(),
+    updateHabitSnapshotInWeek: vi.fn(),
     findWeekByUserAndStartDate: vi.fn(),
     findLastLockedWeekBefore: vi.fn(),
     ...overrides,
@@ -83,6 +86,19 @@ function makeHabitRepo(): HabitRepository {
   }
 }
 
+function makeRedemptionRepo(
+  overrides: Partial<RewardRedemptionRepository> = {}
+): RewardRedemptionRepository {
+  return {
+    findByWeekId: vi.fn().mockResolvedValue([]),
+    hasRedemptionsForReward: vi.fn(),
+    findRedeemedRewardIds: vi.fn(),
+    deleteById: vi.fn(),
+    redeem: vi.fn(),
+    ...overrides,
+  }
+}
+
 describe('getWeekByOffset', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -91,9 +107,15 @@ describe('getWeekByOffset', () => {
   it('delegates to getCurrentWeekResponse when offset is 0 (US-09 S3)', async () => {
     mockGetCurrentWeekResponse.mockResolvedValue(sampleResponse)
 
-    const result = await getWeekByOffset(makeWeekRepo(), makeHabitRepo(), 1, 0, now)
+    const result = await getWeekByOffset(makeWeekRepo(), makeHabitRepo(), makeRedemptionRepo(), 1, 0, now)
 
-    expect(mockGetCurrentWeekResponse).toHaveBeenCalledWith(expect.anything(), expect.anything(), 1, now)
+    expect(mockGetCurrentWeekResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      1,
+      now
+    )
     expect(result).toEqual(sampleResponse)
   })
 
@@ -103,7 +125,7 @@ describe('getWeekByOffset', () => {
       findLastLockedWeekBefore: vi.fn().mockResolvedValue(null),
     })
 
-    const result = await getWeekByOffset(weekRepo, makeHabitRepo(), 1, -1, now)
+    const result = await getWeekByOffset(weekRepo, makeHabitRepo(), makeRedemptionRepo(), 1, -1, now)
 
     expect(weekRepo.findWeekByUserAndStartDate).toHaveBeenCalledWith(
       1,
@@ -119,8 +141,8 @@ describe('getWeekByOffset', () => {
       findWeekByUserAndStartDate: vi.fn().mockResolvedValue(null),
     })
 
-    await expect(getWeekByOffset(weekRepo, makeHabitRepo(), 1, -5, now)).rejects.toThrow(NotFoundError)
-    await expect(getWeekByOffset(weekRepo, makeHabitRepo(), 1, -5, now)).rejects.toMatchObject({
+    await expect(getWeekByOffset(weekRepo, makeHabitRepo(), makeRedemptionRepo(), 1, -5, now)).rejects.toThrow(NotFoundError)
+    await expect(getWeekByOffset(weekRepo, makeHabitRepo(), makeRedemptionRepo(), 1, -5, now)).rejects.toMatchObject({
       code: 'WEEK_NOT_FOUND',
     })
   })
