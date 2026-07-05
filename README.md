@@ -1,27 +1,49 @@
 # ConRutina
 
-Aplicación web para seguimiento de hábitos y recompensas: interfaz en **React** (SPA con **Vite**) y un **API HTTP** en **Node** (**Express** + **Prisma**) sobre **PostgreSQL**. Hábitos, semanas, recompensas y canjes persisten en base de datos; el hook `useHabitDashboard` consume `/api/weeks/*` y `/api/rewards` (incluido `POST /api/weeks/:weekId/redemptions`). El perfil de usuario se obtiene con **`GET /api/profile`**.
+Aplicación web para la gestión y seguimiento de rutinas y buenos hábitos semanales mediante un sistema de puntuación gamificado. Permite al usuario registrar sus hábitos diarios, monitorizar su progreso a lo largo de la semana y canjear recompensas personalizadas a medida que acumula puntos, todo desde una interfaz amigable, visual e intuitiva.
+Implementación con interfaz en **React** (SPA con **Vite**) y un **API HTTP** en **Node** (**Express** + **Prisma**) sobre **PostgreSQL**.
+
+
+> Proyecto entregado dentro del marco del master "**AI4Devs**" de LIDR por alumno **Isaac Mani Valor**.
+Enlaces a los artefactos solicitados para al entrega:
+**- Ficha oficial del proyecto** (formato master): `[readme-entrega-3.md](readme-entrega-3.md)`
+**- Prompts uso IA** (formato master): `[prompts.md](prompts.md)`
+
 
 ## Tabla de contenidos
 
+- [Tecnologías utilizadas](#tecnologías-utilizadas)
 - [Instalación](#instalación)
 - [Uso](#uso)
 - [Producción (Docker)](#producción-docker)
 - [Estructura del proyecto](#estructura-del-proyecto)
 - [Configuración](#configuración)
 - [Scripts disponibles](#scripts-disponibles)
-- [Tecnologías utilizadas](#tecnologías-utilizadas)
-- [Flujo agéntico](#flujo-agéntico)
+- [Informe de tests](#informe-de-tests-teststest-reportmd)
+- [Flujo agéntico (implementación)](#flujo-agéntico)
 - [Contribución](#contribución)
 - [Licencia](#licencia)
 
+
+
+## Tecnologías utilizadas
+
+- **Frontend:** React 18, TypeScript, Vite 6, Tailwind CSS 4, Radix UI, Material UI, componentes tipo shadcn, Motion, Sonner, date-fns, entre otras dependencias listadas en `package.json`.
+- **Backend:** Node.js, Express, CORS, Prisma 5, `@prisma/client`, `tsx` (desarrollo).
+- **Base de datos:** PostgreSQL 16 (imagen Docker oficial Alpine).
+
+
 ## Instalación
+
+
 
 ### Requisitos previos
 
 - **Node.js** (versión recomendada no está fijada en el repositorio; usa una LTS reciente compatible con Vite 6 y Prisma 5).
 - **npm** (hay `package-lock.json` en la raíz) o **pnpm** (existe `pnpm-workspace.yaml`).
 - **Docker** y **Docker Compose** (opcional pero recomendable para PostgreSQL local).
+
+
 
 ### Pasos
 
@@ -32,7 +54,7 @@ Aplicación web para seguimiento de hábitos y recompensas: interfaz en **React*
 npm install
 ```
 
-3. Copia la plantilla de entorno en la raíz (no versiones el `.env` real):
+1. Copia la plantilla de entorno en la raíz (no versiones el `.env` real):
 
 ```bash
 cp .env.example .env
@@ -57,9 +79,9 @@ o
 docker compose up -d db
 ```
 
-El volumen persistente se llama **`ConRutina_postgres_data`**; los datos se conservan entre reinicios del contenedor.
+El volumen persistente se llama `ConRutina_postgres_data`; los datos se conservan entre reinicios del contenedor.
 
-5. Genera el cliente de Prisma y aplica migraciones (**raíz**; el esquema está en `backend/prisma/schema.prisma`):
+1. Genera el cliente de Prisma y aplica migraciones (**raíz**; el esquema está en `backend/prisma/schema.prisma`):
 
 ```bash
 npm run prisma:generate
@@ -72,7 +94,7 @@ Las migraciones versionadas están en `backend/prisma/migrations/`. En desarroll
 npm run db:seed
 ```
 
-6. Parada de PostgreSQL con Docker (**raíz**):
+1. Parada de PostgreSQL con Docker (**raíz**):
 
 ```bash
 npm run db:down
@@ -84,7 +106,11 @@ o
 docker compose stop db
 ```
 
+
+
 ## Uso
+
+
 
 ### Desarrollo (frontend + API)
 
@@ -133,16 +159,18 @@ Para desplegar el stack completo en local (PostgreSQL + API + frontend con nginx
 
 ## Producción (Docker)
 
-El fichero **`docker-compose.prod.yml`** orquesta tres servicios: **`db`** (PostgreSQL 16), **`api`** (Express + Prisma) y **`web`** (nginx sirviendo la SPA y haciendo proxy de `/api/` al API). Las migraciones Prisma se aplican al arrancar el contenedor `api` (`prisma migrate deploy` en `backend/Dockerfile`).
+El fichero `docker-compose.prod.yml` orquesta tres servicios: `db` (PostgreSQL 16), `api` (Express + Prisma) y `web` (nginx sirviendo la SPA y haciendo proxy de `/api/` al API). Las migraciones Prisma se aplican al arrancar el contenedor `api` (`prisma migrate deploy` en `backend/Dockerfile`).
 
 ### Requisitos previos
 
 1. **Docker** y **Docker Compose** instalados.
-2. Fichero **`.env`** en la raíz (copia de `.env.example`). Variables mínimas para el stack:
-   - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` — credenciales del contenedor PostgreSQL.
-   - El servicio `api` construye `DATABASE_URL` con hostname `db` (no uses `localhost` para el API dentro de Docker).
-   - `WEB_PORT` (opcional) — puerto en el host para la SPA; por defecto **80**.
-   - En producción Docker, `CORS_ORIGIN` se fija a `http://localhost` en `docker-compose.prod.yml` (debe coincidir con el origen del navegador al acceder por ese puerto).
+2. Fichero `.env` en la raíz (copia de `.env.example`). Variables mínimas para el stack:
+  - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` — credenciales del contenedor PostgreSQL.
+  - El servicio `api` construye `DATABASE_URL` con hostname `db` (no uses `localhost` para el API dentro de Docker).
+  - `WEB_PORT` (opcional) — puerto en el host para la SPA; por defecto **80**.
+  - En producción Docker, `CORS_ORIGIN` se fija a `http://localhost` en `docker-compose.prod.yml` (debe coincidir con el origen del navegador al acceder por ese puerto).
+
+
 
 ### Arranque completo
 
@@ -166,6 +194,8 @@ Tras el primer arranque la base queda con el esquema aplicado pero **sin datos d
 docker compose -f docker-compose.prod.yml exec api npx tsx backend/prisma/seed.ts
 ```
 
+
+
 ### Parada y limpieza
 
 Detener el stack **conservando** el volumen de datos (`ConRutina_postgres_prod_data`):
@@ -182,95 +212,156 @@ docker compose -f docker-compose.prod.yml down -v
 
 > El volumen de producción (`ConRutina_postgres_prod_data`) es independiente del de desarrollo (`ConRutina_postgres_data` en `docker-compose.yml`).
 
-| Servicio | Imagen / build | Puerto host | Notas |
-| -------- | -------------- | ----------- | ----- |
-| `db` | `postgres:16-alpine` | *(interno)* | Volumen `ConRutina_postgres_prod_data` |
-| `api` | `backend/Dockerfile` → `conrutina-api` | *(interno)* | Espera a `db` healthy; migraciones al arrancar |
-| `web` | `frontend/Dockerfile` → `conrutina-web` | **80** (o `${WEB_PORT:-80}`) | Proxy `/api/` → `api:3001` (`frontend/nginx.conf`) |
+
+| Servicio | Imagen / build                          | Puerto host                  | Notas                                              |
+| -------- | --------------------------------------- | ---------------------------- | -------------------------------------------------- |
+| `db`     | `postgres:16-alpine`                    | *(interno)*                  | Volumen `ConRutina_postgres_prod_data`             |
+| `api`    | `backend/Dockerfile` → `conrutina-api`  | *(interno)*                  | Espera a `db` healthy; migraciones al arrancar     |
+| `web`    | `frontend/Dockerfile` → `conrutina-web` | **80** (o `${WEB_PORT:-80}`) | Proxy `/api/` → `api:3001` (`frontend/nginx.conf`) |
+
+
+
 
 ## Estructura del proyecto
 
-| Ruta                 | Descripción                                                                                                                                                                             |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `frontend/`          | Raíz de la SPA para Vite (`index.html`, `src/`). Presentación (`presentation/`), dominio (`domain/`), casos de uso vía hooks (`application/`), adaptadores HTTP (`infrastructure/`).    |
-| `backend/src/`       | API Express: arranque en `main.ts`, composición HTTP en `presentation/http/createApp.ts`, casos de uso en `application/`, puertos en `application/ports/`, Prisma en `infrastructure/`. |
-| `backend/prisma/`    | Esquema Prisma (`schema.prisma`) y migraciones (`migrations/`): modelos `User`, `Week`, `Habit`, `Reward`, etc.; datasource PostgreSQL.                                                  |
-| `backend/Dockerfile` | Imagen multi-stage del API (Node 20 Alpine): compila TypeScript, aplica migraciones y arranca Express.                                                                                   |
-| `frontend/Dockerfile`| Imagen multi-stage del frontend: build Vite + nginx sirviendo estáticos.                                                                                                                |
-| `frontend/nginx.conf`| Proxy inverso `/api/` → servicio `api:3001` y fallback SPA (`try_files`).                                                                                                                |
-| `docker-compose.yml` | Desarrollo: servicio **`db`** (PostgreSQL 16 Alpine) con volumen `ConRutina_postgres_data`.                                                                                              |
-| `docker-compose.prod.yml` | Producción local: servicios **`db`**, **`api`** y **`web`**.                                                                                                                        |
-| `vite.config.ts`     | Configuración de Vite: `root` en `frontend/`, alias `@` → `frontend/src`, proxy `/api` → `http://localhost:3001`.                                                                       |
-| `docs/`              | Documentación adicional; `docs/infrastructure.md` amplía arquitectura y stack.                                                                                                          |
-| `openspec/`          | Configuración OpenSpec (`config.yaml`); no forma parte del runtime de la aplicación.                                                                                                    |
+
+| Ruta                      | Descripción                                                                                                                                                                             |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend/`               | Raíz de la SPA para Vite (`index.html`, `src/`). Presentación (`presentation/`), dominio (`domain/`), casos de uso vía hooks (`application/`), adaptadores HTTP (`infrastructure/`).    |
+| `backend/src/`            | API Express: arranque en `main.ts`, composición HTTP en `presentation/http/createApp.ts`, casos de uso en `application/`, puertos en `application/ports/`, Prisma en `infrastructure/`. |
+| `backend/prisma/`         | Esquema Prisma (`schema.prisma`) y migraciones (`migrations/`): modelos `User`, `Week`, `Habit`, `Reward`, etc.; datasource PostgreSQL.                                                 |
+| `backend/Dockerfile`      | Imagen multi-stage del API (Node 20 Alpine): compila TypeScript, aplica migraciones y arranca Express.                                                                                  |
+| `frontend/Dockerfile`     | Imagen multi-stage del frontend: build Vite + nginx sirviendo estáticos.                                                                                                                |
+| `frontend/nginx.conf`     | Proxy inverso `/api/` → servicio `api:3001` y fallback SPA (`try_files`).                                                                                                               |
+| `docker-compose.yml`      | Desarrollo: servicio `db` (PostgreSQL 16 Alpine) con volumen `ConRutina_postgres_data`.                                                                                                 |
+| `docker-compose.prod.yml` | Producción local: servicios `db`, `api` y `web`.                                                                                                                                        |
+| `vite.config.ts`          | Configuración de Vite: `root` en `frontend/`, alias `@` → `frontend/src`, proxy `/api` → `http://localhost:3001`.                                                                       |
+| `docs/`                   | Documentación adicional; `docs/infrastructure.md` amplía arquitectura y stack.                                                                                                          |
+| `openspec/`               | Configuración OpenSpec (`config.yaml`); no forma parte del runtime de la aplicación.                                                                                                    |
+
+
+
 
 ## Configuración
 
-La fuente canónica de variables es **`.env.example`** en la raíz. Copia ese fichero a **`.env`** (no versionado) antes de arrancar servicios; el API lo carga vía `backend/src/loadEnv.ts`.
+La fuente canónica de variables es `.env.example` en la raíz. Copia ese fichero a `.env` (no versionado) antes de arrancar servicios; el API lo carga vía `backend/src/loadEnv.ts`.
 
 Variables habituales:
+
 
 | Variable            | Uso                                                                                                                                              |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `DATABASE_URL`      | Cadena de conexión **PostgreSQL** para Prisma y el `PrismaClient` del API. Obligatoria para el API con base de datos.                            |
 | `POSTGRES_USER`     | Usuario de la instancia en Docker Compose.                                                                                                       |
 | `POSTGRES_PASSWORD` | Contraseña de la instancia en Docker Compose.                                                                                                    |
-| `POSTGRES_DB`       | Nombre de la base en el contenedor (ver `.env.example`).                                                                                      |
-| `POSTGRES_PORT`     | Puerto en el host para PostgreSQL de desarrollo; por defecto **5432**.                                                                         |
+| `POSTGRES_DB`       | Nombre de la base en el contenedor (ver `.env.example`).                                                                                         |
+| `POSTGRES_PORT`     | Puerto en el host para PostgreSQL de desarrollo; por defecto **5432**.                                                                           |
 | `WEB_PORT`          | Puerto en el host para la SPA en `docker-compose.prod.yml`; por defecto **80**.                                                                  |
 | `API_PORT`          | Puerto del API Express; por defecto **3001**. Si lo cambias, ajusta también el `server.proxy` de `vite.config.ts` para que el `target` coincida. |
-| `CORS_ORIGIN`       | Origen permitido para CORS; por defecto **`http://localhost:5173`** en desarrollo. En Docker prod el compose fija `http://localhost`.           |
-| `NODE_ENV`          | Entorno Node (`development`, `production`, `test`); por defecto **`development`**.                                                               |
+| `CORS_ORIGIN`       | Origen permitido para CORS; por defecto `http://localhost:5173` en desarrollo. En Docker prod el compose fija `http://localhost`.                |
+| `NODE_ENV`          | Entorno Node (`development`, `production`, `test`); por defecto `development`.                                                                   |
 
-Los valores de ejemplo y comentarios de cada clave están en **`.env.example`**.
+
+Los valores de ejemplo y comentarios de cada clave están en `.env.example`.
 
 ## Scripts disponibles
 
-| Comando                   | Descripción                                                             |
-| ------------------------- | ----------------------------------------------------------------------- |
-| `npm run dev`             | Frontend (Vite) y API (Express) en paralelo con `concurrently`.         |
-| `npm run dev:web`         | Solo servidor de desarrollo Vite (SPA).                                 |
-| `npm run dev:api`         | Solo API Express con recarga (`tsx watch` sobre `backend/src/main.ts`). |
-| `npm run build`           | Build de producción de la SPA → `frontend/dist/`.                       |
-| `npm run typecheck`       | Comprobación de tipos (`tsc --noEmit`) en frontend y backend.           |
-| `npm run build:dev`       | Build en modo development.                                              |
-| `npm run preview`         | Sirve el contenido de `frontend/dist/` localmente.                      |
-| `npm run lint`            | ESLint sobre `frontend/src` y `backend/src`.                            |
-| `npm run format`          | Formatea código con Prettier (TS/TSX/CSS, JSON, MD, MJS).             |
-| `npm run format:check`    | Comprueba formato Prettier sin modificar ficheros.                      |
-| `npm run test`            | Ejecuta tests unitarios con Vitest (`vitest run`).                      |
-| `npm run test:watch`      | Vitest en modo observación.                                             |
-| `npm run test:coverage`   | Tests unitarios con informe de cobertura (text, html, lcov).            |
-| `npm run test:integration`| Tests de integración contra PostgreSQL real (requiere Docker activo).   |
-| `npm run db:up`           | `docker compose up -d db` — levanta PostgreSQL (comando canónico).      |
-| `npm run db:down`         | `docker compose stop db` — detiene PostgreSQL sin eliminar el volumen.  |
-| `npm run docker:up`       | Alias de `db:up`.                                                       |
-| `npm run docker:down`     | Alias de `db:down`.                                                     |
-| `npm run docker:logs`     | Logs del servicio `db`.                                                 |
-| `npm run prisma:init`     | `npx prisma init`.                                                      |
-| `npm run prisma:generate` | `npx prisma generate`.                                                  |
-| `npm run db:migrate`      | `npx prisma migrate deploy`.                                            |
-| `npm run db:seed`         | `npx prisma db seed` — datos de demo (usuario, hábitos, recompensas).   |
-| `npm run api`             | Alias de `dev:api` (`tsx watch backend/src/main.ts`).                   |
+
+| Comando                    | Descripción                                                             |
+| -------------------------- | ----------------------------------------------------------------------- |
+| `npm run dev`              | Frontend (Vite) y API (Express) en paralelo con `concurrently`.         |
+| `npm run dev:web`          | Solo servidor de desarrollo Vite (SPA).                                 |
+| `npm run dev:api`          | Solo API Express con recarga (`tsx watch` sobre `backend/src/main.ts`). |
+| `npm run build`            | Build de producción de la SPA → `frontend/dist/`.                       |
+| `npm run typecheck`        | Comprobación de tipos (`tsc --noEmit`) en frontend y backend.           |
+| `npm run build:dev`        | Build en modo development.                                              |
+| `npm run preview`          | Sirve el contenido de `frontend/dist/` localmente.                      |
+| `npm run lint`             | ESLint sobre `frontend/src` y `backend/src`.                            |
+| `npm run format`           | Formatea código con Prettier (TS/TSX/CSS, JSON, MD, MJS).               |
+| `npm run format:check`     | Comprueba formato Prettier sin modificar ficheros.                      |
+| `npm run test`             | Ejecuta tests unitarios con Vitest (`vitest run`).                      |
+| `npm run test:watch`       | Vitest en modo observación.                                             |
+| `npm run test:coverage`    | Tests unitarios con informe de cobertura (text, html, lcov).            |
+| `npm run test:integration` | Tests de integración contra PostgreSQL real (requiere Docker activo).   |
+| `npm run db:up`            | `docker compose up -d db` — levanta PostgreSQL (comando canónico).      |
+| `npm run db:down`          | `docker compose stop db` — detiene PostgreSQL sin eliminar el volumen.  |
+| `npm run docker:up`        | Alias de `db:up`.                                                       |
+| `npm run docker:down`      | Alias de `db:down`.                                                     |
+| `npm run docker:logs`      | Logs del servicio `db`.                                                 |
+| `npm run prisma:init`      | `npx prisma init`.                                                      |
+| `npm run prisma:generate`  | `npx prisma generate`.                                                  |
+| `npm run db:migrate`       | `npx prisma migrate deploy`.                                            |
+| `npm run db:seed`          | `npx prisma db seed` — datos de demo (usuario, hábitos, recompensas).   |
+| `npm run api`              | Alias de `dev:api` (`tsx watch backend/src/main.ts`).                   |
+
+
+
 
 ### Calidad de código (ESLint y Prettier)
 
-| Fichero              | Propósito                                              |
-| -------------------- | ------------------------------------------------------ |
-| `eslint.config.mjs`  | ESLint 9 flat config: TypeScript + React (frontend) y Node (backend) |
-| `.prettierrc`        | `singleQuote`, `semi: false`, `tabWidth: 2`, `printWidth: 100` |
-| `.prettierignore`    | Excluye `node_modules`, `dist`, migraciones Prisma     |
-| `.editorconfig`      | Indentación, charset UTF-8 y fin de línea LF           |
+
+| Fichero             | Propósito                                                            |
+| ------------------- | -------------------------------------------------------------------- |
+| `eslint.config.mjs` | ESLint 9 flat config: TypeScript + React (frontend) y Node (backend) |
+| `.prettierrc`       | `singleQuote`, `semi: false`, `tabWidth: 2`, `printWidth: 100`       |
+| `.prettierignore`   | Excluye `node_modules`, `dist`, migraciones Prisma                   |
+| `.editorconfig`     | Indentación, charset UTF-8 y fin de línea LF                         |
+
 
 > Los tests de integración (`npm run test:integration`) requieren Docker con PostgreSQL activo (`npm run docker:up`) y la BD de test creada (ver [docs/development_guide.md](docs/development_guide.md#tests-de-integración)).
 
-## Tecnologías utilizadas
 
-- **Frontend:** React 18, TypeScript, Vite 6, Tailwind CSS 4, Radix UI, Material UI, componentes tipo shadcn, Motion, Sonner, date-fns, entre otras dependencias listadas en `package.json`.
-- **Backend:** Node.js, Express, CORS, Prisma 5, `@prisma/client`, `tsx` (desarrollo).
-- **Base de datos:** PostgreSQL 16 (imagen Docker oficial Alpine).
 
-## Flujo agéntico
+## Informe de tests (`tests/test-report.md`)
+
+Comandos usados para ejecutar la **suite completa** (unitarios + integración + E2E) y generar el informe estructurado en [`tests/test-report.md`](tests/test-report.md).
+
+### Requisitos previos
+
+1. Dependencias instaladas (`npm install`).
+2. PostgreSQL activo y migraciones aplicadas (`npm run db:up`, `npm run db:migrate`). Los tests de integración usan la base definida en `.env.test` (`conrutina_test`).
+3. Para el E2E, la aplicación en marcha en otra terminal (`npm run dev` → `http://localhost:5173`).
+
+### Ejecución paso a paso
+
+Desde la **raíz** del repositorio:
+
+```bash
+# 1. Tests unitarios (Vitest) — salida JSON
+npm test -- --reporter=json --outputFile=tests/unit-results.json
+
+# 2. Tests de integración (Vitest + PostgreSQL) — salida JSON
+npm run test:integration -- --reporter=json --outputFile=tests/integration-results.json
+
+# 3. Test E2E (Playwright) — capturas en tests/e2e-*.png
+node scripts/run-e2e-playwright.mjs
+
+# 4. Generar informe Markdown consolidado
+node scripts/generate-test-report.mjs
+```
+
+El cuarto paso acepta un argumento opcional con la fecha/hora de ejecución (p. ej. `"2026-07-04 17:22 UTC"`):
+
+```bash
+node scripts/generate-test-report.mjs "2026-07-04 17:22 UTC"
+```
+
+### Artefactos generados
+
+| Fichero | Descripción |
+| --- | --- |
+| `tests/test-report.md` | Informe estructurado por suites, tests, comandos y resultados PASS/FAIL |
+| `tests/unit-results.json` | Resultados JSON de Vitest (unitarios) |
+| `tests/integration-results.json` | Resultados JSON de Vitest (integración) |
+| `tests/e2e-results.json` | Metadatos del escenario E2E |
+| `tests/e2e-01-dashboard-inicial.png` | Captura del dashboard al cargar |
+| `tests/e2e-02-modal-habito.png` | Captura del modal de nuevo hábito |
+| `tests/e2e-03-dashboard-final.png` | Captura final del dashboard |
+
+
+
+
+## Flujo agéntico (implementación)
 
 Todas las funcionalidades de ConRutina se han desarrollado mediante un **flujo de agentes de IA personalizado** basado en **OpenSpec** (modo *spec-driven*, ver `openspec/config.yaml`). Cada ticket del backlog de producto (`T-XX-YY` en `docs/product-backlog.md`) se traduce en un *change* OpenSpec bajo `openspec/changes/`; el agente especifica, implementa, verifica y archiva el cambio siguiendo reglas versionadas en el repositorio.
 
@@ -288,13 +379,15 @@ Los comandos Cursor viven en `.cursor/commands/opsx-*.md`; las skills en `.curso
 
 En el flujo, el agente genera artefactos, código e informes de prueba; el **desarrollador** interviene en puntos concretos para **aprobar, rechazar o pedir correcciones** antes de avanzar. Los nodos en forma de rombo del diagrama representan esos *gates*.
 
-| Gate | Momento | Decisión del desarrollador | Si no aprueba |
-| ---- | ------- | -------------------------- | ------------- |
-| **G0** | Tras planificación (PRD + backlog) | Valida visión, prioridades y ticket a abordar | Ajusta PRD/backlog o elige otro ticket |
-| **G1** | Tras `/opsx-propose-ticket` | Revisa `proposal`, `specs`, `design` y `tasks` (alcance = DoD del ticket) | Pide regenerar o editar artefactos; **no** lanzar `/opsx:apply` hasta estar conforme |
-| **G2** | Tras `/opsx:apply` y verificación del agente | Revisa working tree, informes en `reports/` y comportamiento en local | Pide ajustes: primero actualizar artefactos OpenSpec, luego repetir apply (sin commits hasta archivar) |
-| **G3** | Antes de `/opsx:archive` | Acepta explícitamente el change (pruebas PASS + código conforme) | Mantiene el change abierto; vuelve a G2 |
-| **G4** | Durante `/opsx:archive` | Confirma cierre Git (commit, push, merge) y, si aplica, sincronización de specs delta | Cancela o corrige pendientes antes de integrar en `develop` |
+
+| Gate   | Momento                                      | Decisión del desarrollador                                                            | Si no aprueba                                                                                          |
+| ------ | -------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **G0** | Tras planificación (PRD + backlog)           | Valida visión, prioridades y ticket a abordar                                         | Ajusta PRD/backlog o elige otro ticket                                                                 |
+| **G1** | Tras `/opsx-propose-ticket`                  | Revisa `proposal`, `specs`, `design` y `tasks` (alcance = DoD del ticket)             | Pide regenerar o editar artefactos; **no** lanzar `/opsx:apply` hasta estar conforme                   |
+| **G2** | Tras `/opsx:apply` y verificación del agente | Revisa working tree, informes en `reports/` y comportamiento en local                 | Pide ajustes: primero actualizar artefactos OpenSpec, luego repetir apply (sin commits hasta archivar) |
+| **G3** | Antes de `/opsx:archive`                     | Acepta explícitamente el change (pruebas PASS + código conforme)                      | Mantiene el change abierto; vuelve a G2                                                                |
+| **G4** | Durante `/opsx:archive`                      | Confirma cierre Git (commit, push, merge) y, si aplica, sincronización de specs delta | Cancela o corrige pendientes antes de integrar en `develop`                                            |
+
 
 ```mermaid
 flowchart TB
@@ -365,6 +458,8 @@ flowchart TB
   class PRD,BL,TK,CH,AR,U,C,E,D,GT,AC,MK agent
   class FIX human
 ```
+
+
 
 **Leyenda:** rectángulos azules = trabajo del agente; rombos amarillos = **gate** donde el desarrollador decide si continuar, corregir o detener el flujo.
 
