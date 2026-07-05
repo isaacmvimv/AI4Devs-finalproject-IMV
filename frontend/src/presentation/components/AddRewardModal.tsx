@@ -31,12 +31,13 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [cost, setCost] = useState(10)
-  const [errors, setErrors] = useState<{ name?: string; cost?: string }>({})
+  const [errors, setErrors] = useState<{ name?: string; description?: string; cost?: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validate = () => {
-    const newErrors: { name?: string; cost?: string } = {}
+    const newErrors: { name?: string; description?: string; cost?: string } = {}
     if (!name.trim()) newErrors.name = 'El nombre es obligatorio'
+    if (!description.trim()) newErrors.description = 'La descripción es obligatoria'
     if (cost <= 0) newErrors.cost = 'El coste debe ser mayor que 0'
     return newErrors
   }
@@ -117,7 +118,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
           </div>
 
           <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Descripción (opcional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Descripción</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -125,6 +126,7 @@ export default function AddRewardModal({ isOpen, onClose, onAdd }: AddRewardModa
               rows={2}
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent resize-none"
             />
+            {errors.description && <p className="text-sm text-red-500 mt-1">{errors.description}</p>}
           </div>
 
           <div className="mb-6">

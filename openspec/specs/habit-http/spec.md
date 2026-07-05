@@ -161,7 +161,7 @@ The system SHALL reject invalid PATCH bodies via `validateBody(updateHabitSchema
 
 ### Requirement: DELETE /api/habits/:id route registered
 
-The system SHALL register `DELETE /api/habits/:id` in `createApp.ts`, wrapped with `asyncHandler`, parsing `:id` as integer and invoking `deactivateHabit(habitRepository, 1, habitId)` with hardcoded user id `1` for MVP.
+The system SHALL register `DELETE /api/habits/:id` in `createApp.ts`, wrapped with `asyncHandler`, parsing `:id` as integer and invoking `deactivateHabit(habitRepository, weekRepository, rewardRedemptionRepository, 1, habitId)` with hardcoded user id `1` for MVP.
 
 #### Scenario: Route is reachable
 
@@ -170,14 +170,14 @@ The system SHALL register `DELETE /api/habits/:id` in `createApp.ts`, wrapped wi
 
 ### Requirement: Successful habit soft delete
 
-The system SHALL respond with HTTP `204` and empty body when `deactivateHabit` succeeds (US-08 Scenario 2). The habit SHALL remain in PostgreSQL with `isActive=false`; no physical delete.
+The system SHALL respond with HTTP `200` and body `{ "redemptionInvalidated": boolean }` when `deactivateHabit` succeeds (US-08 Scenario 2). The habit SHALL remain in PostgreSQL with `isActive=false`; no physical delete. The `redemptionInvalidated` flag SHALL be `true` when deleting the habit causes the current week's net points to fall below an existing redemption and that redemption is removed.
 
 #### Scenario: Happy path deactivates habit
 
 - **WHEN** habit id=5 exists, belongs to user id=1, and `isActive=true`
 - **AND** a client sends `DELETE /api/habits/5`
-- **THEN** the response status is `204`
-- **AND** the response body is empty
+- **THEN** the response status is `200`
+- **AND** the response body is `{ "redemptionInvalidated": false }` (or `true` when a week redemption is invalidated)
 - **AND** the habit row in PostgreSQL has `isActive=false`
 
 #### Scenario: Deactivated habit excluded from GET list
@@ -229,17 +229,17 @@ The system SHALL respond with HTTP `404` and body `{ code: "HABIT_NOT_FOUND", me
 
 ### Requirement: HTTP unit tests for PATCH and DELETE
 
-The system SHALL include Vitest tests using supertest with mocked `updateHabit` and/or `deactivateHabit`, covering PATCH 200, PATCH 400, PATCH/DELETE 404, and DELETE 204 aligned with the ticket DoD.
+The system SHALL include Vitest tests using supertest with mocked `updateHabit` and/or `deactivateHabit`, covering PATCH 200, PATCH 400, PATCH/DELETE 404, and DELETE 200 aligned with the ticket DoD.
 
 #### Scenario: Test suite validates PATCH 200
 
 - **WHEN** the HTTP tests run with `npm test`
 - **THEN** a test asserts `PATCH /api/habits/:id` returns `200` with the updated habit when the use case succeeds
 
-#### Scenario: Test suite validates DELETE 204
+#### Scenario: Test suite validates DELETE 200
 
 - **WHEN** the HTTP tests run with `npm test`
-- **THEN** a test asserts `DELETE /api/habits/:id` returns `204` with empty body when the use case succeeds
+- **THEN** a test asserts `DELETE /api/habits/:id` returns `200` with `{ "redemptionInvalidated": boolean }` when the use case succeeds
 
 #### Scenario: Test suite validates 404 for foreign habit
 

@@ -29,13 +29,14 @@ ConRutina es una aplicación web orientada a la gestión de rutinas y buenos há
 
 > Puede ser pública o privada, en cuyo caso deberás compartir los accesos de manera segura. Puedes enviarlos a [alvaro@lidr.co](mailto:alvaro@lidr.co) usando algún servicio como [onetimesecret](https://onetimesecret.com/).
 
-Despliegue local de producción con Docker: `http://localhost` (o `http://localhost:${WEB_PORT}`) tras `docker compose -f docker-compose.prod.yml up --build -d`. Despliegue en cloud: *(pendiente)*.
+Despliegue local de producción con Docker: `http://localhost` (o `http://localhost:${WEB_PORT}`) tras `docker compose -f docker-compose.prod.yml up --build -d`. 
+Despliegue en cloud: *No habrá deploy. Se acuerda entrega con video de demo.*.
 
 ### 0.5. URL o archivo comprimido del repositorio
 
 > Puedes tenerlo alojado en público o en privado, en cuyo caso deberás compartir los accesos de manera segura. Puedes enviarlos a [alvaro@lidr.co](mailto:alvaro@lidr.co) usando algún servicio como [onetimesecret](https://onetimesecret.com/). También puedes compartir por correo un archivo zip con el contenido
 
-https://github.com/isaacmvimv/AI4Devs-finalproject-IMV
+[https://github.com/isaacmvimv/AI4Devs-finalproject-IMV](https://github.com/isaacmvimv/AI4Devs-finalproject-IMV)
 
 ---
 
@@ -220,9 +221,7 @@ Esperar hasta que el contenedor esté saludable (unos 15 segundos). Verificar co
 npm run docker:logs
 ```
 
-El volumen persistente se llama **`ConRutina_postgres_data`**.
-
-
+El volumen persistente se llama `ConRutina_postgres_data`.
 
 #### 4. Generar cliente Prisma y aplicar migraciones
 
@@ -242,6 +241,8 @@ npm run db:seed
 Inserta: 1 usuario (`demo@ConRutina.app`, `id=1`), 3 hábitos (Correr, Meditar, Leer), 1 semana activa con 21 entradas diarias y 2 recompensas (Tarde libre — 50 pts, Cena especial — 80 pts).
 
 > **Nota:** Al arrancar el API sin seed, `ensureDemoUser` crea automáticamente el usuario demo (`id=1`) si la base está vacía. Para hábitos, recompensas y semana de ejemplo, ejecuta el seed.
+
+
 
 #### 6. Arrancar el proyecto
 
@@ -280,30 +281,39 @@ docker compose stop db
 
 Stack completo (PostgreSQL + API + nginx con SPA):
 
+- Arranque:
+
 ```bash
 docker compose -f docker-compose.prod.yml up --build -d
 ```
 
 Acceso: `http://localhost` (puerto configurable con `WEB_PORT` en `.env`). El API no expone puerto en el host; las peticiones van por el proxy nginx (`/api/` → `api:3001`).
 
+- Parada:
+
+```bash
+docker compose -f docker-compose.prod.yml down   # Con datos persistentes
+docker compose -f docker-compose.prod.yml down -v   # Sin datos persistentes. Borrando el volumen
+```
+
 
 
 #### Comandos adicionales
 
 
-| Comando                     | Descripción                                                       |
-| --------------------------- | ----------------------------------------------------------------- |
-| `npm run build`             | Genera el bundle de producción en `frontend/dist/`                |
-| `npm run preview`           | Sirve localmente el build de producción                           |
-| `npm run test`              | Tests unitarios (Vitest)                                          |
-| `npm run test:integration`  | Tests de integración contra PostgreSQL (requiere Docker activo)   |
-| `npm run test:coverage`     | Tests unitarios con informe de cobertura                          |
-| `npm run lint`              | ESLint sobre frontend y backend                                   |
-| `npm run typecheck`         | Comprobación de tipos TypeScript                                  |
-| `npm run docker:up`         | Alias de `db:up`                                                  |
-| `npm run docker:down`       | Alias de `db:down`                                                |
-| `npm run docker:logs`       | Logs del contenedor PostgreSQL                                    |
-| `npm run prisma:generate`   | Regenera el cliente Prisma tras cambios en el schema              |
+| Comando                    | Descripción                                                     |
+| -------------------------- | --------------------------------------------------------------- |
+| `npm run build`            | Genera el bundle de producción en `frontend/dist/`              |
+| `npm run preview`          | Sirve localmente el build de producción                         |
+| `npm run test`             | Tests unitarios (Vitest)                                        |
+| `npm run test:integration` | Tests de integración contra PostgreSQL (requiere Docker activo) |
+| `npm run test:coverage`    | Tests unitarios con informe de cobertura                        |
+| `npm run lint`             | ESLint sobre frontend y backend                                 |
+| `npm run typecheck`        | Comprobación de tipos TypeScript                                |
+| `npm run docker:up`        | Alias de `db:up`                                                |
+| `npm run docker:down`      | Alias de `db:down`                                              |
+| `npm run docker:logs`      | Logs del contenedor PostgreSQL                                  |
+| `npm run prisma:generate`  | Regenera el cliente Prisma tras cambios en el schema            |
 
 
 ---
@@ -735,16 +745,16 @@ erDiagram
 Tabla intermedia que representa la asociación de un hábito concreto a una semana específica. Permite que cada semana tenga un conjunto de hábitos diferente y guarda un **snapshot inmutable** de los valores en el momento del bloqueo.
 
 
-| Atributo          | Tipo     | Restricciones        | Descripción                                                       |
-| ----------------- | -------- | -------------------- | ----------------------------------------------------------------- |
-| `id`              | `Int`    | PK, autoincrement    | Identificador único                                               |
-| `weekId`          | `Int`    | FK → Week, not null  | Semana a la que pertenece                                         |
-| `habitId`         | `Int`    | FK → Habit, not null | Hábito asociado                                                   |
-| `order`           | `Int`    | not null             | Orden de visualización en el calendario                           |
-| `snapshotName`    | `String` | not null             | Nombre del hábito en el momento del bloqueo (histórico inmutable) |
+| Atributo          | Tipo     | Restricciones         | Descripción                                                       |
+| ----------------- | -------- | --------------------- | ----------------------------------------------------------------- |
+| `id`              | `Int`    | PK, autoincrement     | Identificador único                                               |
+| `weekId`          | `Int`    | FK → Week, not null   | Semana a la que pertenece                                         |
+| `habitId`         | `Int`    | FK → Habit, not null  | Hábito asociado                                                   |
+| `order`           | `Int`    | not null              | Orden de visualización en el calendario                           |
+| `snapshotName`    | `String` | not null              | Nombre del hábito en el momento del bloqueo (histórico inmutable) |
 | `snapshotEmoji`   | `String` | not null, default: "" | Emoji del hábito en el momento del bloqueo                        |
-| `snapshotPoints`  | `Int`    | not null             | Puntos del hábito en el momento del bloqueo                       |
-| `snapshotPenalty` | `Int`    | not null             | Penalización en el momento del bloqueo                            |
+| `snapshotPoints`  | `Int`    | not null              | Puntos del hábito en el momento del bloqueo                       |
+| `snapshotPenalty` | `Int`    | not null              | Penalización en el momento del bloqueo                            |
 
 
 *Restricción:* `@@unique([weekId, habitId])` — evita duplicados de hábito en la misma semana.
@@ -822,25 +832,27 @@ Registra cada vez que el usuario canjea una recompensa en una semana determinada
 
 > Los endpoints están bajo el prefijo `/api`. Todas las peticiones y respuestas usan `Content-Type: application/json` (UTF-8). Los valores `DateTime` se expresan en ISO 8601 (UTC).
 
-Especificación OpenAPI completa: [`docs/api-spec.yml`](docs/api-spec.yml)
+Especificación OpenAPI completa: `[docs/api-spec.yml](docs/api-spec.yml)`
 
 **Resumen de endpoints implementados:**
 
-| Método | Ruta | Descripción |
-| ------ | ---- | ----------- |
-| `GET` | `/health` | Health check del API |
-| `GET` | `/api/profile` | Perfil del usuario (MVP: `id=1`) |
-| `GET` | `/api/habits` | Listar hábitos activos |
-| `POST` | `/api/habits` | Crear hábito |
-| `PATCH` | `/api/habits/:id` | Editar hábito activo |
-| `DELETE` | `/api/habits/:id` | Baja lógica de hábito |
-| `GET` | `/api/rewards` | Listar recompensas activas (incluye `hasBeenRedeemed`) |
-| `POST` | `/api/rewards` | Crear recompensa |
-| `DELETE` | `/api/rewards/:id` | Baja lógica de recompensa |
-| `GET` | `/api/weeks/current` | Semana activa (bloqueo automático si cambió la semana) |
-| `GET` | `/api/weeks?offset=n` | Semana por offset (`0` = actual, `-1` = anterior…) |
-| `PATCH` | `/api/habit-entries/:id` | Actualizar estado diario de un hábito |
-| `POST` | `/api/weeks/:weekId/redemptions` | Canjear recompensa en la semana indicada |
+
+| Método   | Ruta                             | Descripción                                            |
+| -------- | -------------------------------- | ------------------------------------------------------ |
+| `GET`    | `/health`                        | Health check del API                                   |
+| `GET`    | `/api/profile`                   | Perfil del usuario (MVP: `id=1`)                       |
+| `GET`    | `/api/habits`                    | Listar hábitos activos                                 |
+| `POST`   | `/api/habits`                    | Crear hábito                                           |
+| `PATCH`  | `/api/habits/:id`                | Editar hábito activo                                   |
+| `DELETE` | `/api/habits/:id`                | Baja lógica de hábito                                  |
+| `GET`    | `/api/rewards`                   | Listar recompensas activas (incluye `hasBeenRedeemed`) |
+| `POST`   | `/api/rewards`                   | Crear recompensa                                       |
+| `DELETE` | `/api/rewards/:id`               | Baja lógica de recompensa                              |
+| `GET`    | `/api/weeks/current`             | Semana activa (bloqueo automático si cambió la semana) |
+| `GET`    | `/api/weeks?offset=n`            | Semana por offset (`0` = actual, `-1` = anterior…)     |
+| `PATCH`  | `/api/habit-entries/:id`         | Actualizar estado diario de un hábito                  |
+| `POST`   | `/api/weeks/:weekId/redemptions` | Canjear recompensa en la semana indicada               |
+
 
 ---
 
@@ -1163,14 +1175,16 @@ Consultar información detallada en el documento: `[docs/product-backlog.md](doc
 
 **INVEST:**
 
-| Criterio    | Evaluación                                                                                  |
-| ----------- | ------------------------------------------------------------------------------------------- |
-| Independent | Depende de US-09 (API de semanas con stats reales) y US-16 (toggle de celdas).              |
-| Negotiable  | El número máximo de semanas navegables en historial es negociable.                          |
-| Valuable    | Las estadísticas y el historial son el motor motivacional y diferencial del producto.       |
-| Estimable   | Lógica reactiva (dominio US-13) + integración con API de semanas históricas.                |
-| Small       | Dos funcionalidades relacionadas unificadas en la barra estadística.                        |
-| Testable    | Verificar recálculo inmediato y carga correcta de semanas históricas.                       |
+
+| Criterio    | Evaluación                                                                            |
+| ----------- | ------------------------------------------------------------------------------------- |
+| Independent | Depende de US-09 (API de semanas con stats reales) y US-16 (toggle de celdas).        |
+| Negotiable  | El número máximo de semanas navegables en historial es negociable.                    |
+| Valuable    | Las estadísticas y el historial son el motor motivacional y diferencial del producto. |
+| Estimable   | Lógica reactiva (dominio US-13) + integración con API de semanas históricas.          |
+| Small       | Dos funcionalidades relacionadas unificadas en la barra estadística.                  |
+| Testable    | Verificar recálculo inmediato y carga correcta de semanas históricas.                 |
+
 
 **Acceptance Criteria (BDD):**
 
@@ -1207,14 +1221,16 @@ And no se produce ningún error ni llamada a la API innecesaria
 
 **INVEST:**
 
+
 | Criterio    | Evaluación                                                                               |
 | ----------- | ---------------------------------------------------------------------------------------- |
 | Independent | Los tests de dominio son independientes; los de integración necesitan las APIs estables. |
 | Negotiable  | El porcentaje de cobertura objetivo y las herramientas son negociables.                  |
 | Valuable    | Reduce el riesgo de regresiones en cálculos de puntos, canjes y bloqueos.                |
-| Estimable   | Alcance bien definido: funciones puras del dominio + endpoints críticos.               |
-| Small       | Puede dividirse en unitario y de integración como tareas separadas.                    |
+| Estimable   | Alcance bien definido: funciones puras del dominio + endpoints críticos.                 |
+| Small       | Puede dividirse en unitario y de integración como tareas separadas.                      |
 | Testable    | La propia cobertura es la medida.                                                        |
+
 
 **Acceptance Criteria (BDD):**
 
@@ -1249,14 +1265,16 @@ And POST /api/weeks/:id/redemptions → 422 si saldo insuficiente
 
 **INVEST:**
 
-| Criterio    | Evaluación                                                                                |
-| ----------- | ----------------------------------------------------------------------------------------- |
-| Independent | Puede construirse en paralelo con el desarrollo, refinarse en el último sprint.           |
-| Negotiable  | El proveedor de hosting (Railway, Render, VPS) es negociable.                             |
-| Valuable    | Sin stack Docker reproducible no hay despliegue fiable del MVP.                             |
-| Estimable   | Dockerfiles + docker-compose.prod: patrón bien conocido.                                  |
-| Small       | Historia de infraestructura acotada.                                                      |
-| Testable    | El stack arranca y la aplicación es accesible en el puerto configurado.                   |
+
+| Criterio    | Evaluación                                                                      |
+| ----------- | ------------------------------------------------------------------------------- |
+| Independent | Puede construirse en paralelo con el desarrollo, refinarse en el último sprint. |
+| Negotiable  | El proveedor de hosting (Railway, Render, VPS) es negociable.                   |
+| Valuable    | Sin stack Docker reproducible no hay despliegue fiable del MVP.                 |
+| Estimable   | Dockerfiles + docker-compose.prod: patrón bien conocido.                        |
+| Small       | Historia de infraestructura acotada.                                            |
+| Testable    | El stack arranca y la aplicación es accesible en el puerto configurado.         |
+
 
 **Acceptance Criteria (BDD):**
 
@@ -1299,6 +1317,7 @@ Consultar información detallada en el documento: `[docs/product-backlog.md](doc
 - **Complejidad:** `M` · **Story Points:** 3
 - **Sprint:** Sprint 0 · Scaffolding
 - **Estado:** ✅ Implementado
+- **Metodología:** Implementado siguiendo el [flujo agéntico de SDD (implementación)](README.md#flujo-agéntico) descrito en el README del repositorio.
 
 **Descripción:**
 
@@ -1326,15 +1345,17 @@ Instalar `prisma` y `@prisma/client`. Crear `backend/prisma/schema.prisma` con e
 
 **Verificación de modelos (lista de comprobación):**
 
-| Modelo             | Campos clave                                                                                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `User`             | `id`, `email(unique)`, `name?`, `avatarUrl?`, `createdAt`                                                                                        |
+
+| Modelo             | Campos clave                                                                                                                                    |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `User`             | `id`, `email(unique)`, `name?`, `avatarUrl?`, `createdAt`                                                                                       |
 | `Week`             | `id`, `userId(FK)`, `startDate`, `endDate`, `isLocked(default:false)`, `totalPointsEarned(default:0)`, `totalPenalties(default:0)`, `createdAt` |
-| `Habit`            | `id`, `userId(FK)`, `emoji`, `name`, `pointsPerDay`, `penalty`, `isActive(default:true)`, `createdAt`                                            |
-| `WeekHabit`        | `id`, `weekId(FK)`, `habitId(FK)`, `order`, `snapshotName`, `snapshotEmoji`, `snapshotPoints`, `snapshotPenalty`                                  |
-| `HabitEntry`       | `id`, `weekHabitId(FK)`, `dayIndex(0-6)`, `status(enum)`, `updatedAt`                                                                            |
-| `Reward`           | `id`, `userId(FK)`, `emoji`, `name`, `description`, `cost`, `isActive(default:true)`, `createdAt`                                                |
+| `Habit`            | `id`, `userId(FK)`, `emoji`, `name`, `pointsPerDay`, `penalty`, `isActive(default:true)`, `createdAt`                                           |
+| `WeekHabit`        | `id`, `weekId(FK)`, `habitId(FK)`, `order`, `snapshotName`, `snapshotEmoji`, `snapshotPoints`, `snapshotPenalty`                                |
+| `HabitEntry`       | `id`, `weekHabitId(FK)`, `dayIndex(0-6)`, `status(enum)`, `updatedAt`                                                                           |
+| `Reward`           | `id`, `userId(FK)`, `emoji`, `name`, `description`, `cost`, `isActive(default:true)`, `createdAt`                                               |
 | `RewardRedemption` | `id`, `weekId(FK)`, `rewardId(FK)`, `pointsSpent`, `redeemedAt`                                                                                 |
+
 
 **Buenas prácticas aplicadas:**
 
@@ -1369,6 +1390,7 @@ And "npm run db:seed" inserta usuario demo, hábitos, semana y recompensas sin e
 - **Complejidad:** `M` · **Story Points:** 3
 - **Sprint:** Sprint 2 · Ciclo Semanal y Recompensas API
 - **Estado:** ✅ Implementado
+- **Metodología:** Implementado siguiendo el [flujo agéntico de SDD (implementación)](README.md#flujo-agéntico) descrito en el README del repositorio.
 
 **Descripción:**
 
@@ -1439,6 +1461,7 @@ Then solo una responde 201; la otra 422 o 409
 - **Complejidad:** `M` · **Story Points:** 3
 - **Sprint:** Sprint 4 · UI Stats + Historial
 - **Estado:** ✅ Implementado
+- **Metodología:** Implementado siguiendo el [flujo agéntico de SDD (implementación)](README.md#flujo-agéntico) descrito en el README del repositorio.
 
 **Descripción:**
 
@@ -1518,12 +1541,12 @@ And el badge de bloqueo desaparece
 
 **Pull Request 1** — Sprint 0–1: scaffolding, BD, APIs core y perfil
 
-https://github.com/isaacmvimv/AI4Devs-finalproject-IMV/tree/feature-entrega1-IMV
+[https://github.com/isaacmvimv/AI4Devs-finalproject-IMV/tree/feature-entrega1-IMV](https://github.com/isaacmvimv/AI4Devs-finalproject-IMV/tree/feature-entrega1-IMV)
 
 **Pull Request 2** — Sprint 2: ciclo semanal, bloqueo automático y recompensas API
 
-https://github.com/isaacmvimv/AI4Devs-finalproject-IMV/tree/feature-entrega2-IMV
+[https://github.com/isaacmvimv/AI4Devs-finalproject-IMV/tree/feature-entrega2-IMV](https://github.com/isaacmvimv/AI4Devs-finalproject-IMV/tree/feature-entrega2-IMV)
 
 **Pull Request 3** — Sprint 3–5: UI completa, tests, optimización y Docker producción
 
-https://github.com/isaacmvimv/AI4Devs-finalproject-IMV/tree/finalproject-IMV
+[https://github.com/isaacmvimv/AI4Devs-finalproject-IMV/tree/finalproject-IMV](https://github.com/isaacmvimv/AI4Devs-finalproject-IMV/tree/finalproject-IMV)

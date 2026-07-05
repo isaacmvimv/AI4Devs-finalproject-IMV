@@ -68,7 +68,9 @@ describe('GET /api/weeks/current — sincronización con hábitos activos', () =
     expect(withStats.body.stats.thisWeekPoints).toBe(10)
     expect(withStats.body.stats.penalties).toBe(3)
 
-    await request(app).delete(`/api/habits/${habitId}`).expect(204)
+    const deleteRes = await request(app).delete(`/api/habits/${habitId}`)
+    expect(deleteRes.status).toBe(200)
+    expect(deleteRes.body).toEqual({ redemptionInvalidated: false })
 
     const afterDelete = await request(app).get('/api/weeks/current')
     expect(afterDelete.body.habits).toHaveLength(0)
@@ -92,7 +94,9 @@ describe('GET /api/weeks/current — sincronización con hábitos activos', () =
       snapshotPenalty: weekHabit.snapshotPenalty,
     }
 
-    await request(app).delete(`/api/habits/${habit.id}`).expect(204)
+    const deleteRes = await request(app).delete(`/api/habits/${habit.id}`)
+    expect(deleteRes.status).toBe(200)
+    expect(deleteRes.body).toEqual({ redemptionInvalidated: false })
 
     const preserved = await prisma.weekHabit.findUnique({ where: { id: weekHabit.id } })
     expect(preserved).not.toBeNull()

@@ -1,0 +1,80 @@
+{
+  "tool": "Playwright (CLI fallback — MCP user-Playwright no disponible en sesión)",
+  "command": "node scripts/run-e2e-playwright.mjs",
+  "executedAt": "2026-07-04T17:18:48.865Z",
+  "url": "http://localhost:5173",
+  "scenario": "Dashboard ConRutina — carga, perfil y modal de hábito",
+  "description": "Test E2E manual que valida la carga del dashboard en localhost:5173, la presencia de elementos clave y la apertura del modal de nuevo hábito, con capturas en cada paso relevante.",
+  "result": "PASS",
+  "error": null,
+  "steps": [
+    {
+      "id": 1,
+      "action": "Navegar a http://localhost:5173",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": 2,
+      "action": "Captura del dashboard inicial (full page)",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": 3,
+      "action": "Verificar que la aplicación carga (título o marca ConRutina)",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": 4,
+      "action": "Verificar tarjeta de perfil o datos de usuario visibles",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": 5,
+      "action": "Verificar botón de añadir hábito presente",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": 6,
+      "action": "Abrir modal de nuevo hábito y capturar pantalla",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": 7,
+      "action": "Verificar modal de hábito abierto",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": 8,
+      "action": "Verificar contenido del dashboard (elementos renderizados: 6)",
+      "result": "PASS",
+      "detail": ""
+    },
+    {
+      "id": 9,
+      "action": "Captura final del dashboard tras interacción",
+      "result": "PASS",
+      "detail": ""
+    }
+  ],
+  "screenshots": [
+    {
+      "title": "Dashboard inicial",
+      "path": "e2e-01-dashboard-inicial.png"
+    },
+    {
+      "title": "Modal de nuevo hábito",
+      "path": "e2e-02-modal-habito.png"
+    },
+    {
+      "title": "Dashboard final",
+      "path": "e2e-03-dashboard-final.png"
+    }
+  ]
+}
