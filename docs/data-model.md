@@ -1,0 +1,356 @@
+# Modelo de datos — ConRutina
+
+Este documento describe el **modelo de datos objetivo** de ConRutina (seguimiento de hábitos con calendario semanal, puntos y recompensas). Está alineado con las secciones **5.1** y **5.2** de [prd.md](./prd.md) y sirve de referencia para Prisma, migraciones y API.
+
+> **Fuente de verdad:** ante cualquier discrepancia, prevalece el PRD (`docs/prd.md`, §5).
+
+---
+
+## Estado de persistencia (resumen)
+
+| Entidad | PostgreSQL (Prisma) | Notas |
+| ------- | ------------------- | ----- |
+| `User` | **Migrada** | Schema completo (`avatarUrl`, `createdAt`). Tabla en BD vía migración `20260530120258_init`. |
+| `Week` | **Migrada** | Índice `[userId, startDate]`. |
+| `Habit` | **Migrada** | Hoy la UI sigue en estado React (`frontend/src/domain/habit.ts`); ver [mapeo provisional](#mapeo-provisional-frontend--modelo-objetivo). |
+| `WeekHabit` | **Migrada** | `@@unique([weekId, habitId])`. |
+| `HabitEntry` | **Migrada** | Enum `CompletionStatus`. |
+| `Reward` | **Migrada** | Hoy la UI sigue en estado React (`frontend/src/domain/reward.ts`). |
+| `RewardRedemption` | **Migrada** | FK a `Week` y `Reward`. |
+
+**Implementación actual en base de datos:** las siete entidades del dominio están **definidas en** `backend/prisma/schema.prisma` y **materializadas en PostgreSQL** con la migración inicial `20260530120258_init` (T-03-02 ✅). El endpoint `GET /api/profile` lee el usuario fijo `id = 1` desde la tabla `User`.
+
+---
+
+## Descripción de entidades (alineado con PRD §5.1)
+
+### 1. User (Usuario)
+
+Representa a un usuario que registra hábitos, gestiona semanas y define recompensas.
+
+| Atributo | Tipo | Descripción |
+| -------- | ---- | ----------- |
+| `id` | `Int` (PK, autoincrement) | Identificador único |
+| `email` | `String` (unique) | Correo electrónico |
+| `name` | `String?` | Nombre visible en la cabecera |
+| `avatarUrl` | `String?` | URL opcional del avatar |
+| `createdAt` | `DateTime` | Fecha de creación de la cuenta |
+
+**Persistencia:** migrada a PostgreSQL (T-03-02). **Paso futuro:** exponer `avatarUrl` en la API.
+
+**Implementación actual:**
+- Esquema: `backend/prisma/schema.prisma`
+- Dominio/API: `backend/src/domain/userProfile.ts`, `GET /api/profile`
+
+**Relaciones (objetivo):**
+- 1:N con `Week`, `Habit` y `Reward`
+
+---
+
+### 2. Week (Semana)
+
+Representa una semana calendario del usuario, con bloqueo histórico y totales al cerrar.
+
+| Atributo | Tipo | Descripción |
+| -------- | ---- | ----------- |
+| `id` | `Int` (PK, autoincrement) | Identificador único |
+| `userId` | `Int` (FK → User) | Usuario propietario |
+| `startDate` | `DateTime` | Lunes de la semana (00:00:00 UTC) |
+| `endDate` | `DateTime` | Domingo de la semana (23:59:59.999 UTC) |
+| `isLocked` | `Boolean` | `true` cuando la semana ha terminado y no puede modificarse |
+| `totalPointsEarned` | `Int` | Puntos positivos acumulados al bloquear |
+| `totalPenalties` | `Int` | Penalizaciones acumuladas al bloquear |
+| `createdAt` | `DateTime` | Fecha de creación del registro |
+
+**Persistencia:** migrada a PostgreSQL (T-03-02).
+
+**Límites semanales (backend):** `getWeekBoundaries(date)` en `backend/src/domain/week.ts` calcula `startDate` (lunes 00:00:00.000 UTC) y `endDate` (domingo 23:59:59.999 UTC) de la semana ISO que contiene `date`. El caso de uso `getCurrentWeek` usa esta utilidad para localizar o crear la semana activa del usuario.
+
+**Flujo de bloqueo (T-09-02):** al iniciar una nueva semana, `lockWeekAndTransition` detecta la semana desbloqueada anterior (`findUnlockedWeekBefore`) y la cierra con `lockWeek` antes de delegar en `getCurrentWeek`. Dentro de una transacción Prisma, `lockWeek`:
+
+1. Si `isLocked === true`, retorna sin modificar (idempotente).
+2. Por cada `WeekHabit`, cuenta entradas `completed` y `failed`.
+3. Calcula `totalPointsEarned` = Σ(completados × `Habit.pointsPerDay`) y `totalPenalties` = Σ(fallados × `Habit.penalty`) usando el hábito maestro en el momento del bloqueo.
+4. Escribe snapshots definitivos en `WeekHabit` (`snapshotName`, `snapshotEmoji`, `snapshotPoints`, `snapshotPenalty`) desde el hábito maestro.
+5. Marca `Week.isLocked = true` con los totales calculados.
+
+Si la semana no tiene entradas completadas ni fallidas, los totales quedan en 0; los snapshots se escriben igualmente. Tras el bloqueo, editar el hábito maestro no altera el histórico de la semana cerrada.
+
+**En el frontend (provisional):** la navegación semanal se calculaba en memoria con `weekOffset` y `buildWeekData()` (`frontend/src/domain/week.ts`). Desde T-09-03, `GET /api/weeks/current` y `GET /api/weeks?offset=n` exponen la semana y el histórico; el hook `useHabitDashboard` (T-10-xx) sustituirá la navegación provisional.
+
+---
+
+### 3. Habit (Hábito)
+
+Catálogo de hábitos del usuario (plantilla reutilizable en varias semanas).
+
+| Atributo | Tipo | Descripción |
+| -------- | ---- | ----------- |
+| `id` | `Int` (PK, autoincrement) | Identificador único |
+| `userId` | `Int` (FK → User) | Usuario propietario |
+| `emoji` | `String` | Emoji representativo |
+| `name` | `String` | Nombre descriptivo |
+| `pointsPerDay` | `Int` | Puntos por día completado |
+| `penalty` | `Int` | Puntos perdidos por día fallado |
+| `isActive` | `Boolean` | Disponible para añadir a nuevas semanas |
+| `createdAt` | `DateTime` | Fecha de creación |
+
+**Persistencia:** migrada a PostgreSQL (T-03-02).
+
+**Reglas de validación (dominio):**
+- `pointsPerDay` ≥ 1; `penalty` ≥ 0
+- Nombre obligatorio y descriptivo
+
+---
+
+### 4. WeekHabit (Hábito en una semana)
+
+Tabla intermedia: asocia un hábito a una semana concreta. Cada semana puede tener un conjunto distinto de hábitos.
+
+| Atributo | Tipo | Descripción |
+| -------- | ---- | ----------- |
+| `id` | `Int` (PK, autoincrement) | Identificador único |
+| `weekId` | `Int` (FK → Week) | Semana |
+| `habitId` | `Int` (FK → Habit) | Hábito asociado |
+| `order` | `Int` | Orden en el calendario |
+| `snapshotName` | `String` | Nombre al bloquear (histórico inmutable) |
+| `snapshotEmoji` | `String` | Emoji al bloquear (histórico inmutable) |
+| `snapshotPoints` | `Int` | Puntos al bloquear |
+| `snapshotPenalty` | `Int` | Penalización al bloquear |
+
+**Persistencia:** migrada a PostgreSQL (T-03-02).
+
+---
+
+### 5. HabitEntry (Entrada diaria)
+
+Estado de un hábito en un día concreto de la semana (7 filas por `WeekHabit`).
+
+| Atributo | Tipo | Descripción |
+| -------- | ---- | ----------- |
+| `id` | `Int` (PK, autoincrement) | Identificador único |
+| `weekHabitId` | `Int` (FK → WeekHabit) | Hábito de la semana |
+| `dayIndex` | `Int` | 0 = Lunes … 6 = Domingo |
+| `status` | `Enum` | `pending`, `completed`, `failed` |
+| `updatedAt` | `DateTime` | Última actualización |
+
+**Persistencia:** migrada a PostgreSQL (T-03-02).
+
+**Lógica de negocio:**
+- Solo `completed` suma `pointsPerDay`; solo `failed` aplica `penalty`
+- **Racha activa** (`Habit.streak`): días `completed` consecutivos hacia atrás desde el día actual de la semana (0 = lunes … 6 = domingo). Se detiene al encontrar `failed` o `pending`. Se muestra en cada fila del calendario (🔥 X días) solo si es > 0.
+- **Mejor racha** (`HabitStats.maxStreak`): mayor secuencia consecutiva de días `completed` alcanzada por cualquier hábito entre el lunes y el día actual inclusive, independientemente de si hoy está `completed`, `failed` o `pending`. Se recalcula siempre desde el día actual, no desde el día editado.
+
+---
+
+### 6. Reward (Recompensa)
+
+Recompensa canjeable definida por el usuario.
+
+| Atributo | Tipo | Descripción |
+| -------- | ---- | ----------- |
+| `id` | `Int` (PK, autoincrement) | Identificador único |
+| `userId` | `Int` (FK → User) | Usuario propietario |
+| `emoji` | `String` | Emoji representativo |
+| `name` | `String` | Nombre |
+| `description` | `String` | Descripción breve |
+| `cost` | `Int` | Coste en puntos |
+| `isActive` | `Boolean` | Disponible para canje |
+| `createdAt` | `DateTime` | Fecha de creación |
+
+**Persistencia:** migrada a PostgreSQL (T-03-02).
+
+---
+
+### 7. RewardRedemption (Canje de recompensa)
+
+Registro de cada canje en una semana determinada. **Regla de negocio:** como máximo **un canje activo por semana** (`weekId`). Si los puntos netos de la semana (`completed × snapshotPoints − failed × snapshotPenalty`) caen por debajo de `pointsSpent`, el canje se elimina (invalidación) y la recompensa vuelve a estar disponible.
+
+| Atributo | Tipo | Descripción |
+| -------- | ---- | ----------- |
+| `id` | `Int` (PK, autoincrement) | Identificador único |
+| `weekId` | `Int` (FK → Week) | Semana del canje |
+| `rewardId` | `Int` (FK → Reward) | Recompensa canjeada |
+| `pointsSpent` | `Int` | Puntos descontados |
+| `redeemedAt` | `DateTime` | Momento del canje |
+
+**Persistencia:** migrada a PostgreSQL (T-03-02).
+
+---
+
+## Objetos de valor (no persistidos)
+
+Estos tipos existen en el frontend para la UI y los cálculos; **no son tablas** en el modelo objetivo del PRD.
+
+### HabitStats (estadísticas agregadas)
+
+Objeto de valor calculado en backend (`backend/src/application/calculateWeekStats.ts`) y expuesto en `GET /api/weeks/current` / `GET /api/weeks` dentro de `stats`:
+
+- `thisWeekPoints`, `lastWeekPoints`, `penalties`, `maxStreak`
+- `maxStreak`: máximo entre los hábitos de la semana visible de la mejor racha consecutiva (`completed`) desde el lunes hasta el día actual; calculado en backend (`computeBestStreakFromEntries`) y en frontend (`computeBestStreakFromStatus`) con la misma regla
+- Saldo disponible para canjear (frontend): `totalPointsFromStats(stats, pointsRedeemed)` → `thisWeekPoints + lastWeekPoints - penalties - pointsRedeemed`
+- `pointsRedeemed`: suma de `pointsSpent` de los canjes de la semana en curso; proviene del array `redemptions` en `GET /api/weeks/current` y `GET /api/weeks?offset=n`
+
+En el frontend, `stats` y `pointsRedeemed` se obtienen de la API vía `useHabitDashboard` (`mapWeekResponseToDashboard`). Los totales de semana bloqueada persisten en `Week.totalPointsEarned` y `Week.totalPenalties`; `lastWeekPoints` proviene de la última semana bloqueada anterior. El backend valida el canje con `calculateWeekAvailableBalance` (solo puntos de la semana activa, sin `lastWeekPoints`). Tras mutaciones que reduzcan puntos (`PATCH /api/habit-entries`, `PATCH /api/habits`, `DELETE /api/habits`), `reconcileWeekRedemption` comprueba si el canje semanal sigue siendo válido.
+
+### WeekData (vista de calendario)
+
+Objeto de presentación (`dates`, `range`) generado por `buildWeekData()` para el componente `WeeklyCalendar`. Se sustituirá por consultas a `Week` + `HabitEntry` cuando exista persistencia.
+
+---
+
+## Mapeo frontend ↔ modelo persistido
+
+| Frontend | Modelo / API |
+| -------- | ------------- |
+| `Habit.id` (`string`) | `Habit.id` (`Int`) + filas en `WeekHabit` / `HabitEntry` (vía `GET /api/weeks/current`) |
+| `Habit.completionStatus[7]` | 7 × `HabitEntry` por cada `WeekHabit` |
+| `Habit.streak` (calculado) | Racha activa: `computeStreakFromStatus(completionStatus, currentDayIndex)` sobre `HabitEntry.status` |
+| `HabitStats.maxStreak` (calculado) | Mejor racha semanal: máximo de `computeBestStreakFromStatus` por hábito; expuesto en `stats` de la API |
+| `Reward` (lista en UI) | `GET /api/rewards` → tabla `Reward` con `hasBeenRedeemed`; canjes en `RewardRedemption` |
+| `Reward.hasBeenRedeemed` | `true` si existe al menos un `RewardRedemption` para esa recompensa; controla visibilidad del botón eliminar |
+| `pointsRedeemed` / `totalPoints` | Suma de `redemptions[].pointsSpent` incluida en la respuesta de semana |
+| `redeemedRewardIdsThisWeek` | IDs de recompensas canjeadas en la semana visible (máx. 1); derivado de `redemptions[]` |
+| `weekOffset` + fechas calculadas | `Week` (`startDate`, `endDate`, `isLocked`) vía `GET /api/weeks?offset=n` |
+
+`frontend/src/domain/fixtures.ts` conserva datos de ejemplo para tests; **no** alimenta la UI en runtime.
+
+---
+
+## Diagrama entidad-relación (PRD §5.2)
+
+```mermaid
+erDiagram
+  USER {
+    Int id PK
+    String email
+    String name
+    String avatarUrl
+    DateTime createdAt
+  }
+
+  WEEK {
+    Int id PK
+    Int userId FK
+    DateTime startDate
+    DateTime endDate
+    Boolean isLocked
+    Int totalPointsEarned
+    Int totalPenalties
+    DateTime createdAt
+  }
+
+  HABIT {
+    Int id PK
+    Int userId FK
+    String emoji
+    String name
+    Int pointsPerDay
+    Int penalty
+    Boolean isActive
+    DateTime createdAt
+  }
+
+  WEEK_HABIT {
+    Int id PK
+    Int weekId FK
+    Int habitId FK
+    Int order
+    String snapshotName
+    String snapshotEmoji
+    Int snapshotPoints
+    Int snapshotPenalty
+  }
+
+  HABIT_ENTRY {
+    Int id PK
+    Int weekHabitId FK
+    Int dayIndex
+    Enum status
+    DateTime updatedAt
+  }
+
+  REWARD {
+    Int id PK
+    Int userId FK
+    String emoji
+    String name
+    String description
+    Int cost
+    Boolean isActive
+    DateTime createdAt
+  }
+
+  REWARD_REDEMPTION {
+    Int id PK
+    Int weekId FK
+    Int rewardId FK
+    Int pointsSpent
+    DateTime redeemedAt
+  }
+
+  USER ||--o{ WEEK : "tiene"
+  USER ||--o{ HABIT : "crea"
+  USER ||--o{ REWARD : "crea"
+  WEEK ||--o{ WEEK_HABIT : "contiene"
+  HABIT ||--o{ WEEK_HABIT : "aparece en"
+  WEEK_HABIT ||--|{ HABIT_ENTRY : "genera"
+  WEEK ||--o{ REWARD_REDEMPTION : "registra"
+  REWARD ||--o{ REWARD_REDEMPTION : "es canjeada en"
+```
+
+---
+
+## Relaciones (resumen, PRD §5.3)
+
+| Desde | Hacia | Cardinalidad | Descripción |
+| ----- | ----- | ------------ | ----------- |
+| `User` | `Week` | 1:N | Semanas del usuario |
+| `User` | `Habit` | 1:N | Catálogo de hábitos |
+| `User` | `Reward` | 1:N | Catálogo de recompensas |
+| `Week` | `WeekHabit` | 1:N | Hábitos activos en esa semana |
+| `Habit` | `WeekHabit` | 1:N | Mismo hábito en varias semanas; snapshot al bloquear |
+| `WeekHabit` | `HabitEntry` | 1:7 | Siete entradas (Lun–Dom) |
+| `Week` | `RewardRedemption` | 1:0..1 | Máximo un canje activo por semana |
+| `Reward` | `RewardRedemption` | 1:N | Misma recompensa en distintas semanas |
+
+---
+
+## Índices de rendimiento
+
+| Tabla | Índice | Columnas | Tipo | Migración |
+|---|---|---|---|---|
+| `Week` | `Week_userId_startDate_idx` | `userId`, `startDate` | B-tree | `20260530120258_init` |
+| `WeekHabit` | `WeekHabit_weekId_idx` | `weekId` | B-tree | `20260530120258_init` |
+| `WeekHabit` | `WeekHabit_weekId_habitId_key` | `weekId`, `habitId` | B-tree (unique) | `20260530120258_init` |
+| `HabitEntry` | `HabitEntry_weekHabitId_idx` | `weekHabitId` | B-tree | `20260530120258_init` |
+| `RewardRedemption` | `RewardRedemption_weekId_idx` | `weekId` | B-tree | `20260530120258_init` |
+
+Definidos con `@@index` y `@@unique` en `backend/prisma/schema.prisma`. Verificados con `EXPLAIN ANALYZE` (T-22-02).
+
+---
+
+## Roadmap de persistencia
+
+1. ~~**Completar schema Prisma**~~ — ✅ T-03-01: siete modelos del dominio + enum `CompletionStatus` en `backend/prisma/schema.prisma`.
+2. ~~**Migración inicial a PostgreSQL (T-03-02)**~~ — ✅ `20260530120258_init` en `backend/prisma/migrations/`; tablas del dominio en BD.
+3. ~~**Seed de datos demo (T-03-03)**~~ — ✅ `backend/prisma/seed.ts`; `npm run db:seed`; usuario demo, hábitos, semana activa y recompensas.
+4. **API y frontend** — CRUD, calendario semanal con bloqueo, canje e historial. ✅ Recompensas y canjes integrados (`rewardApi`, `RewardCard`, `POST /api/weeks/:weekId/redemptions`; `redemptions` en respuesta de semana). ✅ Reglas: 1 canje/semana, eliminación condicionada, invalidación automática de canje.
+5. **Autenticación multiusuario** — dejar de fijar `userId = 1` en API.
+
+---
+
+## Principios de diseño
+
+1. **Alineación con PRD:** el esquema relacional es el de §5.1; la UI puede usar DTOs hasta migrar.
+2. **Clean Architecture:** dominio sin dependencias de Prisma en el frontend.
+3. **Histórico inmutable:** snapshots en `WeekHabit` al bloquear la semana.
+4. **Semana ISO de producto:** `dayIndex` 0 = lunes, 6 = domingo (coherente con `frontend/src/domain/week.ts`).
+
+---
+
+## Referencias
+
+- [prd.md](./prd.md) — §5 Modelo de datos
+- [api-spec.yml](./api-spec.yml) — contrato HTTP
+- [infrastructure.md](./infrastructure.md) — PostgreSQL, Prisma, Docker

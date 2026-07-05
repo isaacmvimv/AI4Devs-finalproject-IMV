@@ -1,0 +1,197 @@
+---
+name: openspec-apply-change
+description: Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.
+license: MIT
+compatibility: Requires openspec CLI.
+metadata:
+  author: openspec
+  version: "1.0"
+  generatedBy: "1.3.1"
+---
+
+Implement tasks from an OpenSpec change.
+
+## Política de tests en apply (TOGGLE)
+
+```
+applyTestScope: change-only
+```
+
+Valores: `change-only` | `full-suite`
+
+**Revertir a suite completa:** cambiar la línea anterior a `applyTestScope: full-suite` (solo este archivo).
+
+Anunciar al iniciar apply: `Alcance tests: <change-only|full-suite>`.
+
+### `change-only` (default)
+
+En tareas de tests unitarios / verificación:
+
+- **Ejecutar** solo comandos `npm test -- <ruta>` con rutas explícitas a archivos `*.test.ts` **creados o modificados en este change** (p. ej. subtareas §7 con rutas concretas).
+- **No ejecutar** `npm test` sin argumentos ni equivalentes (“suite backend relevante”, “suite completa”, “confirmar regresión”).
+- **Omitir** subtareas de regresión de tickets anteriores (p. ej. “Confirmar tests T-09 sin regresión”): marcar `[x]` con nota `(N/A — change-only; suite completa omitida)`.
+- **Sustituir** subtareas de suite amplia por `npm run typecheck` cuando `tasks.md` pida verificación tras tests focalizados; documentar en el informe.
+- En informes (`templates/verification.md`): incluir **Alcance tests:** `change-only`, lista de archivos ejecutados, y **Suite completa:** `N/A`.
+
+### `full-suite`
+
+Seguir `tasks.md` al pie de la letra, incluido `npm test` sin rutas y comprobaciones de regresión.
+
+**Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+
+**Steps**
+
+1. **Select the change**
+
+   If a name is provided, use it. Otherwise:
+   - Infer from conversation context if the user mentioned a change
+   - Auto-select if only one active change exists
+   - If ambiguous, run `openspec list --json` to get available changes and use the **AskUserQuestion tool** to let the user select
+
+   Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
+
+2. **Check status to understand the schema**
+   ```bash
+   openspec status --change "<name>" --json
+   ```
+   Parse the JSON to understand:
+   - `schemaName`: The workflow being used (e.g., "spec-driven")
+   - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
+
+3. **Get apply instructions**
+
+   ```bash
+   openspec instructions apply --change "<name>" --json
+   ```
+
+   This returns:
+   - `contextFiles`: artifact ID -> array of concrete file paths (varies by schema - could be proposal/specs/design/tasks or spec/tests/implementation/docs)
+   - Progress (total, complete, remaining)
+   - Task list with status
+   - Dynamic instruction based on current state
+
+   **Handle states:**
+   - If `state: "blocked"` (missing artifacts): show message, suggest using openspec-continue-change
+   - If `state: "all_done"`: congratulate, suggest archive
+   - Otherwise: proceed to implementation
+
+4. **Cargar contexto de forma incremental** (no leer todos los artefactos al inicio)
+
+   Usar las rutas de `contextFiles` del CLI, pero con esta prioridad:
+
+   **Siempre al empezar la sesión:**
+   - Leer solo el artefacto de tareas (`tasks.md` o el path que indique el CLI para `tasks`).
+
+   **Bajo demanda, antes de cada tarea pendiente:**
+   - `design.md` — si la tarea implica rutas, capas, decisiones técnicas o archivos no obvios.
+   - `specs/**/*.md` — si la tarea es verificación, pruebas, informes o validación de AC.
+   - `proposal.md` — solo si faltan Ticket ID, rama o alcance y no están en `tasks.md`.
+
+   **No cargar por defecto:**
+   - `proposal.md` durante implementación de código (salvo el caso anterior).
+   - `docs/openspec/tasks-core.md` / `tasks-full.md` — los pasos obligatorios ya están en `tasks.md`; plantillas en `docs/openspec/templates/` solo al escribir informes.
+   - Estándares backend/frontend completos — usar lo referenciado en `design.md` o leer una sección puntual si hace falta.
+
+   Si una tarea requiere un artefacto aún no leído, leerlo en ese momento (no precargar todo al inicio).
+
+5. **Show current progress**
+
+   Display:
+   - Schema being used
+   - Progress: "N/M tasks complete"
+   - Remaining tasks overview
+   - Dynamic instruction from CLI
+
+6. **Implement tasks (loop until done or blocked)**
+
+   For each pending task:
+   - Show which task is being worked on
+   - Make the code changes required
+   - Keep changes minimal and focused
+   - **Tests:** aplicar la **Política de tests en apply (TOGGLE)** — en `change-only`, no invocar la suite completa aunque `tasks.md` la liste
+   - Mark task complete in the tasks file: `- [ ]` → `- [x]`
+   - Continue to next task
+
+   **Pause if:**
+   - Task is unclear → ask for clarification
+   - Implementation reveals a design issue → suggest updating artifacts
+   - Error or blocker encountered → report and wait for guidance
+   - User interrupts
+
+7. **On completion or pause, show status**
+
+   Display:
+   - Tasks completed this session
+   - Overall progress: "N/M tasks complete"
+   - If all done: suggest archive
+   - If paused: explain why and wait for guidance
+
+**Output During Implementation**
+
+```
+## Implementing: <change-name> (schema: <schema-name>)
+
+Working on task 3/7: <task description>
+[...implementation happening...]
+✓ Task complete
+
+Working on task 4/7: <task description>
+[...implementation happening...]
+✓ Task complete
+```
+
+**Output On Completion**
+
+```
+## Implementation Complete
+
+**Change:** <change-name>
+**Schema:** <schema-name>
+**Progress:** 7/7 tasks complete ✓
+
+### Completed This Session
+- [x] Task 1
+- [x] Task 2
+...
+
+All tasks complete! Ready to archive this change.
+```
+
+**Output On Pause (Issue Encountered)**
+
+```
+## Implementation Paused
+
+**Change:** <change-name>
+**Schema:** <schema-name>
+**Progress:** 4/7 tasks complete
+
+### Issue Encountered
+<description of the issue>
+
+**Options:**
+1. <option 1>
+2. <option 2>
+3. Other approach
+
+What would you like to do?
+```
+
+**Guardrails**
+- Keep going through tasks until done or blocked
+- **Tests (`applyTestScope`):** en `change-only`, nunca ejecutar `npm test` sin rutas de archivo; solo tests nuevos/modificados del change + `typecheck` / arranque según `tasks.md`; curl y E2E sin cambio
+- Carga incremental: empezar solo con `tasks.md`; leer `design.md` / specs / `proposal.md` cuando la tarea actual lo requiera
+- If task is ambiguous, pause and ask before implementing
+- If implementation reveals issues, pause and suggest artifact updates
+- Keep code changes minimal and scoped to each task
+- Update task checkbox immediately after completing each task
+- Pause on errors, blockers, or unclear requirements - don't guess
+- Use contextFiles from CLI output, don't assume specific file names
+- **Never run `git commit` during apply** — changes stay uncommitted on the feature branch for user review; commit happens only at archive after user acceptance (see docs/openspec/tasks-core.md §Cierre)
+
+**Fluid Workflow Integration**
+
+This skill supports the "actions on a change" model:
+
+- **Can be invoked anytime**: Before all artifacts are done (if tasks exist), after partial implementation, interleaved with other actions
+- **Allows artifact updates**: If implementation reveals design issues, suggest updating artifacts - not phase-locked, work fluidly
